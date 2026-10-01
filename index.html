@@ -225,6 +225,51 @@
     .freshness.aging { color: var(--gold); border-color: rgba(240,189,55,.45); background: var(--gold-soft); }
     .freshness.stale { color: var(--rose); border-color: rgba(232,160,160,.45); background: rgba(232,160,160,.07); }
 
+    /* ---------- Meta activity feed ---------- */
+    .meta-feed-btn { display: inline-flex; align-items: center; gap: 8px; }
+    .meta-feed-btn.open { background: var(--gold-soft); color: var(--gold); border-color: rgba(240,189,55,.45); }
+    .meta-feed-btn .cnt { font-size: 11px; font-weight: 800; background: var(--gold); color: #1c1505; border-radius: 999px; padding: 1px 8px; }
+    .feed-scrim { position: fixed; inset: 0; background: rgba(0,0,0,.5); opacity: 0; pointer-events: none;
+      transition: opacity .3s var(--ease); z-index: 35; }
+    .feed-scrim.show { opacity: 1; pointer-events: auto; }
+    .meta-feed { position: fixed; top: 0; right: 0; bottom: 0; width: min(410px, 94vw); z-index: 40;
+      background: var(--surface); border-left: 1px solid var(--line);
+      display: flex; flex-direction: column;
+      transform: translateX(102%); visibility: hidden;
+      transition: transform .45s var(--ease), visibility 0s .45s; }
+    .meta-feed.open { transform: none; visibility: visible; transition: transform .45s var(--ease), visibility 0s; }
+    .feed-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+      padding: 20px 20px 12px; border-bottom: 1px solid var(--line); flex-shrink: 0; }
+    .feed-head h3 { margin: 0; font: 650 22px/1.1 "Newsreader", serif; letter-spacing: -0.02em; }
+    .feed-sync { margin: 5px 0 0; font-size: 12px; color: var(--muted); font-weight: 600; }
+    .feed-close { border: 1px solid var(--line); background: transparent; width: 34px; height: 34px; border-radius: 50%;
+      font-size: 18px; line-height: 1; cursor: pointer; color: var(--ink); display: grid; place-items: center; flex-shrink: 0;
+      transition: border-color .25s var(--ease); }
+    .feed-close:hover { border-color: var(--gold); }
+    .feed-tabs { display: flex; gap: 8px; padding: 12px 20px; border-bottom: 1px solid var(--line); flex-shrink: 0; }
+    .feed-tabs .chip { padding: 7px 13px; font-size: 12px; }
+    .feed-list { flex: 1 1 auto; min-height: 0; overflow-x: hidden; overflow-y: auto; padding: 14px 20px; }
+    .feed-item { background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 14px 15px; margin-bottom: 10px; }
+    .feed-item:last-child { margin-bottom: 0; }
+    .feed-item-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+    .feed-source { display: flex; align-items: center; gap: 7px; font-size: 11.5px; font-weight: 800; min-width: 0; }
+    .feed-source .pname { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+    .feed-source.fb { color: #64a5f5; }
+    .feed-source.ig { color: #e879a6; }
+    .feed-platform { width: 20px; height: 20px; border-radius: 50%; display: inline-grid; place-items: center; flex-shrink: 0; }
+    .feed-platform.fb { background: rgba(24,119,242,.15); color: #64a5f5; }
+    .feed-platform.ig { background: rgba(214,92,158,.15); color: #e879a6; }
+    .feed-time { font-size: 11.5px; font-weight: 700; color: var(--muted); white-space: nowrap; flex-shrink: 0; }
+    .feed-item h4 { margin: 0 0 6px; font-size: 14.5px; font-weight: 700; letter-spacing: -0.01em; line-height: 1.35; }
+    .feed-item p { margin: 0; font-size: 13px; color: var(--muted); line-height: 1.5; }
+    .feed-links { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+    .feed-link { font-size: 12px; font-weight: 700; border: 1px solid var(--line); border-radius: 999px;
+      padding: 7px 13px; text-decoration: none; color: var(--ink); display: inline-flex; align-items: center;
+      gap: 5px; transition: border-color .25s var(--ease), background .25s var(--ease); }
+    .feed-link:hover { border-color: var(--gold); background: var(--gold-soft); }
+    .feed-empty { color: var(--muted); font-size: 14px; padding: 24px 8px; text-align: center; }
+    .feed-foot { padding: 12px 20px 16px; border-top: 1px solid var(--line); font-size: 11.5px; color: var(--muted); flex-shrink: 0; }
+
     /* ---------- calendar ---------- */
     #calendar-section, #radar-section, #list-section { flex: 1 1 auto; min-height: 0; min-width: 0; }
     #calendar-section:not([hidden]) { display: flex; }
@@ -395,7 +440,7 @@
       .event-list, .day-sidebar, .detail-card { overflow: visible; max-height: none; }
       .sb-card { overflow: visible; flex: none; display: block; }
       .sb-desc { display: block; -webkit-line-clamp: none; max-height: none; }
-      .controls, .calendar-btn, .toast, .detail-actions, .radar-hint { display: none !important; }
+      .controls, .calendar-btn, .toast, .detail-actions, .radar-hint, .meta-feed, .feed-scrim { display: none !important; }
       .radar-panel { min-height: 0; }
       .event-row { break-inside: avoid; }
     }
@@ -421,6 +466,7 @@
         <button type="button" data-view="radar" aria-pressed="false">Radar</button>
         <button type="button" data-view="list" aria-pressed="false">List</button>
       </div>
+      <button class="chip meta-feed-btn" id="feed-toggle" type="button" aria-expanded="false" aria-controls="meta-feed" title="Posts from Facebook groups and Instagram -- synced Oct 1, 2026">Meta activity <span class="cnt" aria-hidden="true"></span></button>
       <div class="filter-row" role="group" aria-label="Filter by area">
         <button class="chip active" type="button" data-filter="all" aria-pressed="true">All</button>
         <button class="chip" type="button" data-filter="campus" aria-pressed="false">Campus</button>
@@ -492,6 +538,23 @@
     </footer>
   </main>
   <div class="toast" id="toast" role="status" aria-live="polite">Calendar file downloaded</div>
+  <div class="feed-scrim" id="feed-scrim"></div>
+  <aside class="meta-feed" id="meta-feed" aria-label="Meta activity feed">
+    <div class="feed-head">
+      <div>
+        <h3>Meta activity</h3>
+        <p class="feed-sync">Snapshot · synced Oct 1, 2026, ~2:36 PM ET</p>
+      </div>
+      <button class="feed-close" id="feed-close" type="button" aria-label="Close Meta activity feed">×</button>
+    </div>
+    <div class="feed-tabs" role="group" aria-label="Filter Meta activity by platform">
+      <button class="chip active" type="button" data-fp="all" aria-pressed="true">All</button>
+      <button class="chip" type="button" data-fp="fb" aria-pressed="false">Facebook</button>
+      <button class="chip" type="button" data-fp="ig" aria-pressed="false">Instagram</button>
+    </div>
+    <div class="feed-list" id="feed-list" role="feed" aria-label="Meta posts"></div>
+    <div class="feed-foot">Static snapshot -- new posts will not appear here. Confirm details with the poster.</div>
+  </aside>
 
   <script>
     (function () {
@@ -978,9 +1041,9 @@
         }
       }
 
-      document.querySelectorAll(".chip").forEach(function (chip) {
+      document.querySelectorAll(".filter-row .chip").forEach(function (chip) {
         chip.addEventListener("click", function () {
-          document.querySelectorAll(".chip").forEach(function (c) {
+          document.querySelectorAll(".filter-row .chip").forEach(function (c) {
             c.classList.remove("active"); c.setAttribute("aria-pressed", "false");
           });
           chip.classList.add("active");
@@ -1369,6 +1432,141 @@
         badge.innerHTML = "<i></i><span>" + bandLabel + " · Updated Sep 29 · " + age + "</span>";
         badge.setAttribute("title", "Event information was compiled on September 29, 2026. Confirm details with the organizer before traveling.");
       }
+
+      /* ---------------- Meta activity feed ---------------- */
+      // Posts are attributed only to the public group or account they came from;
+      // no account-holder name, photo, or profile details appear here.
+      var FEED = [
+        { platform: "fb", source: "Potsdam-Canton Community", time: "Oct 1",
+          title: "Mobile mammogram screening Oct 14 at SLU",
+          summary: "A mobile mammogram screening rolls into St. Lawrence University's Stafford Fitness Center on Oct 14 for Breast Cancer Awareness Month -- registration details are in the Facebook event.",
+          links: [{ label: "Open post", url: "https://facebook.com/groups/2166021530323082/permalink/4573011709624040/" }] },
+        { platform: "fb", source: "Potsdam-Canton Community", time: "Oct 1",
+          title: "Goodwin's Orchard stocked for fall",
+          summary: "Goodwin's Orchard at 37 Needham Road in Potsdam is carrying a big selection of pumpkins, gourds, and squash.",
+          links: [{ label: "Open post", url: "https://facebook.com/groups/2166021530323082/permalink/4572818199643391/" }] },
+        { platform: "fb", source: "Potsdam-Canton Community", time: "Oct 1",
+          title: "Community bingo night two days out",
+          summary: "The community bingo night is happening in two days, and last-minute basket drop-offs are still welcome.",
+          links: [{ label: "Open post", url: "https://facebook.com/groups/2166021530323082/permalink/4572645892993955/" }] },
+        { platform: "fb", source: "Potsdam-Canton Community", time: "Oct 1",
+          title: "\"Breaking Bread\" potluck signup for Nov 14",
+          summary: "A community \"Breaking Bread\" potluck is set for November 14 -- comment with your name and dish to sign up.",
+          links: [{ label: "Open post", url: "https://facebook.com/groups/2166021530323082/permalink/4571856899739521/" }] },
+        { platform: "fb", source: "Growing Potsdam, NY", time: "Oct 1",
+          title: "Hands-on STEM build at the museum",
+          summary: "Dr. Blair Madore and SUNY Potsdam students are hosting a hands-on STEM activity at the museum: build 3D objects from giant triangles, squares, pentagons, and hexagons. Open to all visitors, included with admission or membership.",
+          links: [{ label: "Open post", url: "https://facebook.com/groups/268472031339446/permalink/1632250934961542/" }] },
+        { platform: "fb", source: "Growing Potsdam, NY", time: "Oct 1",
+          title: "Children's museum classes start next week",
+          summary: "North Country Children's Museum afterschool and Pre-K classes start next week -- kids can ride the school bus directly from Potsdam Central School to the museum.",
+          links: [
+            { label: "Sign-up form", url: "https://www.cognitoforms.com/NorthCountryChildrensMuseumAfterschoolClasses1" },
+            { label: "Open post", url: "https://facebook.com/groups/268472031339446/permalink/1631478868372082/" }
+          ] },
+        { platform: "fb", source: "Clarkson Alumni - North Country Chapter", time: "Recent",
+          title: "Clarkson alumni gathering in Warrensburg",
+          summary: "A Clarkson alumni event is planned in Warrensburg -- see the post for details.",
+          links: [{ label: "Open post", url: "https://facebook.com/groups/294582896609087/permalink/926319590102078/" }] },
+        { platform: "fb", source: "Clarkson Alumni - North Country Chapter", time: "Recent",
+          title: "Energy Navigator volunteers wanted",
+          summary: "Cornell Cooperative Extension and the North Country Clean Energy Hub are recruiting Energy Navigator volunteers.",
+          links: [{ label: "Open post", url: "https://facebook.com/groups/294582896609087/permalink/571151385618902/" }] },
+        { platform: "fb", source: "Community Events in the North Country", time: "Oct 1",
+          title: "8U girls competitive hockey team forming",
+          summary: "A new competitive 8U girls hockey team is forming in the North Country, focused on local girls playing together, competing, and building friendships.",
+          links: [{ label: "Open post", url: "https://facebook.com/groups/336043796416831/permalink/28994753280119167/" }] },
+        { platform: "ig", source: "@7newswatertown", time: "Oct 1",
+          title: "K-9 seizes ~450 lbs of cocaine at border",
+          summary: "A K-9 sniffed out nearly 450 pounds of cocaine at a northern New York border crossing.",
+          links: [{ label: "Read story", url: "https://www.wwnytv.com/2026/10/01/k-9-sniffs-out-nearly-450-pounds-cocaine-northern-border/" }] },
+        { platform: "ig", source: "@7newswatertown", time: "Sep 30",
+          title: "Cornell case renews NY consent-law push",
+          summary: "A Cornell case is reigniting the fight to change New York State's consent laws.",
+          links: [{ label: "Read story", url: "https://www.wwnytv.com/2026/09/30/cornell-rape-case-reignites-fight-change-new-york-states-consent-laws/" }] },
+        { platform: "ig", source: "@mynbc5", time: "Recent",
+          title: "Winooski Main Street project complete",
+          summary: "The Winooski Main Street Revitalization Project is finished -- video tour of the area.",
+          links: [] },
+        { platform: "ig", source: "@7newswatertown", time: "Sep 30",
+          title: "Draft 1040 has a question you've never seen",
+          summary: "The draft Form 1040 includes a question filers haven't seen before -- see what it asks.",
+          links: [{ label: "Read story", url: "https://www.wwnytv.com/2026/09/30/form-1040-draft-includes-question-you-havent-seen-before-heres-what-it-asks/" }] }
+      ];
+
+      var feedEl = document.getElementById("meta-feed");
+      var feedList = document.getElementById("feed-list");
+      var feedScrim = document.getElementById("feed-scrim");
+      var feedBtn = document.getElementById("feed-toggle");
+      var feedCloseBtn = document.getElementById("feed-close");
+      var feedOpen = false;
+      var feedFilter = "all";
+
+      var FEED_ICONS = {
+        fb: '<svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path fill="currentColor" d="M13.5 21v-7h2.4l.4-3h-2.8V9.1c0-.9.3-1.5 1.6-1.5h1.3V5.1c-.2 0-1-.1-1.9-.1-1.9 0-3.2 1.2-3.2 3.3V11H9v3h2.3v7h2.2z"/></svg>',
+        ig: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1.2" fill="currentColor" stroke="none"/></svg>'
+      };
+
+      function renderFeed() {
+        var items = FEED.filter(function (it) { return feedFilter === "all" || it.platform === feedFilter; });
+        feedList.innerHTML = "";
+        if (!items.length) {
+          feedList.innerHTML = '<div class="feed-empty">No posts here.</div>';
+          return;
+        }
+        items.forEach(function (it) {
+          var item = document.createElement("article");
+          item.className = "feed-item";
+          item.setAttribute("role", "article");
+          var linksHtml = "";
+          if (it.links && it.links.length) {
+            linksHtml = '<div class="feed-links">' + it.links.map(function (l) {
+              return '<a class="feed-link" target="_blank" rel="noopener" href="' + l.url + '">' + l.label + ' &#8599;</a>';
+            }).join("") + '</div>';
+          }
+          item.innerHTML =
+            '<div class="feed-item-top">' +
+              '<span class="feed-source ' + it.platform + '">' +
+                '<span class="feed-platform ' + it.platform + '">' + FEED_ICONS[it.platform] + '</span>' +
+                '<span class="pname">' + it.source + '</span>' +
+              '</span>' +
+              '<time class="feed-time">' + it.time + '</time>' +
+            '</div>' +
+            '<h4>' + it.title + '</h4>' +
+            '<p>' + it.summary + '</p>' +
+            linksHtml;
+          feedList.appendChild(item);
+        });
+      }
+
+      function setFeed(open) {
+        feedOpen = open;
+        feedEl.classList.toggle("open", open);
+        feedScrim.classList.toggle("show", open);
+        feedBtn.classList.toggle("open", open);
+        feedBtn.setAttribute("aria-expanded", open ? "true" : "false");
+        if (open) { renderFeed(); feedCloseBtn.focus(); }
+        else { feedBtn.focus(); }
+      }
+
+      feedBtn.querySelector(".cnt").textContent = FEED.length;
+      feedBtn.addEventListener("click", function () { setFeed(!feedOpen); });
+      feedCloseBtn.addEventListener("click", function () { setFeed(false); });
+      feedScrim.addEventListener("click", function () { setFeed(false); });
+      document.addEventListener("keydown", function (ev) {
+        if (ev.key === "Escape" && feedOpen) setFeed(false);
+      });
+      document.querySelectorAll(".feed-tabs .chip").forEach(function (t) {
+        t.addEventListener("click", function () {
+          document.querySelectorAll(".feed-tabs .chip").forEach(function (x) {
+            x.classList.remove("active"); x.setAttribute("aria-pressed", "false");
+          });
+          t.classList.add("active");
+          t.setAttribute("aria-pressed", "true");
+          feedFilter = t.getAttribute("data-fp");
+          renderFeed();
+        });
+      });
 
       /* ---------------- init ---------------- */
       renderList(false);
