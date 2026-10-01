@@ -32,10 +32,13 @@
     }
 
     * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
+    html { scroll-behavior: smooth; height: 100%; height: 100dvh; }
     body {
       margin: 0;
       min-width: 0;
+      height: 100%;
+      overflow: hidden;
+      overscroll-behavior: none;
       background: var(--paper);
       color: var(--ink);
       font-family: "DM Sans", sans-serif;
@@ -46,25 +49,24 @@
     button { color: inherit; }
     a { color: inherit; }
 
-    .page { width: min(1180px, calc(100% - 40px)); margin: 0 auto; padding: 44px 0 72px; }
+    .page { width: min(1320px, calc(100% - 40px)); margin: 0 auto; padding: 24px 0 14px; height: 100%; display: flex; flex-direction: column; min-height: 0; }
 
-    header.masthead { margin-bottom: 30px; }
-    .kicker-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
+    header.masthead { margin-bottom: 14px; flex-shrink: 0; }
+    .kicker-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 8px; }
     .kicker { display: flex; align-items: center; gap: 10px; font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); }
     .ping-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gold); position: relative; }
     .ping-dot::after { content: ""; position: absolute; inset: -5px; border-radius: 50%; border: 1px solid var(--gold); opacity: 0.7; animation: ping 2.1s var(--ease) infinite; }
     @keyframes ping { 0% { transform: scale(0.4); opacity: 0.8; } 100% { transform: scale(1.5); opacity: 0; } }
     .snapshot-line { color: var(--muted); font-size: 13px; }
-    h1 { margin: 0; max-width: 780px; font: 650 clamp(38px, 6vw, 64px)/1.02 "Newsreader", serif; letter-spacing: -0.035em; text-wrap: balance; }
-    .masthead p { margin: 14px 0 0; max-width: 620px; color: var(--muted); font-size: clamp(15px, 1.8vw, 17px); }
+    h1 { margin: 0; max-width: 780px; font: 650 clamp(24px, 3.4vw, 34px)/1.05 "Newsreader", serif; letter-spacing: -0.03em; text-wrap: balance; }
+    .masthead p { margin: 6px 0 0; max-width: 760px; color: var(--muted); font-size: clamp(13px, 1.6vw, 14.5px); }
 
     /* ---------- controls ---------- */
     .controls {
-      position: sticky; top: 0; z-index: 8;
       display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
-      padding: 14px 0;
-      background: linear-gradient(to bottom, var(--paper) 72%, transparent);
-      margin-bottom: 18px;
+      padding: 8px 0 12px;
+      margin-bottom: 10px;
+      flex-shrink: 0;
     }
     .view-toggle { display: flex; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 3px; }
     .view-toggle button { border: 0; background: transparent; border-radius: 999px; padding: 8px 18px; font-weight: 700; font-size: 13px; color: var(--muted); cursor: pointer; transition: color .25s var(--ease), background .25s var(--ease); }
@@ -79,21 +81,21 @@
     select.sort:hover { border-color: var(--gold); }
 
     /* ---------- radar ---------- */
-    .radar-stage { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 18px; align-items: stretch; }
+    .radar-stage { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 18px; align-items: stretch; min-height: 0; }
     .radar-panel {
       position: relative;
       background: radial-gradient(120% 100% at 50% 0%, #0d171c 0%, var(--surface) 55%, #090f11 100%);
       border: 1px solid var(--line);
       border-radius: var(--radius-lg);
       overflow: hidden;
-      min-height: 560px;
+      min-height: 0;
       display: grid;
       place-items: center;
       padding: 18px;
       cursor: crosshair;
     }
     .radar-panel:focus-visible { outline: 2px solid var(--gold); outline-offset: -2px; }
-    .radar-svg { width: min(92%, 560px); height: auto; display: block; }
+    .radar-svg { width: auto; height: auto; max-width: 100%; max-height: 100%; display: block; }
     .radar-legend {
       position: absolute; left: 20px; bottom: 18px;
       display: flex; gap: 14px; flex-wrap: wrap;
@@ -136,6 +138,7 @@
       border-radius: var(--radius-lg);
       padding: clamp(24px, 3vw, 36px);
       display: flex; flex-direction: column;
+      min-height: 0; overflow-y: auto;
       transition: opacity .35s var(--ease), transform .35s var(--ease);
     }
     .detail-card.swap { opacity: 0; transform: translateY(10px); }
@@ -159,14 +162,14 @@
     .btn-ghost:hover { border-color: var(--gold); }
 
     /* ---------- list ---------- */
-    .list-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin: 44px 0 16px; }
+    .list-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin: 10px 0 10px; flex-shrink: 0; }
     .list-head h2 { margin: 0; font: 650 clamp(26px, 3.4vw, 36px)/1 "Newsreader", serif; letter-spacing: -0.02em; }
     .list-head span { color: var(--muted); font-size: 13px; }
-    .score-key-inline { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px; color: var(--muted); margin-bottom: 18px; }
+    .score-key-inline { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px; color: var(--muted); margin-bottom: 12px; flex-shrink: 0; }
     .score-key-inline .score-note { flex-basis: 100%; font-style: italic; }
     .score-key-inline strong { color: var(--ink); font-weight: 700; }
     .score-key-inline b.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 7px; }
-    .event-list { display: grid; gap: 10px; position: relative; }
+    .event-list { display: grid; gap: 10px; position: relative; align-content: start; flex: 1; min-height: 0; overflow-y: auto; padding-right: 4px; }
     .event-row {
       display: grid;
       grid-template-columns: 72px minmax(0, 1fr) auto;
@@ -197,7 +200,7 @@
 
     .empty { display: none; padding: 48px 20px; text-align: center; color: var(--muted); border: 1px dashed var(--line); border-radius: var(--radius-md); }
     .empty.show { display: block; }
-    footer { margin-top: 56px; border-top: 1px solid var(--line); padding-top: 20px; display: flex; gap: 24px; justify-content: space-between; color: var(--muted); font-size: 12px; }
+    footer { margin-top: 10px; border-top: 1px solid var(--line); padding-top: 10px; display: flex; gap: 24px; justify-content: space-between; align-items: baseline; color: var(--muted); font-size: 11px; flex-shrink: 0; }
     footer p { margin: 0; max-width: 720px; }
 
     .toast {
@@ -223,9 +226,13 @@
     .freshness.stale { color: var(--rose); border-color: rgba(232,160,160,.45); background: rgba(232,160,160,.07); }
 
     /* ---------- calendar ---------- */
-    .calendar-stage { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 18px; align-items: stretch; }
-    .calendar-panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: clamp(18px, 2.6vw, 28px); }
-    .cal-head { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+    #calendar-section, #radar-section, #list-section { flex: 1 1 auto; min-height: 0; min-width: 0; }
+    #calendar-section:not([hidden]) { display: flex; }
+    #list-section:not([hidden]) { display: flex; flex-direction: column; }
+    .calendar-stage { flex: 1; width: 100%; min-height: 0; display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 18px; align-items: stretch; }
+    .cal-left { display: flex; flex-direction: column; min-height: 0; min-width: 0; }
+    .calendar-panel { flex: 1; min-height: 0; display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: clamp(14px, 2.2vw, 24px); }
+    .cal-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex-shrink: 0; }
     .cal-head h2 { margin: 0; flex: 1; font: 650 clamp(21px, 2.6vw, 30px)/1 "Newsreader", serif; letter-spacing: -0.02em; }
     .cal-nav { border: 1px solid var(--line); background: transparent; width: 38px; height: 38px; border-radius: 50%;
       cursor: pointer; color: var(--ink); font-size: 17px; font-weight: 700; line-height: 1;
@@ -234,9 +241,9 @@
     .cal-today { border: 1px solid var(--line); background: transparent; border-radius: 999px; padding: 9px 15px;
       font-size: 12px; font-weight: 700; cursor: pointer; color: var(--muted); transition: color .25s var(--ease), border-color .25s var(--ease); }
     .cal-today:hover { color: var(--ink); border-color: var(--gold); }
-    .cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+    .cal-grid { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); grid-template-rows: auto; grid-auto-rows: minmax(0, 1fr); align-content: stretch; gap: 6px; }
     .cal-dow { font-size: 10px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); text-align: center; padding: 4px 0 8px; }
-    .cal-day { min-height: 88px; border: 1px solid var(--line); border-radius: var(--radius-sm);
+    .cal-day { min-height: 0; overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius-sm);
       background: var(--surface-2); padding: 7px 8px; display: flex; flex-direction: column; gap: 5px;
       cursor: pointer; transition: border-color .25s var(--ease), box-shadow .25s var(--ease); }
     .cal-day:hover { border-color: rgba(240,189,55,.45); }
@@ -248,20 +255,20 @@
     .cal-day.today { border-color: rgba(240,189,55,.45); }
     .cal-day.today .cal-daynum { color: var(--gold); border: 1px solid rgba(240,189,55,.65); border-radius: 50%;
       width: 24px; height: 24px; display: inline-grid; place-items: center; font-size: 12px; }
-    .cal-chips { display: flex; flex-direction: column; gap: 5px; }
+    .cal-chips { display: flex; flex-direction: column; gap: 5px; min-height: 0; overflow: hidden; }
     .cal-chip { display: block; width: 100%; font-size: 12px; font-weight: 600; line-height: 1.35;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border-radius: 6px;
       padding: 3px 8px 3px 7px; border-left: 3px solid var(--sc); color: var(--ink);
       background: rgba(255,255,255,0.05);
       background: color-mix(in srgb, var(--sc) 16%, transparent); }
     .cal-more { font-size: 11px; font-weight: 700; color: var(--gold); padding-left: 5px; }
-    .src-legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 18px; font-size: 12px; color: var(--muted); font-weight: 600; align-items: center; }
+    .src-legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 10px; flex-shrink: 0; font-size: 12px; color: var(--muted); font-weight: 600; align-items: center; }
     .src-legend .lbl { font-size: 10.5px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
     .src-legend span { display: inline-flex; align-items: center; gap: 7px; }
     .src-legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; flex-shrink: 0; }
 
     /* ---------- ongoing strip ---------- */
-    .ongoing { margin-top: 18px; }
+    .ongoing { margin-top: 10px; flex-shrink: 0; }
     .ongoing h3 { margin: 0 0 10px; font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
     .ongoing-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; }
     .ongoing-card { border: 1px dashed var(--line); background: transparent; border-radius: var(--radius-sm);
@@ -274,32 +281,41 @@
     .ongoing-card small { color: var(--muted); font-size: 12px; display: block; margin-top: 4px; }
 
     /* ---------- day sidebar ---------- */
+    /* The sidebar shows exactly one event card at a time and never scrolls on
+       desktop: its column is flex and the card is clamped into the free space. */
     .day-sidebar { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg);
-      padding: clamp(20px, 2.6vw, 30px); overflow-y: auto; max-height: 780px; }
-    .sb-heading { margin: 0 0 3px; font: 650 clamp(22px, 2.6vw, 28px)/1.08 "Newsreader", serif; letter-spacing: -0.015em; }
-    .sb-sub { margin: 0 0 18px; color: var(--muted); font-size: 13px; font-weight: 600; }
+      padding: clamp(16px, 2vw, 26px); overflow: hidden; min-height: 0;
+      display: flex; flex-direction: column; }
+    .sb-heading { margin: 0 0 3px; font: 650 clamp(22px, 2.6vw, 28px)/1.08 "Newsreader", serif; letter-spacing: -0.015em; flex-shrink: 0; }
+    .sb-sub { margin: 0 0 12px; color: var(--muted); font-size: 13px; font-weight: 600; flex-shrink: 0; }
+    .sb-pager { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-shrink: 0; flex-wrap: wrap; }
+    .sb-pager .cal-nav { width: 34px; height: 34px; font-size: 16px; flex-shrink: 0; }
+    .sb-pager-label { font-size: 12.5px; font-weight: 700; color: var(--muted); white-space: nowrap; }
+    .sb-pager .sb-link { margin-left: auto; }
     .sb-card { border: 1px solid var(--line); border-top-width: 3px; border-radius: var(--radius-md);
-      padding: 18px; margin-bottom: 12px; background: var(--surface-2); }
-    .sb-card-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 9px; flex-wrap: wrap; }
+      padding: 16px; margin-bottom: 0; background: var(--surface-2);
+      flex: 1 1 auto; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
+    .sb-card-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; flex-shrink: 0; }
     .sb-src { font-size: 10.5px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;
       display: inline-flex; align-items: center; gap: 7px; }
     .sb-src i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
     .sb-area { font-size: 11px; font-weight: 700; color: var(--muted); background: var(--surface);
       padding: 4px 10px; border-radius: 999px; }
-    .sb-card h4 { margin: 0 0 12px; font-size: 19px; font-weight: 700; letter-spacing: -0.015em; }
-    .sb-meta { margin: 0 0 12px; display: grid; gap: 7px; }
+    .sb-card h4 { margin: 0 0 10px; font-size: 17px; font-weight: 700; letter-spacing: -0.015em; flex-shrink: 0; }
+    .sb-meta { margin: 0 0 10px; display: grid; gap: 6px; flex-shrink: 0; }
     .sb-meta div { display: grid; grid-template-columns: 58px minmax(0, 1fr); gap: 10px; font-size: 13px; align-items: baseline; }
     .sb-meta dt { margin: 0; font-size: 10.5px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
     .sb-meta dd { margin: 0; font-weight: 600; }
     .sb-meta dd strong { color: var(--gold); }
-    .sb-desc { color: var(--muted); font-size: 14px; margin: 0 0 14px; }
-    .sb-score { display: flex; align-items: center; gap: 12px; padding: 12px 14px; margin: 0 0 14px;
-      background: var(--gold-soft); border: 1px solid rgba(240,189,55,.25); border-radius: var(--radius-sm); }
-    .sb-score strong { font: 650 28px/1 "Newsreader", serif; color: var(--gold); }
+    .sb-desc { color: var(--muted); font-size: 14px; margin: 0 0 12px;
+      display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; overflow: hidden; }
+    .sb-score { display: flex; align-items: center; gap: 12px; padding: 10px 12px; margin: 0 0 10px;
+      background: var(--gold-soft); border: 1px solid rgba(240,189,55,.25); border-radius: var(--radius-sm); flex-shrink: 0; }
+    .sb-score strong { font: 650 24px/1 "Newsreader", serif; color: var(--gold); }
     .sb-score span { font-size: 12px; color: var(--muted); }
     .sb-score span b { display: block; color: var(--ink); font-size: 13px; }
-    .sb-reason { font-size: 13px; color: var(--muted); margin: -8px 0 14px; }
-    .sb-links { display: flex; gap: 8px; flex-wrap: wrap; }
+    .sb-reason { font-size: 13px; color: var(--muted); margin: -6px 0 10px; flex-shrink: 0; }
+    .sb-links { display: flex; gap: 8px; flex-wrap: wrap; margin-top: auto; padding-top: 10px; flex-shrink: 0; }
     .sb-link { font-size: 12.5px; font-weight: 700; border: 1px solid var(--line); border-radius: 999px;
       padding: 9px 16px; cursor: pointer; background: transparent; color: var(--ink);
       display: inline-flex; align-items: center; gap: 6px; text-decoration: none;
@@ -307,7 +323,7 @@
     .sb-link:hover { border-color: var(--gold); background: var(--gold-soft); }
     .sb-link.primary { background: var(--gold); border-color: var(--gold); color: #1c1505; }
     .sb-link.primary:hover { background: var(--sweep); }
-    .sb-day-actions { margin-bottom: 16px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .sb-day-actions { margin-bottom: 16px; display: flex; gap: 8px; flex-wrap: wrap; flex-shrink: 0; }
     .sb-row { width: 100%; display: flex; align-items: center; gap: 12px; border: 1px solid var(--line);
       background: var(--surface-2); border-radius: var(--radius-sm); padding: 10px 12px; margin-bottom: 7px;
       cursor: pointer; color: var(--ink); text-align: left; transition: border-color .25s var(--ease); }
@@ -321,15 +337,35 @@
     [hidden] { display: none !important; }
 
     @media (max-width: 900px) {
-      .radar-stage { grid-template-columns: 1fr; }
+      /* Narrow viewports restore natural page flow: a full month grid, the
+         ongoing strip and event details cannot fit legibly without scrolling,
+         so nothing is clipped here. */
+      html, body { height: auto; }
+      body { overflow-y: auto; }
+      .page { height: auto; min-height: 100dvh; display: block; padding: 18px 0 36px; }
+      #calendar-section, #radar-section, #list-section { flex: none; }
+      #calendar-section:not([hidden]), #list-section:not([hidden]) { display: block; }
+      .calendar-stage { grid-template-columns: 1fr; grid-template-rows: none; gap: 14px; }
+      .cal-left { display: block; overflow: visible; }
+      .calendar-panel { display: block; }
+      .cal-grid { flex: none; grid-auto-rows: auto; }
+      .cal-day { min-height: 64px; }
+      .ongoing { margin-top: 14px; }
+      .ongoing-row { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+      .day-sidebar { overflow: visible; }
+      .sb-card { flex: none; overflow: visible; display: block; }
+      .sb-desc { display: block; -webkit-line-clamp: none; overflow: visible; max-height: none; }
+      .sb-links { margin-top: 0; padding-top: 0; }
+      .radar-stage { grid-template-columns: 1fr; grid-template-rows: none; }
       .radar-panel { min-height: 0; }
+      .radar-svg { width: min(92%, 560px); max-width: 100%; max-height: none; }
       .radar-hint { display: none; }
+      .detail-card { overflow: visible; }
+      .event-list { overflow: visible; }
       .sort-wrap { margin-left: 0; }
-      .calendar-stage { grid-template-columns: 1fr; }
-      .day-sidebar { max-height: none; }
     }
     @media (max-width: 580px) {
-      .page { width: min(100% - 24px, 1180px); padding-top: 28px; }
+      .page { width: min(100% - 24px, 1320px); padding: 14px 0 10px; }
       .event-row { grid-template-columns: 56px minmax(0, 1fr); gap: 14px; padding: 16px; }
       .row-tail { grid-column: 1 / -1; justify-content: space-between; }
       .row-date strong { font-size: 28px; }
@@ -337,7 +373,9 @@
       footer { flex-direction: column; }
     }
     @media (max-width: 640px) {
-      .cal-day { min-height: 62px; padding: 5px 6px; }
+      header.masthead { margin-bottom: 12px; }
+      .src-legend { gap: 10px; font-size: 11px; }
+      .cal-day { padding: 5px 6px; gap: 4px; min-height: 60px; }
       .cal-chips { flex-direction: row; flex-wrap: wrap; gap: 4px; }
       .cal-chip { font-size: 0; width: 9px; height: 9px; border-radius: 50%; padding: 0;
         border-left: 0; background: var(--sc); }
@@ -350,8 +388,13 @@
     }
 
     @media print {
+      html, body { height: auto; overflow: visible; }
       body { background: #fff; color: #111; }
-      .page { width: 100%; padding: 0; }
+      .page { width: 100%; height: auto; display: block; padding: 0; }
+      #calendar-section, #radar-section, #list-section { display: block !important; height: auto; }
+      .event-list, .day-sidebar, .detail-card { overflow: visible; max-height: none; }
+      .sb-card { overflow: visible; flex: none; display: block; }
+      .sb-desc { display: block; -webkit-line-clamp: none; max-height: none; }
       .controls, .calendar-btn, .toast, .detail-actions, .radar-hint { display: none !important; }
       .radar-panel { min-height: 0; }
       .event-row { break-inside: avoid; }
@@ -397,7 +440,7 @@
 
     <section id="calendar-section" aria-label="Month calendar">
       <div class="calendar-stage">
-        <div>
+        <div class="cal-left">
           <div class="calendar-panel">
             <div class="cal-head">
               <button class="cal-nav" id="cal-prev" type="button" aria-label="Previous month">‹</button>
@@ -572,7 +615,7 @@
       var toastTimer;
 
       var state = { filter: "all", sort: "date", view: "month", selected: null, blips: [], sweep: 0,
-        calYear: 2026, calMonth: 8, selectedDay: null, calSingle: null };
+        calYear: 2026, calMonth: 8, selectedDay: null, calSingle: null, calIdx: 0 };
 
       /* ---------------- radar construction ---------------- */
       var CX = 300, CY = 300, R = 258, R_ONGOING = 288; // center pole + labeled ongoing lane at the edge
@@ -1204,7 +1247,28 @@
       function renderDaySidebar(key) {
         var evts = eventsOnDay(key);
         if (!evts.length) { renderMonthSummary(); return; }
-        renderSidebarCards(evts, dayHeading(key), evts.length + (evts.length === 1 ? " event" : " events"), key, false);
+        // One selected event at a time so the sidebar never has to scroll.
+        if (state.calIdx >= evts.length) state.calIdx = 0;
+        var e = evts[state.calIdx];
+        var html = '<h3 class="sb-heading">' + dayHeading(key) + '</h3>' +
+          '<p class="sb-sub">' + evts.length + (evts.length === 1 ? " event" : " events") + '</p>';
+        if (evts.length > 1) {
+          html += '<div class="sb-pager" role="group" aria-label="Browse events on this day">' +
+            '<button class="cal-nav" type="button" data-step="-1" aria-label="Previous event">‹</button>' +
+            '<span class="sb-pager-label">' + (state.calIdx + 1) + " of " + evts.length + '</span>' +
+            '<button class="cal-nav" type="button" data-step="1" aria-label="Next event">›</button>' +
+            '<button class="sb-link primary" type="button" data-all="' + key + '">Add all to calendar</button></div>';
+        }
+        html += cardHTML(e);
+        sidebar.innerHTML = html;
+      }
+
+      function stepDayEvent(dir) {
+        if (!state.selectedDay) return;
+        var evts = eventsOnDay(state.selectedDay);
+        if (evts.length < 2) return;
+        state.calIdx = (state.calIdx + dir + evts.length) % evts.length;
+        renderDaySidebar(state.selectedDay);
       }
 
       function renderOngoingSidebar(e) {
@@ -1214,11 +1278,11 @@
       function selectDay(key) {
         state.selectedDay = key;
         state.calSingle = null;
+        state.calIdx = 0;
         renderCalendar();
         renderOngoing();
         renderDaySidebar(key);
-      }
-      function selectOngoing(id) {
+      }      function selectOngoing(id) {
         state.calSingle = id;
         state.selectedDay = null;
         renderCalendar();
@@ -1265,7 +1329,7 @@
         var t = ev.target;
         while (t && t !== sidebar) {
           if (t.getAttribute && (t.getAttribute("data-ics") || t.getAttribute("data-day") ||
-              t.getAttribute("data-all") || t.getAttribute("data-back"))) break;
+              t.getAttribute("data-all") || t.getAttribute("data-back") || t.getAttribute("data-step"))) break;
           t = t.parentNode;
         }
         if (!t || t === sidebar) return;
@@ -1275,6 +1339,8 @@
         if (dayK) { selectDay(dayK); return; }
         var allK = t.getAttribute("data-all");
         if (allK) { downloadAllICS(allK, eventsOnDay(allK)); return; }
+        var stepS = t.getAttribute("data-step");
+        if (stepS) { stepDayEvent(parseInt(stepS, 10)); return; }
         state.calSingle = null;
         renderOngoing(); renderSidebarForState();
       });
