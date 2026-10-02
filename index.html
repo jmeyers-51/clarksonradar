@@ -44,12 +44,14 @@
       font-family: "DM Sans", sans-serif;
       line-height: 1.5;
       -webkit-font-smoothing: antialiased;
+      display: flex;
+      align-items: stretch;
     }
     button, input, select { font: inherit; }
     button { color: inherit; }
     a { color: inherit; }
 
-    .page { width: min(1320px, calc(100% - 40px)); margin: 0 auto; padding: 24px 0 14px; height: 100%; display: flex; flex-direction: column; min-height: 0; }
+    .page { width: 100%; max-width: 1360px; margin: 0 auto; padding: 24px 20px 14px; height: 100%; display: flex; flex-direction: column; min-height: 0; flex: 1 1 auto; min-width: 0; }
 
     header.masthead { margin-bottom: 14px; flex-shrink: 0; }
     .kicker-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 8px; }
@@ -225,29 +227,43 @@
     .freshness.aging { color: var(--gold); border-color: rgba(240,189,55,.45); background: var(--gold-soft); }
     .freshness.stale { color: var(--rose); border-color: rgba(232,160,160,.45); background: rgba(232,160,160,.07); }
 
-    /* ---------- Meta activity feed ---------- */
-    .meta-feed-btn { display: inline-flex; align-items: center; gap: 8px; }
-    .meta-feed-btn.open { background: var(--gold-soft); color: var(--gold); border-color: rgba(240,189,55,.45); }
-    .meta-feed-btn .cnt { font-size: 11px; font-weight: 800; background: var(--gold); color: #1c1505; border-radius: 999px; padding: 1px 8px; }
-    .feed-scrim { position: fixed; inset: 0; background: rgba(0,0,0,.5); opacity: 0; pointer-events: none;
-      transition: opacity .3s var(--ease); z-index: 35; }
-    .feed-scrim.show { opacity: 1; pointer-events: auto; }
-    .meta-feed { position: fixed; top: 0; right: 0; bottom: 0; width: min(410px, 94vw); z-index: 40;
-      background: var(--surface); border-left: 1px solid var(--line);
-      display: flex; flex-direction: column;
-      transform: translateX(102%); visibility: hidden;
-      transition: transform .45s var(--ease), visibility 0s .45s; }
-    .meta-feed.open { transform: none; visibility: visible; transition: transform .45s var(--ease), visibility 0s; }
+    /* ---------- Meta activity feed: left drawer ---------- */
+    .meta-feed {
+      --feed-w: 360px;
+      --tab-w: 48px;
+      position: relative; z-index: 40;
+      width: var(--feed-w); flex: 0 0 var(--feed-w); max-width: 92vw;
+      display: flex; align-items: stretch;
+      background: var(--surface); border-right: 1px solid var(--line);
+      height: 100%; height: 100dvh;
+      transition: width .45s var(--ease), flex-basis .45s var(--ease);
+    }
+    body.feed-collapsed .meta-feed { width: var(--tab-w); flex-basis: var(--tab-w); }
+    .feed-panel { flex: 1 1 auto; min-width: 0; min-height: 0; overflow: hidden;
+      display: flex; flex-direction: column; }
+    .feed-tab {
+      flex: 0 0 var(--tab-w); width: var(--tab-w);
+      border: 0; border-left: 1px solid var(--line);
+      background: var(--surface-2);
+      display: flex; flex-direction: column; align-items: center;
+      padding: 16px 0; gap: 10px;
+      cursor: pointer; color: var(--ink);
+      transition: background .3s var(--ease);
+    }
+    .feed-tab:hover { background: rgba(240,189,55,.08); }
+    .feed-tab:focus-visible { outline: 2px solid var(--gold); outline-offset: -2px; }
+    .feed-chev { font-size: 22px; font-weight: 800; line-height: 1; color: var(--gold);
+      transition: transform .35s var(--ease); }
+    body.feed-collapsed .feed-chev { transform: rotate(180deg); }
+    .feed-tab .cnt { font-size: 11px; font-weight: 800; background: var(--gold); color: #1c1505;
+      border-radius: 999px; padding: 2px 8px; }
+    .feed-tab .feed-tab-label { writing-mode: vertical-rl; text-orientation: mixed;
+      font-size: 10px; font-weight: 800; letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--muted); margin-top: 6px; }
     .feed-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
       padding: 20px 20px 12px; border-bottom: 1px solid var(--line); flex-shrink: 0; }
     .feed-head h3 { margin: 0; font: 650 22px/1.1 "Newsreader", serif; letter-spacing: -0.02em; }
     .feed-sync { margin: 5px 0 0; font-size: 12px; color: var(--muted); font-weight: 600; }
-    .feed-close { border: 1px solid var(--line); background: transparent; width: 34px; height: 34px; border-radius: 50%;
-      font-size: 18px; line-height: 1; cursor: pointer; color: var(--ink); display: grid; place-items: center; flex-shrink: 0;
-      transition: border-color .25s var(--ease); }
-    .feed-close:hover { border-color: var(--gold); }
-    .feed-tabs { display: flex; gap: 8px; padding: 12px 20px; border-bottom: 1px solid var(--line); flex-shrink: 0; }
-    .feed-tabs .chip { padding: 7px 13px; font-size: 12px; }
     .feed-list { flex: 1 1 auto; min-height: 0; overflow-x: hidden; overflow-y: auto; padding: 14px 20px; }
     .feed-item { background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 14px 15px; margin-bottom: 10px; }
     .feed-item:last-child { margin-bottom: 0; }
@@ -386,8 +402,25 @@
          ongoing strip and event details cannot fit legibly without scrolling,
          so nothing is clipped here. */
       html, body { height: auto; }
-      body { overflow-y: auto; }
-      .page { height: auto; min-height: 100dvh; display: block; padding: 18px 0 36px; }
+      body { overflow-y: auto; display: block; }
+      .meta-feed { position: fixed; left: 0; top: 0; bottom: 0; height: auto; box-shadow: 0 0 48px rgba(0,0,0,.55); }
+      /* On small screens the collapsed handle becomes a bottom-anchored pill so
+         it never sits on top of the controls in the page. */
+      body.feed-collapsed .meta-feed {
+        top: auto; bottom: 18px; left: 18px;
+        width: auto; flex-basis: auto;
+        border: 1px solid var(--line); border-right: 1px solid var(--line); border-radius: 999px;
+      }
+      body.feed-collapsed .feed-panel { display: none; }
+      body.feed-collapsed .feed-tab {
+        flex: 0 0 auto; width: auto; height: auto;
+        flex-direction: row; align-items: center; gap: 8px;
+        border-left: 0; border-radius: 999px;
+        padding: 11px 18px 11px 14px;
+      }
+      body.feed-collapsed .feed-tab .feed-tab-label { writing-mode: horizontal-tb; margin: 0; }
+      body.feed-collapsed .feed-chev { font-size: 20px; }
+      .page { height: auto; min-height: 100dvh; display: block; padding: 18px 16px 36px; }
       #calendar-section, #radar-section, #list-section { flex: none; }
       #calendar-section:not([hidden]), #list-section:not([hidden]) { display: block; }
       .calendar-stage { grid-template-columns: 1fr; grid-template-rows: none; gap: 14px; }
@@ -440,13 +473,28 @@
       .event-list, .day-sidebar, .detail-card { overflow: visible; max-height: none; }
       .sb-card { overflow: visible; flex: none; display: block; }
       .sb-desc { display: block; -webkit-line-clamp: none; max-height: none; }
-      .controls, .calendar-btn, .toast, .detail-actions, .radar-hint, .meta-feed, .feed-scrim { display: none !important; }
+      .controls, .calendar-btn, .toast, .detail-actions, .radar-hint, .meta-feed { display: none !important; }
       .radar-panel { min-height: 0; }
       .event-row { break-inside: avoid; }
     }
   </style>
 </head>
 <body>
+  <aside class="meta-feed" id="meta-feed" aria-label="Meta activity feed">
+    <div class="feed-panel">
+      <div class="feed-head">
+        <div>
+          <h3>Meta activity</h3>
+          <p class="feed-sync">Snapshot · synced Oct 1, 2026, ~2:36 PM ET</p>
+        </div>
+      </div>
+      <div class="feed-list" id="feed-list" role="feed" aria-label="Meta group posts"></div>
+      <div class="feed-foot">Static snapshot -- new posts will not appear here. Confirm details with the poster.</div>
+    </div>
+    <button class="feed-tab" id="feed-tab" type="button" aria-expanded="true" aria-controls="meta-feed" aria-label="Collapse local events feed" title="Collapse feed">
+      <span class="feed-chev" aria-hidden="true">&#8249;</span><span class="cnt" aria-hidden="true">9</span><span class="feed-tab-label">Feed</span>
+    </button>
+  </aside>
   <main class="page">
     <header class="masthead">
       <div class="kicker-row">
@@ -466,7 +514,6 @@
         <button type="button" data-view="radar" aria-pressed="false">Radar</button>
         <button type="button" data-view="list" aria-pressed="false">List</button>
       </div>
-      <button class="chip meta-feed-btn" id="feed-toggle" type="button" aria-expanded="false" aria-controls="meta-feed" title="Posts from Facebook groups and Instagram -- synced Oct 1, 2026">Meta activity <span class="cnt" aria-hidden="true"></span></button>
       <div class="filter-row" role="group" aria-label="Filter by area">
         <button class="chip active" type="button" data-filter="all" aria-pressed="true">All</button>
         <button class="chip" type="button" data-filter="campus" aria-pressed="false">Campus</button>
@@ -538,23 +585,6 @@
     </footer>
   </main>
   <div class="toast" id="toast" role="status" aria-live="polite">Calendar file downloaded</div>
-  <div class="feed-scrim" id="feed-scrim"></div>
-  <aside class="meta-feed" id="meta-feed" aria-label="Meta activity feed">
-    <div class="feed-head">
-      <div>
-        <h3>Meta activity</h3>
-        <p class="feed-sync">Snapshot · synced Oct 1, 2026, ~2:36 PM ET</p>
-      </div>
-      <button class="feed-close" id="feed-close" type="button" aria-label="Close Meta activity feed">×</button>
-    </div>
-    <div class="feed-tabs" role="group" aria-label="Filter Meta activity by platform">
-      <button class="chip active" type="button" data-fp="all" aria-pressed="true">All</button>
-      <button class="chip" type="button" data-fp="fb" aria-pressed="false">Facebook</button>
-      <button class="chip" type="button" data-fp="ig" aria-pressed="false">Instagram</button>
-    </div>
-    <div class="feed-list" id="feed-list" role="feed" aria-label="Meta posts"></div>
-    <div class="feed-foot">Static snapshot -- new posts will not appear here. Confirm details with the poster.</div>
-  </aside>
 
   <script>
     (function () {
@@ -1475,46 +1505,24 @@
         { platform: "fb", source: "Community Events in the North Country", time: "Oct 1",
           title: "8U girls competitive hockey team forming",
           summary: "A new competitive 8U girls hockey team is forming in the North Country, focused on local girls playing together, competing, and building friendships.",
-          links: [{ label: "Open post", url: "https://facebook.com/groups/336043796416831/permalink/28994753280119167/" }] },
-        { platform: "ig", source: "@7newswatertown", time: "Oct 1",
-          title: "K-9 seizes ~450 lbs of cocaine at border",
-          summary: "A K-9 sniffed out nearly 450 pounds of cocaine at a northern New York border crossing.",
-          links: [{ label: "Read story", url: "https://www.wwnytv.com/2026/10/01/k-9-sniffs-out-nearly-450-pounds-cocaine-northern-border/" }] },
-        { platform: "ig", source: "@7newswatertown", time: "Sep 30",
-          title: "Cornell case renews NY consent-law push",
-          summary: "A Cornell case is reigniting the fight to change New York State's consent laws.",
-          links: [{ label: "Read story", url: "https://www.wwnytv.com/2026/09/30/cornell-rape-case-reignites-fight-change-new-york-states-consent-laws/" }] },
-        { platform: "ig", source: "@mynbc5", time: "Recent",
-          title: "Winooski Main Street project complete",
-          summary: "The Winooski Main Street Revitalization Project is finished -- video tour of the area.",
-          links: [] },
-        { platform: "ig", source: "@7newswatertown", time: "Sep 30",
-          title: "Draft 1040 has a question you've never seen",
-          summary: "The draft Form 1040 includes a question filers haven't seen before -- see what it asks.",
-          links: [{ label: "Read story", url: "https://www.wwnytv.com/2026/09/30/form-1040-draft-includes-question-you-havent-seen-before-heres-what-it-asks/" }] }
+          links: [{ label: "Open post", url: "https://facebook.com/groups/336043796416831/permalink/28994753280119167/" }] }
       ];
 
-      var feedEl = document.getElementById("meta-feed");
       var feedList = document.getElementById("feed-list");
-      var feedScrim = document.getElementById("feed-scrim");
-      var feedBtn = document.getElementById("feed-toggle");
-      var feedCloseBtn = document.getElementById("feed-close");
-      var feedOpen = false;
-      var feedFilter = "all";
+      var feedTab = document.getElementById("feed-tab");
+      var feedOpen = true;
 
       var FEED_ICONS = {
-        fb: '<svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path fill="currentColor" d="M13.5 21v-7h2.4l.4-3h-2.8V9.1c0-.9.3-1.5 1.6-1.5h1.3V5.1c-.2 0-1-.1-1.9-.1-1.9 0-3.2 1.2-3.2 3.3V11H9v3h2.3v7h2.2z"/></svg>',
-        ig: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1.2" fill="currentColor" stroke="none"/></svg>'
+        fb: '<svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path fill="currentColor" d="M13.5 21v-7h2.4l.4-3h-2.8V9.1c0-.9.3-1.5 1.6-1.5h1.3V5.1c-.2 0-1-.1-1.9-.1-1.9 0-3.2 1.2-3.2 3.3V11H9v3h2.3v7h2.2z"/></svg>'
       };
 
       function renderFeed() {
-        var items = FEED.filter(function (it) { return feedFilter === "all" || it.platform === feedFilter; });
         feedList.innerHTML = "";
-        if (!items.length) {
+        if (!FEED.length) {
           feedList.innerHTML = '<div class="feed-empty">No posts here.</div>';
           return;
         }
-        items.forEach(function (it) {
+        FEED.forEach(function (it) {
           var item = document.createElement("article");
           item.className = "feed-item";
           item.setAttribute("role", "article");
@@ -1541,32 +1549,21 @@
 
       function setFeed(open) {
         feedOpen = open;
-        feedEl.classList.toggle("open", open);
-        feedScrim.classList.toggle("show", open);
-        feedBtn.classList.toggle("open", open);
-        feedBtn.setAttribute("aria-expanded", open ? "true" : "false");
-        if (open) { renderFeed(); feedCloseBtn.focus(); }
-        else { feedBtn.focus(); }
+        document.body.classList.toggle("feed-collapsed", !open);
+        feedTab.setAttribute("aria-expanded", open ? "true" : "false");
+        feedTab.setAttribute("aria-label", open ? "Collapse local events feed" : "Open local events feed");
+        feedTab.setAttribute("title", open ? "Collapse feed" : "Open feed");
       }
 
-      feedBtn.querySelector(".cnt").textContent = FEED.length;
-      feedBtn.addEventListener("click", function () { setFeed(!feedOpen); });
-      feedCloseBtn.addEventListener("click", function () { setFeed(false); });
-      feedScrim.addEventListener("click", function () { setFeed(false); });
+      feedTab.querySelector(".cnt").textContent = FEED.length;
+      feedTab.addEventListener("click", function () { setFeed(!feedOpen); });
       document.addEventListener("keydown", function (ev) {
         if (ev.key === "Escape" && feedOpen) setFeed(false);
       });
-      document.querySelectorAll(".feed-tabs .chip").forEach(function (t) {
-        t.addEventListener("click", function () {
-          document.querySelectorAll(".feed-tabs .chip").forEach(function (x) {
-            x.classList.remove("active"); x.setAttribute("aria-pressed", "false");
-          });
-          t.classList.add("active");
-          t.setAttribute("aria-pressed", "true");
-          feedFilter = t.getAttribute("data-fp");
-          renderFeed();
-        });
-      });
+      // The drawer starts open on every viewport and only collapses when the
+      // user taps the handle.
+      renderFeed();
+      setFeed(true);
 
       /* ---------------- init ---------------- */
       renderList(false);
