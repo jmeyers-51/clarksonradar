@@ -51,7 +51,7 @@
     button { color: inherit; }
     a { color: inherit; }
 
-    .page { width: 100%; max-width: 1360px; margin: 0 auto; padding: 18px 20px 12px; height: 100%; display: flex; flex-direction: column; min-height: 0; flex: 1 1 auto; min-width: 0; }
+    .page { width: 100%; max-width: 1360px; margin: 0 auto; padding: 22px 24px 16px; height: 100%; display: flex; flex-direction: column; min-height: 0; flex: 1 1 auto; min-width: 0; }
 
     header.masthead { margin-bottom: 10px; flex-shrink: 0; }
     .kicker-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 8px; }
@@ -157,7 +157,7 @@
     .score-reason { display: block; margin-top: 12px; font-size: 13px; font-weight: 600; color: var(--ink); }
     .source { display: inline-flex; align-items: center; gap: 7px; margin-top: 16px; font-size: 12px; font-weight: 600; color: var(--muted); }
     .source::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--gold); opacity: 0.7; }
-    .detail-actions { margin-top: auto; padding-top: 24px; display: flex; gap: 10px; flex-wrap: wrap; }
+    .detail-actions { margin-top: auto; padding-top: 26px; display: flex; gap: 12px; flex-wrap: wrap; }
     .btn-gold { border: 0; background: var(--gold); color: #1c1505; border-radius: 999px; padding: 12px 22px; font-weight: 700; font-size: 14px; cursor: pointer; transition: transform .25s var(--ease), box-shadow .25s var(--ease); }
     .btn-gold:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(240, 189, 55, 0.35); }
     .btn-ghost { border: 1px solid var(--line); background: transparent; color: var(--ink); border-radius: 999px; padding: 12px 22px; font-weight: 700; font-size: 14px; cursor: pointer; transition: border-color .25s var(--ease); }
@@ -179,7 +179,7 @@
       background: var(--surface);
       border: 1px solid var(--line);
       border-radius: var(--radius-md);
-      padding: 18px 22px;
+      padding: 20px 24px;
       cursor: pointer;
       transition: transform .2s var(--ease), background .3s var(--ease), border-color .3s var(--ease), box-shadow .3s var(--ease), opacity .3s var(--ease);
     }
@@ -191,7 +191,7 @@
     .row-date span { display: block; margin-top: 5px; font-size: 10px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
     .row-main h3 { margin: 0 0 5px; font-size: 17px; font-weight: 700; letter-spacing: -0.01em; }
     .row-main p { margin: 0; color: var(--muted); font-size: 14px; max-width: 640px; }
-    .row-tags { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+    .row-tags { display: flex; gap: 9px; margin-top: 12px; flex-wrap: wrap; }
     .place-tag { color: var(--muted); background: var(--surface-2); padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; white-space: nowrap; }
     .row-tail { display: flex; align-items: center; gap: 16px; }
     .fun-score { text-align: right; }
@@ -284,7 +284,7 @@
     .feed-head h3 { margin: 0; font: 650 22px/1.1 "Newsreader", serif; letter-spacing: -0.02em; }
     .feed-sync { margin: 5px 0 0; font-size: 12px; color: var(--muted); font-weight: 600; }
     .feed-list { flex: 1 1 auto; min-height: 0; overflow-x: hidden; overflow-y: auto; padding: 14px 20px; }
-    .feed-item { background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 14px 15px; margin-bottom: 10px; }
+    .feed-item { background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 16px 18px; margin-bottom: 12px; }
     .feed-item:last-child { margin-bottom: 0; }
     .feed-item-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
     .feed-source { display: flex; align-items: center; gap: 7px; font-size: 11.5px; font-weight: 800; min-width: 0; }
@@ -297,9 +297,9 @@
     .feed-time { font-size: 11.5px; font-weight: 700; color: var(--muted); white-space: nowrap; flex-shrink: 0; }
     .feed-item h4 { margin: 0 0 6px; font-size: 14.5px; font-weight: 700; letter-spacing: -0.01em; line-height: 1.35; }
     .feed-item p { margin: 0; font-size: 13px; color: var(--muted); line-height: 1.5; }
-    .feed-links { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+    .feed-links { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
     .feed-link { font-size: 12px; font-weight: 700; border: 1px solid var(--line); border-radius: 999px;
-      padding: 7px 13px; text-decoration: none; color: var(--ink); display: inline-flex; align-items: center;
+      padding: 8px 14px; text-decoration: none; color: var(--ink); display: inline-flex; align-items: center;
       gap: 5px; transition: border-color .25s var(--ease), background .25s var(--ease); }
     .feed-link:hover { border-color: var(--gold); background: var(--gold-soft); }
     .feed-empty { color: var(--muted); font-size: 14px; padding: 24px 8px; text-align: center; }
@@ -342,7 +342,7 @@
        every cell. */
     .cal-chip { display: block; width: 100%; font-size: 10px; font-weight: 600; line-height: 1.2;
       white-space: normal; overflow-wrap: break-word; hyphens: auto; border-radius: 6px;
-      padding: 2px 5px; border-left: 3px solid var(--sc); color: var(--ink);
+      padding: 3px 6px; border-left: 3px solid var(--sc); color: var(--ink);
       background: rgba(255,255,255,0.05);
       background: color-mix(in srgb, var(--sc) 16%, transparent); }
     .cal-more { font-size: 11px; font-weight: 700; color: var(--gold); padding-left: 5px; }
@@ -364,7 +364,7 @@
        it keeps the height the wrapped day titles need. */
     .ongoing-row { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
     .ongoing-card { border: 1px dashed var(--line); background: transparent; border-radius: var(--radius-sm);
-      padding: 8px 10px; text-align: left; cursor: pointer; color: var(--ink);
+      padding: 10px 12px; text-align: left; cursor: pointer; color: var(--ink);
       transition: border-color .25s var(--ease), background .25s var(--ease); }
     .ongoing-card:hover { border-color: rgba(240,189,55,.5); background: rgba(240,189,55,.05); }
     .ongoing-card.selected { border-style: solid; border-color: rgba(240,189,55,.65); }
@@ -385,8 +385,8 @@
     .sb-pager-label { font-size: 12.5px; font-weight: 700; color: var(--muted); white-space: nowrap; }
     .sb-pager .sb-link { margin-left: auto; }
     .sb-card { border: 1px solid var(--line); border-top-width: 3px; border-radius: var(--radius-md);
-      padding: 16px; margin-bottom: 0; background: var(--surface-2);
-      flex: 1 1 auto; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
+      padding: 20px; margin-bottom: 0; background: var(--surface-2);
+      flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; }
     .sb-card-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; flex-shrink: 0; }
     .sb-src { font-size: 10.5px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;
       display: inline-flex; align-items: center; gap: 7px; }
@@ -407,7 +407,7 @@
     .sb-score span { font-size: 12px; color: var(--muted); }
     .sb-score span b { display: block; color: var(--ink); font-size: 13px; }
     .sb-reason { font-size: 13px; color: var(--muted); margin: -6px 0 10px; flex-shrink: 0; }
-    .sb-links { display: flex; gap: 8px; flex-wrap: wrap; margin-top: auto; padding-top: 10px; flex-shrink: 0; }
+    .sb-links { display: flex; gap: 10px; flex-wrap: wrap; margin-top: auto; padding-top: 14px; flex-shrink: 0; }
     .sb-link { font-size: 12.5px; font-weight: 700; border: 1px solid var(--line); border-radius: 999px;
       padding: 9px 16px; cursor: pointer; background: transparent; color: var(--ink);
       display: inline-flex; align-items: center; gap: 6px; text-decoration: none;
@@ -415,7 +415,10 @@
     .sb-link:hover { border-color: var(--gold); background: var(--gold-soft); }
     .sb-link.primary { background: var(--gold); border-color: var(--gold); color: #1c1505; }
     .sb-link.primary:hover { background: var(--sweep); }
-    .sb-day-actions { margin-bottom: 16px; display: flex; gap: 8px; flex-wrap: wrap; flex-shrink: 0; }
+    .sb-link.src-link { border-color: rgba(240,189,55,.4); background: rgba(240,189,55,.06); }
+    .sb-link.src-link:hover { border-color: var(--gold); background: var(--gold-soft); }
+    .detail-actions a.btn-ghost { text-decoration: none; display: inline-flex; align-items: center; }
+    .sb-day-actions { margin-bottom: 16px; display: flex; gap: 10px; flex-wrap: wrap; flex-shrink: 0; }
     .sb-row { width: 100%; display: flex; align-items: center; gap: 12px; border: 1px solid var(--line);
       background: var(--surface-2); border-radius: var(--radius-sm); padding: 10px 12px; margin-bottom: 7px;
       cursor: pointer; color: var(--ink); text-align: left; transition: border-color .25s var(--ease); }
@@ -646,35 +649,43 @@
         { id: "cu-pantry", title: "CU Pantry food distribution", date: "2026-09-30", cat: "campus",
           desc: "A volunteer food-distribution shift for the Clarkson community.",
           reason: "Worth doing with people -- a volunteer shift is still a volunteer shift.",
-          score: 61, location: "", source: "Clarkson announcements", place: "Clarkson campus", campusPick: true },
+          score: 61, location: "", source: "Clarkson announcements", place: "Clarkson campus", campusPick: true,
+          links: [{ label: "CU Pantry news", url: "https://www.clarkson.edu/news-events/cu-pantry-partners-mother-cabrini-health-foundation-food-bank-central-new-york-expand-distribution-capabilities" }] },
         { id: "good-cup", title: "GOOD Cup", date: "2026-09-30", cat: "potsdam",
           desc: "A community gathering at Jernabi Coffeehouse.",
           reason: "Low-key coffeehouse hangs: pleasant, not electric.",
-          score: 68, location: "Jernabi Coffeehouse", source: "Email listing", place: "Potsdam" },
+          score: 68, location: "Jernabi Coffeehouse", source: "Email listing", place: "Potsdam",
+          links: [{ label: "AllEvents listing", url: "https://allevents.in/potsdam/the-good-cup-wednesdays-at-noon-at-jernabi-coffeehouse/200030707078946" }, { label: "Potsdam UMC (organizer)", url: "https://www.potsdamumc.com/" }] },
         { id: "ponies-pumpkins", title: "Ponies & Pumpkins", date: "2026-10-03", cat: "canton",
           desc: "A fall community event in Canton.",
           reason: "Ponies plus pumpkins at peak fall: simple fun people talk about the next day.",
-          score: 84, location: "Canton, NY", source: "Email listing", place: "Canton" },
+          score: 84, location: "Canton, NY", source: "Email listing", place: "Canton",
+          links: [{ label: "AllEvents · Canton weekend", url: "https://allevents.in/canton-ny/this-weekend" }, { label: "Stay Happening · Canton", url: "https://stayhappening.com/canton-ny" }] },
         { id: "candlelight", title: "Candlelight cello & crystal bowls", date: "2026-10-04", cat: "region",
           desc: "An evening soundbath featuring cello and crystal singing bowls.",
           reason: "Atmospheric by design, but niche and calm.",
-          score: 69, location: "", source: "Email listing", place: "North Country" },
+          score: 69, location: "", source: "Email listing", place: "North Country",
+          links: [{ label: "AllEvents event page", url: "https://allevents.in/potsdam/candlelight-cello-and-crystal-bowl-soundbath-registration-required/200030245843340?ref=faq" }, { label: "More from this organizer", url: "https://allevents.in/potsdam/voice-of-the-earth-sound-bath-cello-sounds-of-the-adirondacks-registration-required/200030292380228" }] },
         { id: "cheese", title: "Cheese of the Month", date: "2026-10-09", cat: "potsdam",
           desc: "Free cheese sampling in Potsdam.",
           reason: "Free cheese is a fun detour, not a full day plan.",
-          score: 76, location: "Potsdam, NY", source: "Email listing", place: "Potsdam" },
+          score: 76, location: "Potsdam, NY", source: "Email listing", place: "Potsdam",
+          links: [{ label: "AllEvents event page", url: "https://allevents.in/potsdam/free-cheese-of-the-month-sampling/200030558301248" }, { label: "Baselocal roundup", url: "https://baselocal.com/ny/north-country/events/?utm_module=highlights&utm_source=baselocal-northcountry.beehiiv.com&utm_medium=newsletter&utm_campaign=this-week-around-the-north-country#shrinky-dink-earring-workshop-old-soul-295067" }, { label: "Potsdam Food Co-op", url: "http://www.potsdamcoop.com/" }] },
         { id: "frosty-pumpkin", title: "Frosty Pumpkin Event", date: "2026-10-11", cat: "canton",
           desc: "A seasonal community event in Canton.",
           reason: "Seasonal and group-friendly, without a standout hook.",
-          score: 71, location: "Canton, NY", source: "Email listing", place: "Canton" },
+          score: 71, location: "Canton, NY", source: "Email listing", place: "Canton",
+          links: [{ label: "AllEvents · Canton in October", url: "https://allevents.in/canton-ny/october" }, { label: "Stay Happening · Canton", url: "https://stayhappening.com/canton-ny" }] },
         { id: "bca-5k", title: "Breast Cancer Awareness 5K", date: "2026-10-18", cat: "campus", time: "100000",
           desc: "American Cancer Society event at 10:00 AM behind the Student Center.",
           reason: "Good cause, real crowd energy -- but it is still a 10 AM 5K.",
-          score: 70, location: "Behind the Student Center", source: "Clarkson announcements", place: "Clarkson campus", campusPick: true },
+          score: 70, location: "Behind the Student Center", source: "Clarkson announcements", place: "Clarkson campus", campusPick: true,
+          links: [{ label: "Potsdam Chamber events", url: "https://www.potsdamchamber.com/events/" }] },
         { id: "fright-night", title: "Fright Night", date: "2026-10-29", cat: "potsdam",
           desc: "Downtown Potsdam's Halloween celebration.",
           reason: "Downtown Halloween: the biggest social night on this list.",
-          score: 88, location: "Downtown Potsdam, NY", source: "Email listing", place: "Potsdam" },
+          score: 88, location: "Downtown Potsdam, NY", source: "Email listing", place: "Potsdam",
+          links: [{ label: "Potsdam Chamber events", url: "https://www.potsdamchamber.com/events/" }, { label: "AllEvents event page", url: "https://allevents.in/potsdam/fright-night-potsdam/200029454885629?ref=faq" }, { label: "North Country This Week", url: "https://www.freetraderonline.com/post/free-ads-october-1-7-2026" }] },
         { id: "research-showcase", title: "Fall Research & Project Showcase", date: "2026-11-13", cat: "campus",
           desc: "A PEAK showcase invitation for Clarkson faculty and staff.",
           reason: "Interesting work on display, but academic in tone.",
@@ -682,23 +693,28 @@
         { id: "light-night", title: "Light the Night Parade", date: "2026-12-05", cat: "potsdam",
           desc: "A holiday parade in Potsdam.",
           reason: "A full-town holiday spectacle with built-in atmosphere.",
-          score: 85, location: "Potsdam, NY", source: "Email listing", place: "Potsdam" },
+          score: 85, location: "Potsdam, NY", source: "Email listing", place: "Potsdam",
+          links: [{ label: "Potsdam Chamber events", url: "https://www.potsdamchamber.com/events/list/page/2/" }, { label: "AllEvents event page", url: "https://allevents.in/potsdam/light-the-night-parade/200029613930245" }] },
         { id: "history-month", title: "St. Lawrence County History Month", cat: "region", ongoing: true,
           whenLabel: "Happening now",
           desc: "Free and donation-based admission, special tours and exhibits at historic sites across the county. Limited STLC 250 coins are available for early visitors.",
-          source: "Visit STLC", place: "St. Lawrence County" },
-        { id: "open-doors", title: "Open Doors to History Weekend", cat: "region", ongoing: true, tbd: true,
-          whenLabel: "Dates not announced",
-          desc: "Visit STLC is promoting a countywide history weekend. Dates and participating sites were not included in this snapshot.",
-          source: "Visit STLC", place: "St. Lawrence County" },
+          source: "Visit STLC", place: "St. Lawrence County",
+          links: [{ label: "Visit STLC · 250th & History Month", url: "https://www.visitstlc.com/250th/" }] },
+        { id: "open-doors", title: "Open Doors to History Weekend", cat: "region", ongoing: true,
+          whenLabel: "Oct 2–4, 2026",
+          desc: "Visit STLC's countywide history weekend runs Oct 2–4, 2026 as part of the county's 250th commemoration, with open doors at historic sites across the county.",
+          source: "Visit STLC", place: "St. Lawrence County",
+          links: [{ label: "Visit STLC · 250th & History Month", url: "https://www.visitstlc.com/250th/" }] },
         { id: "foliage", title: "Fall foliage season", cat: "region", ongoing: true,
           whenLabel: "In season",
           desc: "Apple picking, weekly foliage reports and scenic hikes are in season. Rainbow Falls in Clare was recently featured.",
-          source: "Visit STLC", place: "St. Lawrence County" },
+          source: "Visit STLC", place: "St. Lawrence County",
+          links: [{ label: "NY foliage report (Oct 1)", url: "https://www.democratandchronicle.com/story/news/2026/10/01/new-york-fall-foliage-report-october-2026/92034647007/" }, { label: "NCPR Adirondack report", url: "https://www.northcountrypublicradio.org/news/story/53994/20260924/this-weekend-in-the-adirondacks-high-winds-low-water-and-fall-foliage" }] },
         { id: "route-11", title: "Route 11 Rivalry Series", cat: "campus", ongoing: true,
           whenLabel: "All year",
           desc: "Clarkson and St. Lawrence University launched a year-long athletics competition.",
-          source: "Clarkson announcements", place: "Clarkson campus" },
+          source: "Clarkson announcements", place: "Clarkson campus",
+          links: [{ label: "Route 11 Rivalry announcement", url: "https://saintsathletics.com/news/2026/9/22/general-st-lawrence-clarkson-launch-route-11-rivalry-series.aspx" }] },
         { id: "book-club", title: "Bring Your Own Book Club", cat: "campus", ongoing: true,
           whenLabel: "3-4 PM · Wednesdays",
           desc: "A monthly library gathering on Wednesday afternoons. Confirm the month's date before attending.",
@@ -1022,6 +1038,7 @@
             '<div class="row-tags"><span class="place-tag">' + e.place + '</span>' +
             '<span class="place-tag"><i class="src-dot" style="background:' + sourceOf(e).color + '"></i>' + escapeHtml(sourceOf(e).label) + '</span>' +
             '<span class="place-tag">' + countdown(e) + '</span>' +
+            (e.links && e.links.length ? '<span class="place-tag">' + e.links.length + (e.links.length === 1 ? ' link' : ' links') + '</span>' : '') +
             (e.campusPick ? '<span class="place-tag" style="color:var(--green)">Campus pick</span>' : '') + '</div></div>' +
             '<div class="row-tail">' + scoreHtml + '</div>';
           if (animate && !reduceMotion && !window._rowOrder) {
@@ -1069,6 +1086,7 @@
 
       /* ---------------- detail card ---------------- */
       function escapeHtml(s) { return (s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+      function escUrl(u) { return (u || "").replace(/&/g, "&amp;").replace(/"/g, "&quot;"); }
       function renderDetail(e, instant) {
         var was = detail.classList.contains("swap");
         function paint() {
@@ -1081,10 +1099,16 @@
               (e.ongoing ? ' · ongoing' : '') + '</div></div>' +
               (e.reason ? '<span class="score-reason">' + escapeHtml(e.reason) + '</span>' : '')
             : "";
-          var actionsHtml = e.ongoing
-            ? '<div class="detail-actions"><button class="btn-ghost" type="button" data-next>Next event</button></div>'
-            : '<div class="detail-actions"><button class="btn-gold" type="button" data-ics>Add to calendar</button>' +
-              '<button class="btn-ghost" type="button" data-next>Next event</button></div>';
+          var linksHtml = "";
+          if (e.links && e.links.length) {
+            linksHtml = e.links.map(function (l) {
+              return '<a class="btn-ghost" target="_blank" rel="noopener" href="' + escUrl(l.url) + '">' + escapeHtml(l.label) + ' &#8599;</a>';
+            }).join("");
+          }
+          var actionsHtml = '<div class="detail-actions">' +
+            (e.ongoing ? '' : '<button class="btn-gold" type="button" data-ics>Add to calendar</button>') +
+            linksHtml +
+            '<button class="btn-ghost" type="button" data-next>Next event</button></div>';
           detail.innerHTML =
             '<span class="detail-tag">' + countdown(e) + '</span>' +
             '<h2>' + e.title + '</h2>' + whenHtml +
@@ -1347,6 +1371,11 @@
         var searchUrl = "https://www.google.com/search?q=" + encodeURIComponent(e.title + " " + (e.place || ""));
         var links = "";
         if (!e.ongoing) links += '<button class="sb-link primary" type="button" data-ics="' + e.id + '">Add to calendar</button>';
+        if (e.links && e.links.length) {
+          e.links.forEach(function (l) {
+            links += '<a class="sb-link src-link" target="_blank" rel="noopener" href="' + escUrl(l.url) + '">' + escapeHtml(l.label) + ' &#8599;</a>';
+          });
+        }
         if (mapsUrl) links += '<a class="sb-link" target="_blank" rel="noopener" href="' + mapsUrl + '">View on map</a>';
         links += '<a class="sb-link" target="_blank" rel="noopener" href="' + searchUrl + '">Web search</a>';
         var score = "";
