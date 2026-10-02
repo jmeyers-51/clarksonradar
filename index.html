@@ -311,9 +311,9 @@
     #list-section:not([hidden]) { display: flex; flex-direction: column; }
     .calendar-stage { flex: 1; width: 100%; min-height: 0; display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 18px; align-items: stretch; }
     .cal-left { display: flex; flex-direction: column; min-height: 0; min-width: 0; }
-    .calendar-panel { flex: 1; min-height: 0; display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: clamp(12px, 1.6vw, 18px); }
-    .cal-head { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; flex-shrink: 0; }
-    .cal-head h2 { margin: 0; flex: 1; font: 650 clamp(21px, 2.6vw, 30px)/1 "Newsreader", serif; letter-spacing: -0.02em; }
+    .calendar-panel { flex: 1; min-height: 0; display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: clamp(10px, 1.2vw, 14px); }
+    .cal-head { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; flex-shrink: 0; }
+    .cal-head h2 { margin: 0; flex: 1; font: 650 clamp(20px, 2.4vw, 27px)/1 "Newsreader", serif; letter-spacing: -0.02em; }
     .cal-nav { border: 1px solid var(--line); background: transparent; width: 38px; height: 38px; border-radius: 50%;
       cursor: pointer; color: var(--ink); font-size: 17px; font-weight: 700; line-height: 1;
       display: grid; place-items: center; transition: border-color .25s var(--ease), background .25s var(--ease); }
@@ -321,10 +321,11 @@
     .cal-today { border: 1px solid var(--line); background: transparent; border-radius: 999px; padding: 9px 15px;
       font-size: 12px; font-weight: 700; cursor: pointer; color: var(--muted); transition: color .25s var(--ease), border-color .25s var(--ease); }
     .cal-today:hover { color: var(--ink); border-color: var(--gold); }
-    .cal-grid { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); grid-template-rows: auto; grid-auto-rows: minmax(0, 1fr); align-content: stretch; gap: 6px; }
-    .cal-dow { font-size: 10px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); text-align: center; padding: 4px 0 8px; }
+    .cal-grid { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); grid-template-rows: auto; grid-auto-rows: minmax(max-content, 1fr); align-content: stretch; gap: 5px;
+      overflow-y: auto; scrollbar-width: thin; }
+    .cal-dow { font-size: 10px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); text-align: center; padding: 0 0 3px; }
     .cal-day { min-height: 0; overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius-sm);
-      background: var(--surface-2); padding: 7px 8px; display: flex; flex-direction: column; gap: 5px;
+      background: var(--surface-2); padding: 4px 5px; display: flex; flex-direction: column; gap: 3px;
       cursor: pointer; transition: border-color .25s var(--ease), box-shadow .25s var(--ease); }
     .cal-day:hover { border-color: rgba(240,189,55,.45); }
     .cal-day:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
@@ -335,14 +336,17 @@
     .cal-day.today { border-color: rgba(240,189,55,.45); }
     .cal-day.today .cal-daynum { color: var(--gold); border: 1px solid rgba(240,189,55,.65); border-radius: 50%;
       width: 24px; height: 24px; display: inline-grid; place-items: center; font-size: 12px; }
-    .cal-chips { display: flex; flex-direction: column; gap: 5px; min-height: 0; overflow: hidden; }
-    .cal-chip { display: block; width: 100%; font-size: 11.5px; font-weight: 600; line-height: 1.3;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border-radius: 6px;
-      padding: 2px 8px 2px 7px; border-left: 3px solid var(--sc); color: var(--ink);
+    .cal-chips { display: flex; flex-direction: column; gap: 3px; min-height: 0; overflow: visible; }
+    /* Titles wrap inside the chip (never ellipsized) and every event on a
+       day gets a chip, so the full title always fits and reads the same in
+       every cell. */
+    .cal-chip { display: block; width: 100%; font-size: 10px; font-weight: 600; line-height: 1.2;
+      white-space: normal; overflow-wrap: break-word; hyphens: auto; border-radius: 6px;
+      padding: 2px 5px; border-left: 3px solid var(--sc); color: var(--ink);
       background: rgba(255,255,255,0.05);
       background: color-mix(in srgb, var(--sc) 16%, transparent); }
     .cal-more { font-size: 11px; font-weight: 700; color: var(--gold); padding-left: 5px; }
-    .src-legend { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; flex-shrink: 0; font-size: 11px; color: var(--muted); font-weight: 600; align-items: center; }
+    .src-legend { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; flex-shrink: 0; font-size: 10.5px; color: var(--muted); font-weight: 600; align-items: center; }
     .src-legend .lbl { font-size: 10.5px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
     .src-legend span { display: inline-flex; align-items: center; gap: 7px; }
     .src-legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; flex-shrink: 0; }
@@ -355,16 +359,18 @@
 
     /* ---------- ongoing strip ---------- */
     .ongoing { margin-top: 8px; flex-shrink: 0; }
-    .ongoing h3 { margin: 0 0 8px; font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
-    .ongoing-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; }
+    .ongoing h3 { margin: 0 0 5px; font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+    /* One row of five on desktop: a compact strip, so the month grid above
+       it keeps the height the wrapped day titles need. */
+    .ongoing-row { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
     .ongoing-card { border: 1px dashed var(--line); background: transparent; border-radius: var(--radius-sm);
-      padding: 12px 14px; text-align: left; cursor: pointer; color: var(--ink);
+      padding: 8px 10px; text-align: left; cursor: pointer; color: var(--ink);
       transition: border-color .25s var(--ease), background .25s var(--ease); }
     .ongoing-card:hover { border-color: rgba(240,189,55,.5); background: rgba(240,189,55,.05); }
     .ongoing-card.selected { border-style: solid; border-color: rgba(240,189,55,.65); }
-    .ongoing-card .ot { font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+    .ongoing-card .ot { font-size: 12px; font-weight: 700; line-height: 1.3; display: flex; align-items: center; gap: 8px; }
     .ongoing-card .ot i { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-    .ongoing-card small { color: var(--muted); font-size: 12px; display: block; margin-top: 4px; }
+    .ongoing-card small { color: var(--muted); font-size: 11.5px; display: block; margin-top: 2px; }
 
     /* ---------- day sidebar ---------- */
     /* The sidebar shows exactly one event card at a time and never scrolls on
@@ -451,7 +457,7 @@
       .calendar-stage { grid-template-columns: 1fr; grid-template-rows: none; gap: 14px; }
       .cal-left { display: block; overflow: visible; }
       .calendar-panel { display: block; }
-      .cal-grid { flex: none; grid-auto-rows: auto; }
+      .cal-grid { flex: none; grid-auto-rows: auto; overflow: visible; }
       .cal-day { min-height: 64px; }
       .ongoing { margin-top: 14px; }
       .ongoing-row { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
@@ -479,9 +485,10 @@
       header.masthead { margin-bottom: 12px; }
       .src-legend { gap: 10px; font-size: 11px; }
       .cal-day { padding: 5px 6px; gap: 4px; min-height: 60px; }
-      .cal-chips { flex-direction: row; flex-wrap: wrap; gap: 4px; }
-      .cal-chip { font-size: 0; width: 9px; height: 9px; border-radius: 50%; padding: 0;
-        border-left: 0; background: var(--sc); }
+      .cal-chips { gap: 3px; }
+      /* Same labeled chips as the desktop calendar, just smaller: titles
+         wrap and fit at phone width instead of collapsing into dots. */
+      .cal-chip { font-size: 9px; line-height: 1.15; padding: 2px 4px; border-left-width: 2px; }
       .cal-more { font-size: 10px; padding: 0; }
       .snapshot-meta { align-items: flex-start; }
     }
@@ -495,7 +502,7 @@
       body { background: #fff; color: #111; }
       .page { width: 100%; height: auto; display: block; padding: 0; }
       #calendar-section, #radar-section, #list-section { display: block !important; height: auto; }
-      .event-list, .day-sidebar, .detail-card { overflow: visible; max-height: none; }
+      .event-list, .day-sidebar, .detail-card, .cal-grid { overflow: visible; max-height: none; }
       .sb-card { overflow: visible; flex: none; display: block; }
       .sb-desc { display: block; -webkit-line-clamp: none; max-height: none; }
       .controls, .calendar-btn, .toast, .detail-actions, .radar-hint, .meta-feed { display: none !important; }
@@ -573,7 +580,7 @@
               <button class="cal-nav" id="cal-next" type="button" aria-label="Next month">›</button>
             </div>
             <div class="cal-grid" id="cal-grid" aria-label="Month grid"></div>
-            <div class="src-legend" id="src-legend" aria-label="Events colored by information source"><span class="lbl">Who published it</span></div>
+            <div class="src-legend" id="src-legend" aria-label="Events colored by information source"></div>
           </div>
           <div class="ongoing" id="ongoing-block">
             <h3>Recurring &amp; ongoing</h3>
@@ -1276,6 +1283,9 @@
         });
         var first = new Date(state.calYear, state.calMonth, 1).getDay();
         var dim = new Date(state.calYear, state.calMonth + 1, 0).getDate();
+        // Rows size to their tallest cell (and stretch evenly when the panel
+        // has room), so chips always get the height their wrapped titles
+        // need and every month renders with the same cell design.
         var cells = Math.ceil((first + dim) / 7) * 7;
         for (var i = 0; i < cells; i++) {
           var dayNum = i - first + 1;
@@ -1296,11 +1306,10 @@
             }).join("") + '</span>';
           }
           html += '</span><span class="cal-chips">';
-          evts.slice(0, 2).forEach(function (e) {
-            html += '<span class="cal-chip" style="--sc:' + sourceOf(e).color + '" title="' + escapeHtml(e.title) + '">' + e.title + '</span>';
+          evts.forEach(function (e) {
+            html += '<span class="cal-chip" style="--sc:' + sourceOf(e).color + '">' + escapeHtml(e.title) + '</span>';
           });
           html += '</span>';
-          if (evts.length > 2) html += '<span class="cal-more">+' + (evts.length - 2) + ' more</span>';
           cell.innerHTML = html;
           (function (k) {
             cell.addEventListener("click", function () { selectDay(k); });
