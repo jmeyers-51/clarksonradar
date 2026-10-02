@@ -51,9 +51,9 @@
     button { color: inherit; }
     a { color: inherit; }
 
-    .page { width: 100%; max-width: 1360px; margin: 0 auto; padding: 24px 20px 14px; height: 100%; display: flex; flex-direction: column; min-height: 0; flex: 1 1 auto; min-width: 0; }
+    .page { width: 100%; max-width: 1360px; margin: 0 auto; padding: 18px 20px 12px; height: 100%; display: flex; flex-direction: column; min-height: 0; flex: 1 1 auto; min-width: 0; }
 
-    header.masthead { margin-bottom: 14px; flex-shrink: 0; }
+    header.masthead { margin-bottom: 10px; flex-shrink: 0; }
     .kicker-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 8px; }
     .kicker { display: flex; align-items: center; gap: 10px; font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); }
     .ping-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gold); position: relative; }
@@ -66,8 +66,8 @@
     /* ---------- controls ---------- */
     .controls {
       display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
-      padding: 8px 0 12px;
-      margin-bottom: 10px;
+      padding: 6px 0 8px;
+      margin-bottom: 6px;
       flex-shrink: 0;
     }
     .view-toggle { display: flex; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 3px; }
@@ -113,7 +113,7 @@
     .blip .hit { cursor: pointer; }
     .blip:focus-within .core { stroke: #fff; stroke-width: 1.8; }
     .blip.lit .halo { opacity: 1; }
-    .blip.lit .core { r: 7; }
+    .blip.lit .core { stroke: #fff; stroke-width: 1.4; }
     .blip.selected .core { stroke: #fff; stroke-width: 1.6; }
     .blip .inner { transform-box: fill-box; transform-origin: center; }
     .blip.recent .inner { animation: blipIn 0.9s var(--ease) both; }
@@ -227,6 +227,25 @@
     .freshness.aging { color: var(--gold); border-color: rgba(240,189,55,.45); background: var(--gold-soft); }
     .freshness.stale { color: var(--rose); border-color: rgba(232,160,160,.45); background: rgba(232,160,160,.07); }
 
+    /* ---------- how-to-read key + fun-score meter ---------- */
+    /* One visual channel, one meaning, everywhere on the page:
+       dot/stripe color = who published it; gold meter = fun score. */
+    .read-key { display: flex; gap: 18px; flex-wrap: wrap; align-items: center;
+      font-size: 11.5px; font-weight: 600; color: var(--muted); margin: 0 0 8px; flex-shrink: 0; }
+    .read-key > span { display: inline-flex; align-items: center; gap: 7px; }
+    .rk-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+    .meter { display: inline-block; width: 56px; height: 6px; border-radius: 99px;
+      background: rgba(238,244,241,.14); overflow: hidden; vertical-align: middle; flex-shrink: 0; }
+    .meter-fill { display: block; height: 100%; background: var(--gold); border-radius: 99px; }
+    .sb-score .meter { display: block; width: 96px; height: 7px; margin: 5px 0 3px; }
+    .detail-score .meter { display: block; width: 112px; height: 7px; margin: 6px 0 4px; }
+    .fun-score .meter { display: block; width: 64px; margin: 5px 0 4px auto; }
+    .row-tags .place-tag { display: inline-flex; align-items: center; gap: 6px; }
+    .src-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+    .sb-row-score { margin-left: auto; font: 650 15px/1 "Newsreader", serif; color: var(--gold); }
+    .sb-row .sb-row-score + i { margin-left: 8px; }
+    .radar-legend .lg-note { border-left: 1px solid var(--line); padding-left: 14px; margin-left: 2px; }
+
     /* ---------- Meta activity feed: left drawer ---------- */
     .meta-feed {
       --feed-w: 360px;
@@ -292,8 +311,8 @@
     #list-section:not([hidden]) { display: flex; flex-direction: column; }
     .calendar-stage { flex: 1; width: 100%; min-height: 0; display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 18px; align-items: stretch; }
     .cal-left { display: flex; flex-direction: column; min-height: 0; min-width: 0; }
-    .calendar-panel { flex: 1; min-height: 0; display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: clamp(14px, 2.2vw, 24px); }
-    .cal-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex-shrink: 0; }
+    .calendar-panel { flex: 1; min-height: 0; display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: clamp(12px, 1.6vw, 18px); }
+    .cal-head { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; flex-shrink: 0; }
     .cal-head h2 { margin: 0; flex: 1; font: 650 clamp(21px, 2.6vw, 30px)/1 "Newsreader", serif; letter-spacing: -0.02em; }
     .cal-nav { border: 1px solid var(--line); background: transparent; width: 38px; height: 38px; border-radius: 50%;
       cursor: pointer; color: var(--ink); font-size: 17px; font-weight: 700; line-height: 1;
@@ -317,20 +336,26 @@
     .cal-day.today .cal-daynum { color: var(--gold); border: 1px solid rgba(240,189,55,.65); border-radius: 50%;
       width: 24px; height: 24px; display: inline-grid; place-items: center; font-size: 12px; }
     .cal-chips { display: flex; flex-direction: column; gap: 5px; min-height: 0; overflow: hidden; }
-    .cal-chip { display: block; width: 100%; font-size: 12px; font-weight: 600; line-height: 1.35;
+    .cal-chip { display: block; width: 100%; font-size: 11.5px; font-weight: 600; line-height: 1.3;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border-radius: 6px;
-      padding: 3px 8px 3px 7px; border-left: 3px solid var(--sc); color: var(--ink);
+      padding: 2px 8px 2px 7px; border-left: 3px solid var(--sc); color: var(--ink);
       background: rgba(255,255,255,0.05);
       background: color-mix(in srgb, var(--sc) 16%, transparent); }
     .cal-more { font-size: 11px; font-weight: 700; color: var(--gold); padding-left: 5px; }
-    .src-legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 10px; flex-shrink: 0; font-size: 12px; color: var(--muted); font-weight: 600; align-items: center; }
+    .src-legend { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; flex-shrink: 0; font-size: 11px; color: var(--muted); font-weight: 600; align-items: center; }
     .src-legend .lbl { font-size: 10.5px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
     .src-legend span { display: inline-flex; align-items: center; gap: 7px; }
     .src-legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; flex-shrink: 0; }
+    /* source dots ride on the day-number line, so an event-bearing day shows
+       its source colors even when the titled chips have no room to fit */
+    .cal-daytop { display: flex; align-items: center; gap: 6px; }
+    .cal-dots { display: inline-flex; gap: 3px; }
+    .cal-dots i { width: 7px; height: 7px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+    @media (max-width: 640px) { .cal-dots { display: none; } }
 
     /* ---------- ongoing strip ---------- */
-    .ongoing { margin-top: 10px; flex-shrink: 0; }
-    .ongoing h3 { margin: 0 0 10px; font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+    .ongoing { margin-top: 8px; flex-shrink: 0; }
+    .ongoing h3 { margin: 0 0 8px; font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
     .ongoing-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; }
     .ongoing-card { border: 1px dashed var(--line); background: transparent; border-radius: var(--radius-sm);
       padding: 12px 14px; text-align: left; cursor: pointer; color: var(--ink);
@@ -485,7 +510,7 @@
       <div class="feed-head">
         <div>
           <h3>Meta activity</h3>
-          <p class="feed-sync">Snapshot · synced Oct 1, 2026, ~2:36 PM ET</p>
+          <p class="feed-sync">Posts captured Oct 1, 2026 · 2:36 PM ET</p>
         </div>
       </div>
       <div class="feed-list" id="feed-list" role="feed" aria-label="Meta group posts"></div>
@@ -501,11 +526,11 @@
         <div class="kicker"><span class="ping-dot" aria-hidden="true"></span> North Country · Fall 2026</div>
         <div class="snapshot-meta">
           <div class="freshness" id="freshness" title="Checking information freshness"><i></i><span>Checking…</span></div>
-          <div class="snapshot-line">Snapshot: September 29, 2026 · Details can change-- confirm with the organizer.</div>
+          <div class="snapshot-line">Details can change -- confirm with the organizer before you go.</div>
         </div>
       </div>
       <h1>Good things are happening close by.</h1>
-      <p>Campus, community and seasonal events across Potsdam, Canton and St. Lawrence County-- browse the month below, colored by who published the information.</p>
+      <p>Campus, community and seasonal events across Potsdam, Canton and St. Lawrence County. Every event is colored by who published it and metered for fun potential -- scan the month below.</p>
     </header>
 
     <div class="controls" role="region" aria-label="Event controls">
@@ -531,6 +556,12 @@
       </div>
     </div>
 
+    <div class="read-key" aria-label="How to read this page">
+      <span><i class="rk-dot" style="background:#ff8a5c"></i>Dot &amp; stripe color = who published it</span>
+      <span><span class="meter" aria-hidden="true"><span class="meter-fill" style="width:72%"></span></span>Gold meter = fun score, 0-100</span>
+      <span><i class="rk-dot" style="background:#8fd6a4"></i>Top-right badge = how current the info is</span>
+    </div>
+
     <section id="calendar-section" aria-label="Month calendar">
       <div class="calendar-stage">
         <div class="cal-left">
@@ -542,7 +573,7 @@
               <button class="cal-nav" id="cal-next" type="button" aria-label="Next month">›</button>
             </div>
             <div class="cal-grid" id="cal-grid" aria-label="Month grid"></div>
-            <div class="src-legend" id="src-legend" aria-label="Events colored by information source"><span class="lbl">Colored by source</span></div>
+            <div class="src-legend" id="src-legend" aria-label="Events colored by information source"><span class="lbl">Who published it</span></div>
           </div>
           <div class="ongoing" id="ongoing-block">
             <h3>Recurring &amp; ongoing</h3>
@@ -554,8 +585,8 @@
     </section>
 
     <section class="radar-stage" id="radar-section" aria-label="Event radar" hidden>
-      <div class="radar-panel" id="radar-panel" tabindex="0" aria-label="Interactive radar showing event dates. Distance from center indicates how soon the event is.">
-        <svg class="radar-svg" id="radar-svg" viewBox="0 0 600 600" role="img" aria-label="Radar sweep with event blips"></svg>
+      <div class="radar-panel" id="radar-panel" tabindex="0" aria-label="Interactive radar. Distance from the center is how soon an event is, blip size is its fun score, and blip color names who published it.">
+        <svg class="radar-svg" id="radar-svg" viewBox="0 0 600 600" role="img" aria-label="Radar sweep with event blips: distance is how soon, size is fun score, color is the publishing source"></svg>
         <div class="blip-tip" id="blip-tip"></div>
         <div class="radar-legend" id="radar-legend"></div>
         <div class="radar-hint">Tap a blip for details</div>
@@ -569,10 +600,10 @@
         <span id="event-count">0 events</span>
       </div>
       <div class="score-key-inline" aria-label="Score guide">
-        <span><b class="dot" style="background:var(--gold)"></b><strong>85–100</strong> · Make the trip</span>
-        <span><b class="dot" style="background:var(--orange)"></b><strong>75–84</strong> · Worth a look</span>
-        <span><b class="dot" style="background:var(--blue)"></b><strong>Below 75</strong> · Quiet win</span>
-        <span><b class="dot" style="background:transparent;border:1px dashed var(--muted)"></b>Ongoing · <strong>No fixed date</strong></span>
+        <span><span class="meter"><span class="meter-fill" style="width:92%"></span></span><strong>85-100</strong> · Make the trip</span>
+        <span><span class="meter"><span class="meter-fill" style="width:79%"></span></span><strong>75-84</strong> · Worth a look</span>
+        <span><span class="meter"><span class="meter-fill" style="width:64%"></span></span><strong>Below 75</strong> · Quiet win</span>
+        <span><strong>--</strong> · No score (ongoing)</span>
         <span class="score-note">Scores skew low on purpose-- high scores are rare.</span>
       </div>
       <div class="event-list" id="event-list"></div>
@@ -667,6 +698,15 @@
           score: 60, source: "Clarkson library", place: "ERC 2201 · Clarkson campus",
           reason: "An easy library hangout, reliably mild.", campusPick: true }
       ];
+
+      // One color meaning across the whole page: the publishing source.
+      var SOURCES = {
+        "Clarkson announcements": { label: "Clarkson announcements", color: "#7fc4d8" },
+        "Clarkson email": { label: "Clarkson email", color: "#8fd6a4" },
+        "Clarkson library": { label: "Clarkson library", color: "#e8a0a0" },
+        "Email listing": { label: "Email listing", color: "#ff8a5c" },
+        "Visit STLC": { label: "Visit STLC", color: "#f0bd37" }
+      };
 
       var MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
       var MONTH_S = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
@@ -765,6 +805,15 @@
           fill: "rgba(240,189,55,0.7)", "font-family": "'DM Sans', sans-serif", "font-weight": 800,
           "letter-spacing": "0.22em" }, radarSvg);
         og.textContent = "ONGOING";
+        // sector labels: a blip's angle is its area, so name each sector at the rim
+        Object.keys(CATS).forEach(function (k) {
+          var c = CATS[k];
+          var sp = polar(c.angle, 270);
+          var st = el("text", { x: sp[0], y: sp[1], "text-anchor": "middle", "font-size": 10,
+            fill: c.color, opacity: 0.8, "font-family": "'DM Sans', sans-serif", "font-weight": 800,
+            "letter-spacing": "0.14em" }, radarSvg);
+          st.textContent = c.label.toUpperCase();
+        });
         // cross hairs + diagonal ticks
         el("line", { x1: CX - R, y1: CY, x2: CX + R, y2: CY, stroke: "rgba(190,220,208,0.08)" }, radarSvg);
         el("line", { x1: CX, y1: CY - R, x2: CX, y2: CY + R, stroke: "rgba(190,220,208,0.08)" }, radarSvg);
@@ -811,12 +860,13 @@
           var g = el("g", { "class": "blip", transform: "translate(" + pt[0] + "," + pt[1] + ")",
             "data-id": e.id }, window._blipLayer);
           var inner = el("g", { "class": "inner" }, g);
-          el("circle", { "class": "halo", r: 13, fill: CATS[e.cat].color, opacity: 0.35,
+          el("circle", { "class": "halo", r: 13, fill: sourceOf(e).color, opacity: 0.35,
             style: "filter: blur(5px)" }, inner);
           var hit = el("circle", { "class": "hit", r: 18, fill: "transparent",
             tabindex: "0", role: "button",
             "aria-label": e.ongoing ? (e.title + " · " + e.whenLabel) : (e.title + " on " + e.full) }, inner);
-          el("circle", { "class": "core", r: 5.2, fill: CATS[e.cat].color,
+          // blip size carries the fun score, so a big blip reads as a big deal
+          el("circle", { "class": "core", r: (typeof e.score === "number" ? 3 + e.score * 0.06 : 5.2), fill: sourceOf(e).color,
             stroke: e.ongoing ? "#fff" : "none", "stroke-width": e.ongoing ? "1" : "0" }, inner);
           e.blip = g;
           state.blips.push(e);
@@ -831,14 +881,23 @@
         });
       })();
 
-      // legend
+      // legend: color names the source (same as the calendar and list);
+      // distance and blip size carry the when and the fun score
       (function () {
-        Object.keys(CATS).forEach(function (k) {
-          var c = CATS[k];
+        Object.keys(SOURCES).forEach(function (k) {
+          var s = SOURCES[k];
           var sp = document.createElement("span");
-          sp.innerHTML = '<i style="background:' + c.color + '"></i>' + c.label;
+          sp.innerHTML = '<i style="background:' + s.color + '"></i>' + s.label;
           legend.appendChild(sp);
         });
+        var n1 = document.createElement("span");
+        n1.className = "lg-note";
+        n1.textContent = "Closer to center = sooner";
+        legend.appendChild(n1);
+        var n2 = document.createElement("span");
+        n2.className = "lg-note";
+        n2.textContent = "Bigger blip = higher fun score";
+        legend.appendChild(n2);
       })();
 
       // sweep loop
@@ -866,7 +925,7 @@
       function flashRing(e) {
         var r = radiusFor(e), pt = polar(e.angle, r);
         var ring = el("circle", { cx: pt[0], cy: pt[1], r: 9, fill: "none",
-          stroke: CATS[e.cat].color, "stroke-width": 2, "class": "ring-flash",
+          stroke: sourceOf(e).color, "stroke-width": 2, "class": "ring-flash",
           style: "transform-origin:" + pt[0] + "px " + pt[1] + "px" }, window._blipLayer);
         setTimeout(function () { ring.remove(); }, 1300);
       }
@@ -894,6 +953,11 @@
         if (s >= 85) return "Make the trip";
         if (s >= 75) return "Worth a look";
         return "Quiet win";
+      }
+      // the fun score as a glanceable meter: length is the score, always gold,
+      // so it never competes with the source colors
+      function meterHtml(score) {
+        return '<span class="meter" role="img" aria-label="Fun score ' + score + ' of 100"><span class="meter-fill" style="width:' + score + '%"></span></span>';
       }
       function sortedEvents() {
         var list = EVENTS.slice();
@@ -938,17 +1002,18 @@
           row.setAttribute("role", "button");
           row.setAttribute("aria-label", e.ongoing ? (e.title + " · " + e.whenLabel) : (e.title + " on " + e.full));
           var dateHtml = e.ongoing
-            ? '<div class="row-date"><strong style="font-size:30px">∞</strong><span>Ongoing</span></div>'
+            ? '<div class="row-date"><strong style="font-size:19px">' + (e.tbd ? "TBD" : "NOW") + '</strong><span>Ongoing</span></div>'
             : '<div class="row-date"><strong>' + e.day + '</strong><span>' + e.monthS + ' · ' + e.dow + '</span></div>';
           var hasScore = typeof e.score === "number";
           var scoreHtml = hasScore
-            ? '<div class="fun-score"><strong>' + e.score + '</strong><span>/ 100' + (e.ongoing ? ' · ongoing' : '') + '</span></div>' +
+            ? '<div class="fun-score"><strong>' + e.score + '</strong>' + meterHtml(e.score) + '<span>' + scoreBand(e.score) + '</span></div>' +
               (!e.ongoing ? '<button class="calendar-btn" type="button">Add to calendar</button>' : '')
-            : '<div class="fun-score"><strong style="color:var(--muted)">—</strong><span>ongoing</span></div>';
+            : '<div class="fun-score"><strong style="color:var(--muted)">—</strong><span>No score</span></div>';
           row.innerHTML =
             dateHtml +
             '<div class="row-main"><h3>' + e.title + '</h3><p>' + e.desc + '</p>' +
             '<div class="row-tags"><span class="place-tag">' + e.place + '</span>' +
+            '<span class="place-tag"><i class="src-dot" style="background:' + sourceOf(e).color + '"></i>' + escapeHtml(sourceOf(e).label) + '</span>' +
             '<span class="place-tag">' + countdown(e) + '</span>' +
             (e.campusPick ? '<span class="place-tag" style="color:var(--green)">Campus pick</span>' : '') + '</div></div>' +
             '<div class="row-tail">' + scoreHtml + '</div>';
@@ -1005,7 +1070,7 @@
             : '<div class="detail-when"><strong>' + e.full + '</strong><span>·</span><span>' + e.place + '</span></div>';
           var scoreHtml = (typeof e.score === "number")
             ? '<div class="detail-score"><div class="score-number">' + e.score + '</div>' +
-              '<div class="score-meta"><strong>' + scoreBand(e.score) + '</strong>Fun potential / 100' +
+              '<div class="score-meta"><strong>' + scoreBand(e.score) + '</strong>' + meterHtml(e.score) + 'Fun potential / 100' +
               (e.ongoing ? ' · ongoing' : '') + '</div></div>' +
               (e.reason ? '<span class="score-reason">' + escapeHtml(e.reason) + '</span>' : '')
             : "";
@@ -1166,13 +1231,6 @@
       }
 
       /* ---------------- month calendar ---------------- */
-      var SOURCES = {
-        "Clarkson announcements": { label: "Clarkson announcements", color: "#7fc4d8" },
-        "Clarkson email": { label: "Clarkson email", color: "#8fd6a4" },
-        "Clarkson library": { label: "Clarkson library", color: "#e8a0a0" },
-        "Email listing": { label: "Email listing", color: "#ff8a5c" },
-        "Visit STLC": { label: "Visit STLC", color: "#f0bd37" }
-      };
       var SNAP_KEY = "2026-09-29";
       function sourceOf(e) {
         return SOURCES[e.source] || { label: e.source, color: "#93a39d" };
@@ -1231,7 +1289,13 @@
           cell.setAttribute("tabindex", "0");
           cell.setAttribute("aria-label", dayHeading(key) + (evts.length ? ", " + evts.length + (evts.length === 1 ? " event" : " events") : ", no events"));
           if (key === SNAP_KEY) cell.setAttribute("title", "Snapshot date");
-          var html = '<span class="cal-daynum">' + dayNum + '</span><span class="cal-chips">';
+          var html = '<span class="cal-daytop"><span class="cal-daynum">' + dayNum + '</span>';
+          if (evts.length) {
+            html += '<span class="cal-dots" aria-hidden="true">' + evts.slice(0, 3).map(function (e) {
+              return '<i style="background:' + sourceOf(e).color + '"></i>';
+            }).join("") + '</span>';
+          }
+          html += '</span><span class="cal-chips">';
           evts.slice(0, 2).forEach(function (e) {
             html += '<span class="cal-chip" style="--sc:' + sourceOf(e).color + '" title="' + escapeHtml(e.title) + '">' + e.title + '</span>';
           });
@@ -1278,7 +1342,7 @@
         links += '<a class="sb-link" target="_blank" rel="noopener" href="' + searchUrl + '">Web search</a>';
         var score = "";
         if (typeof e.score === "number") {
-          score = '<div class="sb-score"><strong>' + e.score + '</strong><span><b>' + scoreBand(e.score) + '</b>Fun potential / 100' +
+          score = '<div class="sb-score"><strong>' + e.score + '</strong><span><b>' + scoreBand(e.score) + '</b>' + meterHtml(e.score) + 'Fun potential / 100' +
             (e.ongoing ? ' · ongoing' : '') + '</span></div>' +
             (e.reason ? '<p class="sb-reason">' + escapeHtml(e.reason) + '</p>' : '');
         }
@@ -1332,6 +1396,7 @@
           html += '<button class="sb-row" type="button" data-day="' + e.date + '">' +
             '<span class="sb-row-date">' + e.day + '</span>' +
             '<span class="sb-row-main"><b>' + e.title + '</b><small>' + e.monthS + ' ' + e.day + ' · ' + escapeHtml(sourceOf(e).label) + '</small></span>' +
+            (typeof e.score === "number" ? '<span class="sb-row-score">' + e.score + '</span>' : '') +
             '<i style="background:' + sourceOf(e).color + '"></i></button>';
         });
         sidebar.innerHTML = html;
@@ -1457,9 +1522,9 @@
         if (days < 0) days = 0;
         var band = days <= 6 ? "fresh" : (days <= 30 ? "aging" : "stale");
         var bandLabel = days <= 6 ? "Fresh" : (days <= 30 ? "Getting old" : "Outdated");
-        var age = days === 0 ? "today" : (days === 1 ? "1 day ago" : days + " days ago");
+        var age = days === 0 ? "from today" : (days === 1 ? "1 day old" : days + " days old");
         badge.className = "freshness " + band;
-        badge.innerHTML = "<i></i><span>" + bandLabel + " · Updated Sep 29 · " + age + "</span>";
+        badge.innerHTML = "<i></i><span>" + bandLabel + " · Info from Sep 29 · " + age + "</span>";
         badge.setAttribute("title", "Event information was compiled on September 29, 2026. Confirm details with the organizer before traveling.");
       }
 
