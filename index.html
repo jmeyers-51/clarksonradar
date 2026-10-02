@@ -21,9 +21,6 @@
       --gold: #f0bd37;
       --gold-soft: rgba(240, 189, 55, 0.12);
       --sweep: #ffd978;
-      --orange: #ff8a5c;
-      --blue: #7fc4d8;
-      --green: #8fd6a4;
       --rose: #e8a0a0;
       --radius-lg: 24px;
       --radius-md: 16px;
@@ -32,502 +29,213 @@
     }
 
     * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; height: 100%; height: 100dvh; }
+    html { scroll-behavior: smooth; }
     body {
       margin: 0;
-      min-width: 0;
-      height: 100%;
-      overflow: hidden;
-      overscroll-behavior: none;
       background: var(--paper);
       color: var(--ink);
       font-family: "DM Sans", sans-serif;
       line-height: 1.5;
       -webkit-font-smoothing: antialiased;
-      display: flex;
-      align-items: stretch;
     }
     button, input, select { font: inherit; }
     button { color: inherit; }
     a { color: inherit; }
 
-    .page { width: 100%; max-width: 1360px; margin: 0 auto; padding: 22px 24px 16px; height: 100%; display: flex; flex-direction: column; min-height: 0; flex: 1 1 auto; min-width: 0; }
+    .page { width: 100%; max-width: 1360px; margin: 0 auto; padding: 28px 24px 20px; }
 
-    header.masthead { margin-bottom: 10px; flex-shrink: 0; }
-    .kicker-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 8px; }
+    header.masthead { margin-bottom: 16px; }
+    .kicker-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 10px; }
     .kicker { display: flex; align-items: center; gap: 10px; font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); }
-    .ping-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gold); position: relative; }
+    .ping-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gold); position: relative; flex-shrink: 0; }
     .ping-dot::after { content: ""; position: absolute; inset: -5px; border-radius: 50%; border: 1px solid var(--gold); opacity: 0.7; animation: ping 2.1s var(--ease) infinite; }
     @keyframes ping { 0% { transform: scale(0.4); opacity: 0.8; } 100% { transform: scale(1.5); opacity: 0; } }
     .snapshot-line { color: var(--muted); font-size: 13px; }
-    h1 { margin: 0; max-width: 780px; font: 650 clamp(24px, 3.4vw, 34px)/1.05 "Newsreader", serif; letter-spacing: -0.03em; text-wrap: balance; }
-    .masthead p { margin: 6px 0 0; max-width: 760px; color: var(--muted); font-size: clamp(13px, 1.6vw, 14.5px); }
+    h1 { margin: 0; max-width: 780px; font: 650 clamp(26px, 3.4vw, 36px)/1.05 "Newsreader", serif; letter-spacing: -0.03em; text-wrap: balance; }
+    .masthead p { margin: 8px 0 0; max-width: 760px; color: var(--muted); font-size: clamp(13px, 1.6vw, 14.5px); }
 
-    /* ---------- controls ---------- */
-    .controls {
-      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
-      padding: 6px 0 8px;
-      margin-bottom: 6px;
-      flex-shrink: 0;
-    }
-    .view-toggle { display: flex; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 3px; }
-    .view-toggle button { border: 0; background: transparent; border-radius: 999px; padding: 8px 18px; font-weight: 700; font-size: 13px; color: var(--muted); cursor: pointer; transition: color .25s var(--ease), background .25s var(--ease); }
-    .view-toggle button.active { background: var(--gold); color: #1c1505; }
-    .filter-row { display: flex; gap: 8px; flex-wrap: wrap; }
-    .chip { border: 1px solid var(--line); background: transparent; padding: 9px 15px; border-radius: 999px; cursor: pointer; font-weight: 600; font-size: 13px; color: var(--muted); transition: all .25s var(--ease); }
-    .chip:hover { border-color: var(--gold); color: var(--ink); }
-    .chip.active { background: var(--gold-soft); color: var(--gold); border-color: rgba(240, 189, 55, 0.45); }
-    .sort-wrap { margin-left: auto; display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; }
-    .sort-wrap label { font-weight: 600; }
-    select.sort { background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 999px; padding: 9px 14px; cursor: pointer; appearance: none; font-weight: 600; font-size: 13px; transition: border-color .25s var(--ease); }
-    select.sort:hover { border-color: var(--gold); }
-
-    /* ---------- radar ---------- */
-    .radar-stage { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 18px; align-items: stretch; min-height: 0; }
-    .radar-panel {
-      position: relative;
-      background: radial-gradient(120% 100% at 50% 0%, #0d171c 0%, var(--surface) 55%, #090f11 100%);
-      border: 1px solid var(--line);
-      border-radius: var(--radius-lg);
-      overflow: hidden;
-      min-height: 0;
-      display: grid;
-      place-items: center;
-      padding: 18px;
-      cursor: crosshair;
-    }
-    .radar-panel:focus-visible { outline: 2px solid var(--gold); outline-offset: -2px; }
-    .radar-svg { width: auto; height: auto; max-width: 100%; max-height: 100%; display: block; }
-    .radar-legend {
-      position: absolute; left: 20px; bottom: 18px;
-      display: flex; gap: 14px; flex-wrap: wrap;
-      font-size: 12px; color: var(--muted); font-weight: 600;
-    }
-    .radar-legend span { display: inline-flex; align-items: center; gap: 6px; }
-    .radar-legend i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-    .radar-hint { position: absolute; right: 20px; bottom: 18px; font-size: 12px; color: var(--muted); }
-    .blip { cursor: pointer; }
-    .blip .halo, .blip .core { pointer-events: none; }
-    .blip .halo { opacity: 0; transition: opacity .5s var(--ease); }
-    .blip .core { transition: r .25s var(--ease); }
-    .blip .hit { cursor: pointer; }
-    .blip:focus-within .core { stroke: #fff; stroke-width: 1.8; }
-    .blip.lit .halo { opacity: 1; }
-    .blip.lit .core { stroke: #fff; stroke-width: 1.4; }
-    .blip.selected .core { stroke: #fff; stroke-width: 1.6; }
-    .blip .inner { transform-box: fill-box; transform-origin: center; }
-    .blip.recent .inner { animation: blipIn 0.9s var(--ease) both; }
-    @keyframes blipIn { from { opacity: 0; transform: scale(0.2); } to { opacity: 1; transform: scale(1); } }
-    .blip.hide { opacity: 0; pointer-events: none; transition: opacity .35s var(--ease); }
-    .ring-flash { opacity: 0; animation: ringFlash 1.15s var(--ease) forwards; }
-    @keyframes ringFlash { 0% { opacity: 0.9; transform: scale(0.32); } 100% { opacity: 0; transform: scale(2.6); } }
-
-    .blip-tip {
-      position: absolute; z-index: 5; pointer-events: none;
-      background: var(--surface-2); border: 1px solid var(--line);
-      border-radius: var(--radius-sm); padding: 9px 12px;
-      font-size: 13px; font-weight: 600; white-space: nowrap;
-      opacity: 0; transform: translate(-50%, -130%) scale(0.95);
-      transition: opacity .18s var(--ease), transform .3s var(--ease);
-      box-shadow: 0 10px 30px rgba(0,0,0,.5);
-    }
-    .blip-tip.show { opacity: 1; transform: translate(-50%, -140%) scale(1); }
-    .blip-tip small { display: block; color: var(--muted); font-weight: 500; font-size: 11px; }
-
-    .detail-card {
-      background: var(--surface);
-      border: 1px solid var(--line);
-      border-radius: var(--radius-lg);
-      padding: clamp(24px, 3vw, 36px);
-      display: flex; flex-direction: column;
-      min-height: 0; overflow-y: auto;
-      transition: opacity .35s var(--ease), transform .35s var(--ease);
-    }
-    .detail-card.swap { opacity: 0; transform: translateY(10px); }
-    .detail-tag { align-self: flex-start; font-size: 11px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); background: var(--gold-soft); border: 1px solid rgba(240,189,55,.35); padding: 6px 12px; border-radius: 999px; }
-    .detail-card h2 { margin: 16px 0 6px; font: 650 clamp(28px, 3.4vw, 40px)/1.05 "Newsreader", serif; letter-spacing: -0.02em; }
-    .detail-when { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; color: var(--muted); font-weight: 600; }
-    .detail-when strong { color: var(--ink); font-size: 17px; }
-    .countdown { font-size: 13px; color: var(--gold); font-weight: 700; }
-    .detail-card .detail-desc { color: var(--muted); margin: 18px 0 0; }
-    .detail-score { display: flex; align-items: center; gap: 12px; margin-top: 22px; }
-    .score-number { font: 650 42px/1 "Newsreader", serif; color: var(--gold); }
-    .score-meta { font-size: 12px; color: var(--muted); }
-    .score-meta strong { display: block; color: var(--ink); font-size: 13px; font-weight: 700; }
-    .score-reason { display: block; margin-top: 12px; font-size: 13px; font-weight: 600; color: var(--ink); }
-    .source { display: inline-flex; align-items: center; gap: 7px; margin-top: 16px; font-size: 12px; font-weight: 600; color: var(--muted); }
-    .source::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--gold); opacity: 0.7; }
-    .detail-actions { margin-top: auto; padding-top: 26px; display: flex; gap: 12px; flex-wrap: wrap; }
-    .btn-gold { border: 0; background: var(--gold); color: #1c1505; border-radius: 999px; padding: 12px 22px; font-weight: 700; font-size: 14px; cursor: pointer; transition: transform .25s var(--ease), box-shadow .25s var(--ease); }
-    .btn-gold:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(240, 189, 55, 0.35); }
-    .btn-ghost { border: 1px solid var(--line); background: transparent; color: var(--ink); border-radius: 999px; padding: 12px 22px; font-weight: 700; font-size: 14px; cursor: pointer; transition: border-color .25s var(--ease); }
-    .btn-ghost:hover { border-color: var(--gold); }
-
-    /* ---------- list ---------- */
-    .list-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin: 10px 0 10px; flex-shrink: 0; }
-    .list-head h2 { margin: 0; font: 650 clamp(26px, 3.4vw, 36px)/1 "Newsreader", serif; letter-spacing: -0.02em; }
-    .list-head span { color: var(--muted); font-size: 13px; }
-    .score-key-inline { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px; color: var(--muted); margin-bottom: 12px; flex-shrink: 0; }
-    .score-key-inline .score-note { flex-basis: 100%; font-style: italic; }
-    .score-key-inline strong { color: var(--ink); font-weight: 700; }
-    .score-key-inline b.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 7px; }
-    .event-list { display: grid; gap: 10px; position: relative; align-content: start; flex: 1; min-height: 0; overflow-y: auto; padding-right: 4px; }
-    .event-row {
-      display: grid;
-      grid-template-columns: 72px minmax(0, 1fr) auto;
-      gap: 20px; align-items: center;
-      background: var(--surface);
-      border: 1px solid var(--line);
-      border-radius: var(--radius-md);
-      padding: 20px 24px;
-      cursor: pointer;
-      transition: transform .2s var(--ease), background .3s var(--ease), border-color .3s var(--ease), box-shadow .3s var(--ease), opacity .3s var(--ease);
-    }
-    .event-row:hover { transform: translateY(-2px); border-color: rgba(240, 189, 55, 0.4); box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35); }
-    .event-row.selected { border-color: rgba(240, 189, 55, 0.6); background: linear-gradient(90deg, var(--gold-soft), var(--surface) 55%); }
-    .event-row.row-hidden { display: none; }
-    .row-date { text-align: center; line-height: 1; }
-    .row-date strong { display: block; font: 650 34px/1 "Newsreader", serif; color: var(--gold); }
-    .row-date span { display: block; margin-top: 5px; font-size: 10px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
-    .row-main h3 { margin: 0 0 5px; font-size: 17px; font-weight: 700; letter-spacing: -0.01em; }
-    .row-main p { margin: 0; color: var(--muted); font-size: 14px; max-width: 640px; }
-    .row-tags { display: flex; gap: 9px; margin-top: 12px; flex-wrap: wrap; }
-    .place-tag { color: var(--muted); background: var(--surface-2); padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; white-space: nowrap; }
-    .row-tail { display: flex; align-items: center; gap: 16px; }
-    .fun-score { text-align: right; }
-    .fun-score strong { display: block; font: 650 26px/1 "Newsreader", serif; color: var(--gold); }
-    .fun-score span { font-size: 9px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
-    .calendar-btn { border: 1px solid var(--line); background: transparent; color: var(--ink); border-radius: 999px; padding: 9px 16px; font-weight: 700; font-size: 12px; cursor: pointer; transition: border-color .25s var(--ease), background .25s var(--ease), opacity .25s var(--ease); }
-    .calendar-btn:hover { border-color: var(--gold); background: var(--gold-soft); }
-
-    .empty { display: none; padding: 48px 20px; text-align: center; color: var(--muted); border: 1px dashed var(--line); border-radius: var(--radius-md); }
-    .empty.show { display: block; }
-    footer { margin-top: 10px; border-top: 1px solid var(--line); padding-top: 10px; display: flex; gap: 24px; justify-content: space-between; align-items: baseline; color: var(--muted); font-size: 11px; flex-shrink: 0; }
-    footer p { margin: 0; max-width: 720px; }
-
-    .toast {
-      position: fixed; left: 50%; bottom: max(22px, env(safe-area-inset-bottom));
-      transform: translate(-50%, 18px);
-      background: var(--gold); color: #1c1505;
-      padding: 11px 18px; border-radius: 999px;
-      font-size: 13px; font-weight: 700;
-      opacity: 0; pointer-events: none;
-      transition: opacity .25s var(--ease), transform .35s var(--ease);
-      z-index: 20; white-space: nowrap;
-      box-shadow: 0 12px 32px rgba(0,0,0,.5);
-    }
-    .toast.show { opacity: 1; transform: translate(-50%, 0); }
-
-    /* ---------- freshness badge ---------- */
     .snapshot-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
-    .freshness { display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 700;
-      border: 1px solid var(--line); border-radius: 999px; padding: 7px 14px; white-space: nowrap; }
+    .freshness { display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 700; border: 1px solid var(--line); border-radius: 999px; padding: 7px 14px; white-space: nowrap; }
     .freshness i { width: 8px; height: 8px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
     .freshness.fresh { color: #8fd6a4; border-color: rgba(143,214,164,.45); background: rgba(143,214,164,.07); }
     .freshness.aging { color: var(--gold); border-color: rgba(240,189,55,.45); background: var(--gold-soft); }
     .freshness.stale { color: var(--rose); border-color: rgba(232,160,160,.45); background: rgba(232,160,160,.07); }
 
-    /* ---------- how-to-read key + fun-score meter ---------- */
-    /* One visual channel, one meaning, everywhere on the page:
-       dot/stripe color = who published it; gold meter = fun score. */
-    .read-key { display: flex; gap: 18px; flex-wrap: wrap; align-items: center;
-      font-size: 11.5px; font-weight: 600; color: var(--muted); margin: 0 0 8px; flex-shrink: 0; }
+    /* controls: area filter only — one view, nothing to toggle */
+    .controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 8px 0 12px; }
+    .filter-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .chip { border: 1px solid var(--line); background: transparent; padding: 9px 16px; border-radius: 999px; cursor: pointer; font-weight: 600; font-size: 13px; color: var(--muted); transition: all .25s var(--ease); }
+    .chip:hover { border-color: var(--gold); color: var(--ink); }
+    .chip.active { background: var(--gold-soft); color: var(--gold); border-color: rgba(240, 189, 55, 0.45); }
+
+    .read-key { display: flex; gap: 18px; flex-wrap: wrap; align-items: center; font-size: 11.5px; font-weight: 600; color: var(--muted); margin: 0 0 14px; }
     .read-key > span { display: inline-flex; align-items: center; gap: 7px; }
     .rk-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
-    .meter { display: inline-block; width: 56px; height: 6px; border-radius: 99px;
-      background: rgba(238,244,241,.14); overflow: hidden; vertical-align: middle; flex-shrink: 0; }
+    .meter { display: inline-block; width: 56px; height: 6px; border-radius: 99px; background: rgba(238,244,241,.14); overflow: hidden; vertical-align: middle; flex-shrink: 0; }
     .meter-fill { display: block; height: 100%; background: var(--gold); border-radius: 99px; }
-    .sb-score .meter { display: block; width: 96px; height: 7px; margin: 5px 0 3px; }
-    .detail-score .meter { display: block; width: 112px; height: 7px; margin: 6px 0 4px; }
-    .fun-score .meter { display: block; width: 64px; margin: 5px 0 4px auto; }
-    .row-tags .place-tag { display: inline-flex; align-items: center; gap: 6px; }
-    .src-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
-    .sb-row-score { margin-left: auto; font: 650 15px/1 "Newsreader", serif; color: var(--gold); }
-    .sb-row .sb-row-score + i { margin-left: 8px; }
-    .radar-legend .lg-note { border-left: 1px solid var(--line); padding-left: 14px; margin-left: 2px; }
 
-    /* ---------- Meta activity feed: left drawer ---------- */
-    .meta-feed {
-      --feed-w: 360px;
-      --tab-w: 48px;
-      position: relative; z-index: 40;
-      width: var(--feed-w); flex: 0 0 var(--feed-w); max-width: 92vw;
-      display: flex; align-items: stretch;
-      background: var(--surface); border-right: 1px solid var(--line);
-      height: 100%; height: 100dvh;
-      transition: width .45s var(--ease), flex-basis .45s var(--ease);
-    }
-    body.feed-collapsed .meta-feed { width: var(--tab-w); flex-basis: var(--tab-w); }
-    .feed-panel { flex: 1 1 auto; min-width: 0; min-height: 0; overflow: hidden;
-      display: flex; flex-direction: column; }
-    .feed-tab {
-      flex: 0 0 var(--tab-w); width: var(--tab-w);
-      border: 0; border-left: 1px solid var(--line);
-      background: var(--surface-2);
-      display: flex; flex-direction: column; align-items: center;
-      padding: 16px 0; gap: 10px;
-      cursor: pointer; color: var(--ink);
-      transition: background .3s var(--ease);
-    }
-    .feed-tab:hover { background: rgba(240,189,55,.08); }
-    .feed-tab:focus-visible { outline: 2px solid var(--gold); outline-offset: -2px; }
-    .feed-chev { font-size: 22px; font-weight: 800; line-height: 1; color: var(--gold);
-      transition: transform .35s var(--ease); }
-    body.feed-collapsed .feed-chev { transform: rotate(180deg); }
-    .feed-tab .cnt { font-size: 11px; font-weight: 800; background: var(--gold); color: #1c1505;
-      border-radius: 999px; padding: 2px 8px; }
-    .feed-tab .feed-tab-label { writing-mode: vertical-rl; text-orientation: mixed;
-      font-size: 10px; font-weight: 800; letter-spacing: 0.22em; text-transform: uppercase;
-      color: var(--muted); margin-top: 6px; }
-    .feed-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
-      padding: 20px 20px 12px; border-bottom: 1px solid var(--line); flex-shrink: 0; }
-    .feed-head h3 { margin: 0; font: 650 22px/1.1 "Newsreader", serif; letter-spacing: -0.02em; }
-    .feed-sync { margin: 5px 0 0; font-size: 12px; color: var(--muted); font-weight: 600; }
-    .feed-list { flex: 1 1 auto; min-height: 0; overflow-x: hidden; overflow-y: auto; padding: 14px 20px; }
-    .feed-item { background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 16px 18px; margin-bottom: 12px; }
-    .feed-item:last-child { margin-bottom: 0; }
-    .feed-item-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
-    .feed-source { display: flex; align-items: center; gap: 7px; font-size: 11.5px; font-weight: 800; min-width: 0; }
-    .feed-source .pname { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
-    .feed-source.fb { color: #64a5f5; }
-    .feed-source.ig { color: #e879a6; }
-    .feed-platform { width: 20px; height: 20px; border-radius: 50%; display: inline-grid; place-items: center; flex-shrink: 0; }
-    .feed-platform.fb { background: rgba(24,119,242,.15); color: #64a5f5; }
-    .feed-platform.ig { background: rgba(214,92,158,.15); color: #e879a6; }
-    .feed-time { font-size: 11.5px; font-weight: 700; color: var(--muted); white-space: nowrap; flex-shrink: 0; }
-    .feed-item h4 { margin: 0 0 6px; font-size: 14.5px; font-weight: 700; letter-spacing: -0.01em; line-height: 1.35; }
-    .feed-item p { margin: 0; font-size: 13px; color: var(--muted); line-height: 1.5; }
-    .feed-links { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
-    .feed-link { font-size: 12px; font-weight: 700; border: 1px solid var(--line); border-radius: 999px;
-      padding: 8px 14px; text-decoration: none; color: var(--ink); display: inline-flex; align-items: center;
-      gap: 5px; transition: border-color .25s var(--ease), background .25s var(--ease); }
-    .feed-link:hover { border-color: var(--gold); background: var(--gold-soft); }
-    .feed-empty { color: var(--muted); font-size: 14px; padding: 24px 8px; text-align: center; }
-    .feed-foot { padding: 12px 20px 16px; border-top: 1px solid var(--line); font-size: 11.5px; color: var(--muted); flex-shrink: 0; }
-
-    /* ---------- calendar ---------- */
-    #calendar-section, #radar-section, #list-section { flex: 1 1 auto; min-height: 0; min-width: 0; }
-    #calendar-section:not([hidden]) { display: flex; }
-    #list-section:not([hidden]) { display: flex; flex-direction: column; }
-    .calendar-stage { flex: 1; width: 100%; min-height: 0; display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 18px; align-items: stretch; }
-    .cal-left { display: flex; flex-direction: column; min-height: 0; min-width: 0; }
-    .calendar-panel { flex: 1; min-height: 0; display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: clamp(10px, 1.2vw, 14px); }
-    .cal-head { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; flex-shrink: 0; }
+    /* single layout: full-width calendar, inline detail below */
+    .calendar-stage { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+    .calendar-panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 18px; }
+    .cal-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
     .cal-head h2 { margin: 0; flex: 1; font: 650 clamp(20px, 2.4vw, 27px)/1 "Newsreader", serif; letter-spacing: -0.02em; }
-    .cal-nav { border: 1px solid var(--line); background: transparent; width: 38px; height: 38px; border-radius: 50%;
-      cursor: pointer; color: var(--ink); font-size: 17px; font-weight: 700; line-height: 1;
-      display: grid; place-items: center; transition: border-color .25s var(--ease), background .25s var(--ease); }
+    .cal-nav { border: 1px solid var(--line); background: transparent; width: 38px; height: 38px; border-radius: 50%; cursor: pointer; color: var(--ink); font-size: 17px; font-weight: 700; line-height: 1; display: grid; place-items: center; transition: border-color .25s var(--ease), background .25s var(--ease); flex-shrink: 0; }
     .cal-nav:hover { border-color: var(--gold); background: var(--gold-soft); }
-    .cal-today { border: 1px solid var(--line); background: transparent; border-radius: 999px; padding: 9px 15px;
-      font-size: 12px; font-weight: 700; cursor: pointer; color: var(--muted); transition: color .25s var(--ease), border-color .25s var(--ease); }
+    .cal-today { border: 1px solid var(--line); background: transparent; border-radius: 999px; padding: 9px 15px; font-size: 12px; font-weight: 700; cursor: pointer; color: var(--muted); transition: color .25s var(--ease), border-color .25s var(--ease); }
     .cal-today:hover { color: var(--ink); border-color: var(--gold); }
-    .cal-grid { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); grid-template-rows: auto; grid-auto-rows: minmax(max-content, 1fr); align-content: stretch; gap: 5px;
-      overflow-y: auto; scrollbar-width: thin; }
-    .cal-dow { font-size: 10px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); text-align: center; padding: 0 0 3px; }
-    .cal-day { min-height: 0; overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius-sm);
-      background: var(--surface-2); padding: 4px 5px; display: flex; flex-direction: column; gap: 3px;
-      cursor: pointer; transition: border-color .25s var(--ease), box-shadow .25s var(--ease); }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+    .cal-dow { font-size: 10px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); text-align: center; padding: 2px 0 4px; }
+    .cal-day { border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface-2); padding: 6px; display: flex; flex-direction: column; gap: 4px; cursor: pointer; transition: border-color .25s var(--ease), box-shadow .25s var(--ease); min-height: 76px; }
     .cal-day:hover { border-color: rgba(240,189,55,.45); }
     .cal-day:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
     .cal-day.dim { opacity: 0.28; pointer-events: none; }
     .cal-day.selected { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold); }
     .cal-daynum { font-size: 13px; font-weight: 700; color: var(--muted); }
     .cal-day.has-events .cal-daynum { color: var(--ink); }
-    .cal-day.today { border-color: rgba(240,189,55,.45); }
-    .cal-day.today .cal-daynum { color: var(--gold); border: 1px solid rgba(240,189,55,.65); border-radius: 50%;
-      width: 24px; height: 24px; display: inline-grid; place-items: center; font-size: 12px; }
-    .cal-chips { display: flex; flex-direction: column; gap: 3px; min-height: 0; overflow: visible; }
-    /* Titles wrap inside the chip (never ellipsized) and every event on a
-       day gets a chip, so the full title always fits and reads the same in
-       every cell. */
-    .cal-chip { display: block; width: 100%; font-size: 10px; font-weight: 600; line-height: 1.2;
-      white-space: normal; overflow-wrap: break-word; hyphens: auto; border-radius: 6px;
-      padding: 3px 6px; border-left: 3px solid var(--sc); color: var(--ink);
-      background: rgba(255,255,255,0.05);
-      background: color-mix(in srgb, var(--sc) 16%, transparent); }
-    .cal-more { font-size: 11px; font-weight: 700; color: var(--gold); padding-left: 5px; }
-    .src-legend { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; flex-shrink: 0; font-size: 10.5px; color: var(--muted); font-weight: 600; align-items: center; }
-    .src-legend .lbl { font-size: 10.5px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
-    .src-legend span { display: inline-flex; align-items: center; gap: 7px; }
-    .src-legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; flex-shrink: 0; }
-    /* source dots ride on the day-number line, so an event-bearing day shows
-       its source colors even when the titled chips have no room to fit */
+    .cal-day.today .cal-daynum { color: var(--gold); border: 1px solid rgba(240,189,55,.65); border-radius: 50%; width: 24px; height: 24px; display: inline-grid; place-items: center; font-size: 12px; }
     .cal-daytop { display: flex; align-items: center; gap: 6px; }
     .cal-dots { display: inline-flex; gap: 3px; }
     .cal-dots i { width: 7px; height: 7px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
-    @media (max-width: 640px) { .cal-dots { display: none; } }
+    .cal-chips { display: flex; flex-direction: column; gap: 3px; }
+    .cal-chip { display: block; width: 100%; font-size: 10px; font-weight: 600; line-height: 1.25; white-space: normal; overflow-wrap: break-word; hyphens: auto; border-radius: 6px; padding: 3px 6px; border-left: 3px solid var(--sc); color: var(--ink); background: color-mix(in srgb, var(--sc) 16%, transparent); }
+    .src-legend { display: flex; gap: 10px 14px; flex-wrap: wrap; margin-top: 12px; font-size: 10.5px; color: var(--muted); font-weight: 600; align-items: center; }
+    .src-legend .lbl { font-size: 10.5px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; }
+    .src-legend span { display: inline-flex; align-items: center; gap: 7px; }
+    .src-legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; flex-shrink: 0; }
 
-    /* ---------- ongoing strip ---------- */
-    .ongoing { margin-top: 8px; flex-shrink: 0; }
-    .ongoing h3 { margin: 0 0 5px; font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
-    /* One row of five on desktop: a compact strip, so the month grid above
-       it keeps the height the wrapped day titles need. */
-    .ongoing-row { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
-    .ongoing-card { border: 1px dashed var(--line); background: transparent; border-radius: var(--radius-sm);
-      padding: 10px 12px; text-align: left; cursor: pointer; color: var(--ink);
-      transition: border-color .25s var(--ease), background .25s var(--ease); }
+    .ongoing { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 16px 18px 18px; }
+    .ongoing h3 { margin: 0 0 10px; font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+    .ongoing-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; }
+    .ongoing-card { border: 1px dashed var(--line); background: transparent; border-radius: var(--radius-sm); padding: 12px 14px; text-align: left; cursor: pointer; color: var(--ink); transition: border-color .25s var(--ease), background .25s var(--ease); }
     .ongoing-card:hover { border-color: rgba(240,189,55,.5); background: rgba(240,189,55,.05); }
     .ongoing-card.selected { border-style: solid; border-color: rgba(240,189,55,.65); }
-    .ongoing-card .ot { font-size: 12px; font-weight: 700; line-height: 1.3; display: flex; align-items: center; gap: 8px; }
+    .ongoing-card .ot { font-size: 12.5px; font-weight: 700; line-height: 1.3; display: flex; align-items: center; gap: 8px; }
     .ongoing-card .ot i { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-    .ongoing-card small { color: var(--muted); font-size: 11.5px; display: block; margin-top: 2px; }
+    .ongoing-card small { color: var(--muted); font-size: 11.5px; display: block; margin-top: 3px; }
 
-    /* ---------- day sidebar ---------- */
-    /* The sidebar shows exactly one event card at a time and never scrolls on
-       desktop: its column is flex and the card is clamped into the free space. */
-    .day-sidebar { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg);
-      padding: clamp(16px, 2vw, 26px); overflow: hidden; min-height: 0;
-      display: flex; flex-direction: column; }
-    .sb-heading { margin: 0 0 3px; font: 650 clamp(22px, 2.6vw, 28px)/1.08 "Newsreader", serif; letter-spacing: -0.015em; flex-shrink: 0; }
-    .sb-sub { margin: 0 0 12px; color: var(--muted); font-size: 13px; font-weight: 600; flex-shrink: 0; }
-    .sb-pager { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-shrink: 0; flex-wrap: wrap; }
-    .sb-pager .cal-nav { width: 34px; height: 34px; font-size: 16px; flex-shrink: 0; }
+    /* detail section — the one place an event is shown in full */
+    .day-detail { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 22px; min-width: 0; }
+    .sb-heading { margin: 0 0 4px; font: 650 clamp(22px, 2.6vw, 28px)/1.08 "Newsreader", serif; letter-spacing: -0.015em; }
+    .sb-sub { margin: 0 0 14px; color: var(--muted); font-size: 13px; font-weight: 600; }
+    .sb-pager { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+    .sb-pager .cal-nav { width: 34px; height: 34px; font-size: 16px; }
     .sb-pager-label { font-size: 12.5px; font-weight: 700; color: var(--muted); white-space: nowrap; }
-    .sb-pager .sb-link { margin-left: auto; }
-    .sb-card { border: 1px solid var(--line); border-top-width: 3px; border-radius: var(--radius-md);
-      padding: 20px; margin-bottom: 0; background: var(--surface-2);
-      flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; }
-    .sb-card-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; flex-shrink: 0; }
-    .sb-src { font-size: 10.5px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;
-      display: inline-flex; align-items: center; gap: 7px; }
+    .sb-card { border: 1px solid var(--line); border-top-width: 3px; border-radius: var(--radius-md); padding: 20px; background: var(--surface-2); }
+    .sb-card-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+    .sb-src { font-size: 10.5px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; display: inline-flex; align-items: center; gap: 7px; }
     .sb-src i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
-    .sb-area { font-size: 11px; font-weight: 700; color: var(--muted); background: var(--surface);
-      padding: 4px 10px; border-radius: 999px; }
-    .sb-card h4 { margin: 0 0 10px; font-size: 17px; font-weight: 700; letter-spacing: -0.015em; flex-shrink: 0; }
-    .sb-meta { margin: 0 0 10px; display: grid; gap: 6px; flex-shrink: 0; }
+    .sb-area { font-size: 11px; font-weight: 700; color: var(--muted); background: var(--surface); padding: 4px 10px; border-radius: 999px; }
+    .sb-card h4 { margin: 0 0 12px; font-size: 18px; font-weight: 700; letter-spacing: -0.015em; line-height: 1.3; }
+    .sb-meta { margin: 0 0 12px; display: grid; gap: 8px; }
     .sb-meta div { display: grid; grid-template-columns: 58px minmax(0, 1fr); gap: 10px; font-size: 13px; align-items: baseline; }
     .sb-meta dt { margin: 0; font-size: 10.5px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
     .sb-meta dd { margin: 0; font-weight: 600; }
     .sb-meta dd strong { color: var(--gold); }
-    .sb-desc { color: var(--muted); font-size: 14px; margin: 0 0 12px;
-      display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; overflow: hidden; }
-    .sb-score { display: flex; align-items: center; gap: 12px; padding: 10px 12px; margin: 0 0 10px;
-      background: var(--gold-soft); border: 1px solid rgba(240,189,55,.25); border-radius: var(--radius-sm); flex-shrink: 0; }
+    .sb-desc { color: var(--muted); font-size: 14px; margin: 0 0 14px; }
+    .sb-score { display: flex; align-items: center; gap: 12px; padding: 12px 14px; margin: 0 0 12px; background: var(--gold-soft); border: 1px solid rgba(240,189,55,.25); border-radius: var(--radius-sm); }
     .sb-score strong { font: 650 24px/1 "Newsreader", serif; color: var(--gold); }
     .sb-score span { font-size: 12px; color: var(--muted); }
     .sb-score span b { display: block; color: var(--ink); font-size: 13px; }
-    .sb-reason { font-size: 13px; color: var(--muted); margin: -6px 0 10px; flex-shrink: 0; }
-    .sb-links { display: flex; gap: 10px; flex-wrap: wrap; margin-top: auto; padding-top: 14px; flex-shrink: 0; }
-    .sb-link { font-size: 12.5px; font-weight: 700; border: 1px solid var(--line); border-radius: 999px;
-      padding: 9px 16px; cursor: pointer; background: transparent; color: var(--ink);
-      display: inline-flex; align-items: center; gap: 6px; text-decoration: none;
-      transition: border-color .25s var(--ease), background .25s var(--ease); }
+    .sb-score .meter { display: block; width: 96px; height: 7px; margin: 5px 0 3px; }
+    .sb-reason { font-size: 13px; color: var(--muted); margin: -4px 0 12px; }
+    .sb-links { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+    .sb-link { font-size: 12.5px; font-weight: 700; border: 1px solid var(--line); border-radius: 999px; padding: 9px 16px; cursor: pointer; background: transparent; color: var(--ink); display: inline-flex; align-items: center; gap: 6px; text-decoration: none; transition: border-color .25s var(--ease), background .25s var(--ease); }
     .sb-link:hover { border-color: var(--gold); background: var(--gold-soft); }
-    .sb-link.primary { background: var(--gold); border-color: var(--gold); color: #1c1505; }
-    .sb-link.primary:hover { background: var(--sweep); }
     .sb-link.src-link { border-color: rgba(240,189,55,.4); background: rgba(240,189,55,.06); }
     .sb-link.src-link:hover { border-color: var(--gold); background: var(--gold-soft); }
-    .detail-actions a.btn-ghost { text-decoration: none; display: inline-flex; align-items: center; }
-    .sb-day-actions { margin-bottom: 16px; display: flex; gap: 10px; flex-wrap: wrap; flex-shrink: 0; }
-    .sb-row { width: 100%; display: flex; align-items: center; gap: 12px; border: 1px solid var(--line);
-      background: var(--surface-2); border-radius: var(--radius-sm); padding: 10px 12px; margin-bottom: 7px;
-      cursor: pointer; color: var(--ink); text-align: left; transition: border-color .25s var(--ease); }
+    .sb-row { width: 100%; display: flex; align-items: center; gap: 12px; border: 1px solid var(--line); background: var(--surface-2); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 8px; cursor: pointer; color: var(--ink); text-align: left; transition: border-color .25s var(--ease); }
     .sb-row:hover { border-color: rgba(240,189,55,.45); }
     .sb-row i { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; margin-left: auto; }
     .sb-row-date { font: 650 19px/1 "Newsreader", serif; color: var(--gold); width: 30px; text-align: center; flex-shrink: 0; }
     .sb-row-main b { display: block; font-size: 13.5px; font-weight: 700; }
     .sb-row-main small { color: var(--muted); font-size: 11.5px; font-weight: 600; }
+    .sb-row-score { margin-left: auto; font: 650 15px/1 "Newsreader", serif; color: var(--gold); }
     .sb-empty { color: var(--muted); font-size: 14px; margin: 8px 0; }
+
+    footer { margin-top: 20px; border-top: 1px solid var(--line); padding-top: 14px; display: flex; gap: 24px; justify-content: space-between; align-items: baseline; color: var(--muted); font-size: 11px; flex-wrap: wrap; }
+    footer p { margin: 0; max-width: 720px; }
 
     [hidden] { display: none !important; }
 
+    /* left activity-feed drawer */
+    .shell { display: flex; align-items: stretch; }
+    .shell .page { flex: 1; min-width: 0; }
+    .feed-drawer { width: 320px; flex-shrink: 0; position: sticky; top: 0; height: 100vh; background: var(--surface); border-right: 1px solid var(--line); z-index: 40; transition: width .3s var(--ease); }
+    .feed-drawer.collapsed { width: 48px; }
+    .feed-panel { display: flex; flex-direction: column; height: 100%; }
+    .feed-head { display: flex; align-items: flex-start; gap: 10px; padding: 16px 16px 12px; border-bottom: 1px solid var(--line); }
+    .feed-head h2 { margin: 0; font: 650 19px/1.1 "Newsreader", serif; letter-spacing: -0.01em; }
+    .feed-snapshot { margin: 4px 0 0; font-size: 11px; font-weight: 600; color: var(--muted); }
+    .feed-collapse { margin-left: auto; border: 1px solid var(--line); background: transparent; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; color: var(--ink); font-size: 16px; font-weight: 700; line-height: 1; display: grid; place-items: center; flex-shrink: 0; transition: border-color .25s var(--ease), background .25s var(--ease); }
+    .feed-collapse:hover { border-color: var(--gold); background: var(--gold-soft); }
+    .feed-items { flex: 1; overflow-y: auto; padding: 8px 16px; }
+    .feed-item { padding: 12px 0; border-bottom: 1px solid var(--line); }
+    .feed-item:last-child { border-bottom: none; }
+    .feed-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 5px; }
+    .feed-src { display: inline-flex; align-items: center; gap: 6px; font-size: 10.5px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+    .feed-ico { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 5px; background: var(--gold-soft); color: var(--gold); flex-shrink: 0; }
+    .feed-time { font-size: 10.5px; font-weight: 700; color: var(--muted); white-space: nowrap; }
+    .feed-item h4 { margin: 0 0 4px; font-size: 13.5px; font-weight: 700; line-height: 1.35; }
+    .feed-item p { margin: 0; font-size: 12.5px; color: var(--muted); }
+    .feed-links { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 9px; }
+    .feed-link { font-size: 11.5px; font-weight: 700; border: 1px solid rgba(240,189,55,.4); background: rgba(240,189,55,.06); border-radius: 999px; padding: 6px 12px; color: var(--ink); text-decoration: none; display: inline-flex; align-items: center; gap: 5px; transition: border-color .25s var(--ease), background .25s var(--ease); }
+    .feed-link:hover { border-color: var(--gold); background: var(--gold-soft); }
+    .feed-foot { margin: 0; padding: 12px 16px; border-top: 1px solid var(--line); font-size: 10.5px; line-height: 1.45; color: var(--muted); }
+    .feed-rail { width: 100%; height: 100%; border: none; background: transparent; cursor: pointer; color: var(--ink); display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 14px 0; transition: background .25s var(--ease); }
+    .feed-rail:hover { background: var(--gold-soft); }
+    .feed-rail-chev { width: 28px; height: 28px; border: 1px solid var(--line); border-radius: 50%; display: grid; place-items: center; font-size: 15px; font-weight: 700; line-height: 1; color: var(--gold); }
+    .feed-rail-count { font: 650 16px/1 "Newsreader", serif; color: var(--gold); }
+    .feed-rail-label { writing-mode: vertical-rl; font-size: 10.5px; font-weight: 800; letter-spacing: 0.24em; text-transform: uppercase; color: var(--muted); }
+    .feed-pill { display: none; position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); z-index: 55; border: 1px solid rgba(240,189,55,.5); background: var(--surface-2); color: var(--ink); border-radius: 999px; padding: 11px 20px; font-size: 13px; font-weight: 700; cursor: pointer; box-shadow: 0 10px 30px rgba(0,0,0,.5); align-items: center; gap: 8px; }
+    .feed-pill b { color: var(--gold); font-family: "Newsreader", serif; }
+    .feed-backdrop { display: none; }
+
     @media (max-width: 900px) {
-      /* Narrow viewports restore natural page flow: a full month grid, the
-         ongoing strip and event details cannot fit legibly without scrolling,
-         so nothing is clipped here. */
-      html, body { height: auto; }
-      body { overflow-y: auto; display: block; }
-      .meta-feed { position: fixed; left: 0; top: 0; bottom: 0; height: auto; box-shadow: 0 0 48px rgba(0,0,0,.55); }
-      /* On small screens the collapsed handle becomes a bottom-anchored pill so
-         it never sits on top of the controls in the page. */
-      body.feed-collapsed .meta-feed {
-        top: auto; bottom: 18px; left: 18px;
-        width: auto; flex-basis: auto;
-        border: 1px solid var(--line); border-right: 1px solid var(--line); border-radius: 999px;
-      }
-      body.feed-collapsed .feed-panel { display: none; }
-      body.feed-collapsed .feed-tab {
-        flex: 0 0 auto; width: auto; height: auto;
-        flex-direction: row; align-items: center; gap: 8px;
-        border-left: 0; border-radius: 999px;
-        padding: 11px 18px 11px 14px;
-      }
-      body.feed-collapsed .feed-tab .feed-tab-label { writing-mode: horizontal-tb; margin: 0; }
-      body.feed-collapsed .feed-chev { font-size: 20px; }
-      .page { height: auto; min-height: 100dvh; display: block; padding: 18px 16px 36px; }
-      #calendar-section, #radar-section, #list-section { flex: none; }
-      #calendar-section:not([hidden]), #list-section:not([hidden]) { display: block; }
-      .calendar-stage { grid-template-columns: 1fr; grid-template-rows: none; gap: 14px; }
-      .cal-left { display: block; overflow: visible; }
-      .calendar-panel { display: block; }
-      .cal-grid { flex: none; grid-auto-rows: auto; overflow: visible; }
-      .cal-day { min-height: 64px; }
-      .ongoing { margin-top: 14px; }
-      .ongoing-row { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
-      .day-sidebar { overflow: visible; }
-      .sb-card { flex: none; overflow: visible; display: block; }
-      .sb-desc { display: block; -webkit-line-clamp: none; overflow: visible; max-height: none; }
-      .sb-links { margin-top: 0; padding-top: 0; }
-      .radar-stage { grid-template-columns: 1fr; grid-template-rows: none; }
-      .radar-panel { min-height: 0; }
-      .radar-svg { width: min(92%, 560px); max-width: 100%; max-height: none; }
-      .radar-hint { display: none; }
-      .detail-card { overflow: visible; }
-      .event-list { overflow: visible; }
-      .sort-wrap { margin-left: 0; }
-    }
-    @media (max-width: 580px) {
-      .page { width: min(100% - 24px, 1320px); padding: 14px 0 10px; }
-      .event-row { grid-template-columns: 56px minmax(0, 1fr); gap: 14px; padding: 16px; }
-      .row-tail { grid-column: 1 / -1; justify-content: space-between; }
-      .row-date strong { font-size: 28px; }
-      .controls { position: static; }
-      footer { flex-direction: column; }
-    }
-    @media (max-width: 640px) {
-      header.masthead { margin-bottom: 12px; }
-      .src-legend { gap: 10px; font-size: 11px; }
-      .cal-day { padding: 5px 6px; gap: 4px; min-height: 60px; }
-      .cal-chips { gap: 3px; }
-      /* Same labeled chips as the desktop calendar, just smaller: titles
-         wrap and fit at phone width instead of collapsing into dots. */
-      .cal-chip { font-size: 9px; line-height: 1.15; padding: 2px 4px; border-left-width: 2px; }
-      .cal-more { font-size: 10px; padding: 0; }
+      .page { padding: 18px 16px 32px; }
       .snapshot-meta { align-items: flex-start; }
     }
-
+    @media (max-width: 760px) {
+      .feed-drawer { position: fixed; left: 0; top: 0; height: 100dvh; width: min(320px, 86vw); box-shadow: 24px 0 48px rgba(0,0,0,.45); transform: translateX(0); transition: transform .3s var(--ease); }
+      .feed-drawer.collapsed { transform: translateX(-110%); width: min(320px, 86vw); }
+      .feed-rail { display: none; }
+      .feed-pill.show { display: inline-flex; }
+      .feed-backdrop.show { display: block; position: fixed; inset: 0; background: rgba(4,8,10,.55); border: none; z-index: 39; cursor: pointer; }
+    }
+    @media (max-width: 640px) {
+      .cal-day { min-height: 62px; padding: 5px; }
+      .cal-chip { font-size: 9px; line-height: 1.15; padding: 2px 4px; border-left-width: 2px; }
+      .cal-dots { display: none; }
+      .day-detail, .calendar-panel { padding: 16px; }
+      footer { flex-direction: column; gap: 8px; }
+    }
     @media (prefers-reduced-motion: reduce) {
       *, *:before, *:after { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
     }
-
     @media print {
-      html, body { height: auto; overflow: visible; }
       body { background: #fff; color: #111; }
-      .page { width: 100%; height: auto; display: block; padding: 0; }
-      #calendar-section, #radar-section, #list-section { display: block !important; height: auto; }
-      .event-list, .day-sidebar, .detail-card, .cal-grid { overflow: visible; max-height: none; }
-      .sb-card { overflow: visible; flex: none; display: block; }
-      .sb-desc { display: block; -webkit-line-clamp: none; max-height: none; }
-      .controls, .calendar-btn, .toast, .detail-actions, .radar-hint, .meta-feed { display: none !important; }
-      .radar-panel { min-height: 0; }
-      .event-row { break-inside: avoid; }
+      .controls, .read-key, .feed-drawer, .feed-pill { display: none !important; }
     }
   </style>
 </head>
 <body>
-  <aside class="meta-feed" id="meta-feed" aria-label="Meta activity feed">
-    <div class="feed-panel">
+  <div class="shell">
+  <button class="feed-backdrop" id="feed-backdrop" type="button" aria-label="Close feed" hidden></button>
+  <aside class="feed-drawer" id="feed-drawer" aria-label="Local activity feed">
+    <div class="feed-panel" id="feed-panel">
       <div class="feed-head">
         <div>
-          <h3>Meta activity</h3>
-          <p class="feed-sync">Posts captured Oct 1, 2026 · 2:36 PM ET</p>
+          <h2>Local feed</h2>
+          <p class="feed-snapshot">Snapshot · synced Oct 1, 2026, ~2:36 PM ET</p>
         </div>
+        <button class="feed-collapse" id="feed-collapse" type="button" aria-label="Collapse feed" aria-expanded="true">‹</button>
       </div>
-      <div class="feed-list" id="feed-list" role="feed" aria-label="Meta group posts"></div>
-      <div class="feed-foot">Static snapshot -- new posts will not appear here. Confirm details with the poster.</div>
+      <div class="feed-items" id="feed-items"></div>
+      <p class="feed-foot">Static snapshot -- new posts will not appear here. Confirm details with the poster.</p>
     </div>
-    <button class="feed-tab" id="feed-tab" type="button" aria-expanded="true" aria-controls="meta-feed" aria-label="Collapse local events feed" title="Collapse feed">
-      <span class="feed-chev" aria-hidden="true">&#8249;</span><span class="cnt" aria-hidden="true">9</span><span class="feed-tab-label">Feed</span>
+    <button class="feed-rail" id="feed-rail" type="button" aria-label="Open feed" aria-expanded="false" hidden>
+      <span class="feed-rail-chev" aria-hidden="true">›</span>
+      <span class="feed-rail-count" id="feed-count">9</span>
+      <span class="feed-rail-label">Feed</span>
     </button>
   </aside>
   <main class="page">
@@ -536,19 +244,14 @@
         <div class="kicker"><span class="ping-dot" aria-hidden="true"></span> North Country · Fall 2026</div>
         <div class="snapshot-meta">
           <div class="freshness" id="freshness" title="Checking information freshness"><i></i><span>Checking…</span></div>
-          <div class="snapshot-line">Details can change -- confirm with the organizer before you go.</div>
+          <div class="snapshot-line">Details can change — confirm with the organizer before you go.</div>
         </div>
       </div>
       <h1>Good things are happening close by.</h1>
-      <p>Campus, community and seasonal events across Potsdam, Canton and St. Lawrence County. Every event is colored by who published it and metered for fun potential -- scan the month below.</p>
+      <p>Campus, community and seasonal events across Potsdam, Canton and St. Lawrence County. Pick a day on the calendar -- the event shows once, in full, just below it.</p>
     </header>
 
-    <div class="controls" role="region" aria-label="Event controls">
-      <div class="view-toggle" role="group" aria-label="View">
-        <button type="button" data-view="month" class="active" aria-pressed="true">Month</button>
-        <button type="button" data-view="radar" aria-pressed="false">Radar</button>
-        <button type="button" data-view="list" aria-pressed="false">List</button>
-      </div>
+    <div class="controls" role="region" aria-label="Filter events by area">
       <div class="filter-row" role="group" aria-label="Filter by area">
         <button class="chip active" type="button" data-filter="all" aria-pressed="true">All</button>
         <button class="chip" type="button" data-filter="campus" aria-pressed="false">Campus</button>
@@ -556,91 +259,58 @@
         <button class="chip" type="button" data-filter="canton" aria-pressed="false">Canton</button>
         <button class="chip" type="button" data-filter="region" aria-pressed="false">North Country</button>
       </div>
-      <div class="sort-wrap" id="sort-wrap">
-        <label for="sort">Sort</label>
-        <select id="sort" class="sort">
-          <option value="date">Soonest first</option>
-          <option value="score">Highest score</option>
-          <option value="name">A to Z</option>
-        </select>
-      </div>
     </div>
 
     <div class="read-key" aria-label="How to read this page">
       <span><i class="rk-dot" style="background:#ff8a5c"></i>Dot &amp; stripe color = who published it</span>
-      <span><span class="meter" aria-hidden="true"><span class="meter-fill" style="width:72%"></span></span>Gold meter = fun score, 0-100</span>
+      <span><span class="meter" aria-hidden="true"><span class="meter-fill" style="width:72%"></span></span>Gold meter = fun score, 0–100</span>
       <span><i class="rk-dot" style="background:#8fd6a4"></i>Top-right badge = how current the info is</span>
     </div>
 
-    <section id="calendar-section" aria-label="Month calendar">
+    <section aria-label="Month calendar">
       <div class="calendar-stage">
-        <div class="cal-left">
-          <div class="calendar-panel">
-            <div class="cal-head">
-              <button class="cal-nav" id="cal-prev" type="button" aria-label="Previous month">‹</button>
-              <h2 class="cal-month" id="cal-month">September 2026</h2>
-              <button class="cal-today" id="cal-today" type="button">This month</button>
-              <button class="cal-nav" id="cal-next" type="button" aria-label="Next month">›</button>
-            </div>
-            <div class="cal-grid" id="cal-grid" aria-label="Month grid"></div>
-            <div class="src-legend" id="src-legend" aria-label="Events colored by information source"></div>
+        <div class="calendar-panel">
+          <div class="cal-head">
+            <button class="cal-nav" id="cal-prev" type="button" aria-label="Previous month">‹</button>
+            <h2 id="cal-month">September 2026</h2>
+            <button class="cal-today" id="cal-today" type="button">This month</button>
+            <button class="cal-nav" id="cal-next" type="button" aria-label="Next month">›</button>
           </div>
-          <div class="ongoing" id="ongoing-block">
-            <h3>Recurring &amp; ongoing</h3>
-            <div class="ongoing-row" id="ongoing-row"></div>
-          </div>
+          <div class="cal-grid" id="cal-grid" aria-label="Month grid"></div>
+          <div class="src-legend" id="src-legend" aria-label="Events colored by information source"></div>
         </div>
-        <aside class="day-sidebar" id="day-sidebar" aria-live="polite" aria-label="Event details"></aside>
+        <section class="day-detail" id="day-detail" aria-live="polite" aria-label="Event details"></section>
+        <div class="ongoing" id="ongoing-block">
+          <h3>Recurring &amp; ongoing</h3>
+          <div class="ongoing-row" id="ongoing-row"></div>
+        </div>
       </div>
-    </section>
-
-    <section class="radar-stage" id="radar-section" aria-label="Event radar" hidden>
-      <div class="radar-panel" id="radar-panel" tabindex="0" aria-label="Interactive radar. Distance from the center is how soon an event is, blip size is its fun score, and blip color names who published it.">
-        <svg class="radar-svg" id="radar-svg" viewBox="0 0 600 600" role="img" aria-label="Radar sweep with event blips: distance is how soon, size is fun score, color is the publishing source"></svg>
-        <div class="blip-tip" id="blip-tip"></div>
-        <div class="radar-legend" id="radar-legend"></div>
-        <div class="radar-hint">Tap a blip for details</div>
-      </div>
-      <div class="detail-card" id="detail-card" aria-live="polite"></div>
-    </section>
-
-    <section id="list-section" aria-label="Event list" hidden>
-      <div class="list-head">
-        <h2>On the calendar</h2>
-        <span id="event-count">0 events</span>
-      </div>
-      <div class="score-key-inline" aria-label="Score guide">
-        <span><span class="meter"><span class="meter-fill" style="width:92%"></span></span><strong>85-100</strong> · Make the trip</span>
-        <span><span class="meter"><span class="meter-fill" style="width:79%"></span></span><strong>75-84</strong> · Worth a look</span>
-        <span><span class="meter"><span class="meter-fill" style="width:64%"></span></span><strong>Below 75</strong> · Quiet win</span>
-        <span><strong>--</strong> · No score (ongoing)</span>
-        <span class="score-note">Scores skew low on purpose-- high scores are rare.</span>
-      </div>
-      <div class="event-list" id="event-list"></div>
-      <div class="empty" id="empty-state">No events in this view.</div>
     </section>
 
     <footer>
-      <p>Compiled from Clarkson announcements and email listings, and posts from Visit STLC, Clarkson and NCPR. Scores are a deliberately conservative forecast of fun potential for a Gen Z crowd-- novelty, social energy, ease of dropping in and story value. High scores are hard to earn.</p>
-      <p>Published September 29, 2026</p>
+      <p>Compiled from Clarkson announcements and email listings, and posts from Visit STLC, Clarkson and NCPR. Scores are a deliberately conservative forecast of fun potential for a Gen Z crowd — novelty, social energy, ease of dropping in and story value. High scores are hard to earn. Every outbound link on this page was tested on Oct 2, 2026; links that failed or sat behind a paywall were removed.</p>
+      <p>Published September 29, 2026 · Links audited October 2, 2026</p>
     </footer>
   </main>
-  <div class="toast" id="toast" role="status" aria-live="polite">Calendar file downloaded</div>
+  </div>
+  <button class="feed-pill" id="feed-pill" type="button">Feed <b>· 9</b></button>
 
   <script>
     (function () {
       "use strict";
-      var NS = "http://www.w3.org/2000/svg";
-      var TODAY = new Date(2026, 8, 29); // snapshot baseline; countdown labels derive from this
+      var TODAY = new Date(2026, 8, 29);
       var MS_DAY = 86400000;
 
       var CATS = {
-        campus: { label: "Campus", color: "#8fd6a4", angle: 300 },
-        potsdam: { label: "Potsdam", color: "#f0bd37", angle: 60 },
-        canton: { label: "Canton", color: "#ff8a5c", angle: 150 },
-        region: { label: "North Country", color: "#7fc4d8", angle: 225 }
+        campus: { label: "Campus" },
+        potsdam: { label: "Potsdam" },
+        canton: { label: "Canton" },
+        region: { label: "North Country" }
       };
 
+      // Outbound links audited Oct 2, 2026 — only verified-live URLs remain.
+      // Removed: Potsdam UMC organizer site (server unreachable),
+      // Democrat & Chronicle foliage report (paywalled).
       var EVENTS = [
         { id: "eng-action", title: "Engineering in Action", date: "2026-09-30", cat: "campus",
           desc: "Equipment demonstrations and a mini career fair at Cheel Campus Center.",
@@ -648,14 +318,14 @@
           score: 66, location: "Cheel Campus Center", source: "Clarkson announcements", place: "Clarkson campus" },
         { id: "cu-pantry", title: "CU Pantry food distribution", date: "2026-09-30", cat: "campus",
           desc: "A volunteer food-distribution shift for the Clarkson community.",
-          reason: "Worth doing with people -- a volunteer shift is still a volunteer shift.",
+          reason: "Worth doing with people — a volunteer shift is still a volunteer shift.",
           score: 61, location: "", source: "Clarkson announcements", place: "Clarkson campus", campusPick: true,
           links: [{ label: "CU Pantry news", url: "https://www.clarkson.edu/news-events/cu-pantry-partners-mother-cabrini-health-foundation-food-bank-central-new-york-expand-distribution-capabilities" }] },
         { id: "good-cup", title: "GOOD Cup", date: "2026-09-30", cat: "potsdam",
           desc: "A community gathering at Jernabi Coffeehouse.",
           reason: "Low-key coffeehouse hangs: pleasant, not electric.",
           score: 68, location: "Jernabi Coffeehouse", source: "Email listing", place: "Potsdam",
-          links: [{ label: "AllEvents listing", url: "https://allevents.in/potsdam/the-good-cup-wednesdays-at-noon-at-jernabi-coffeehouse/200030707078946" }, { label: "Potsdam UMC (organizer)", url: "https://www.potsdamumc.com/" }] },
+          links: [{ label: "AllEvents listing", url: "https://allevents.in/potsdam/the-good-cup-wednesdays-at-noon-at-jernabi-coffeehouse/200030707078946" }] },
         { id: "ponies-pumpkins", title: "Ponies & Pumpkins", date: "2026-10-03", cat: "canton",
           desc: "A fall community event in Canton.",
           reason: "Ponies plus pumpkins at peak fall: simple fun people talk about the next day.",
@@ -670,7 +340,7 @@
           desc: "Free cheese sampling in Potsdam.",
           reason: "Free cheese is a fun detour, not a full day plan.",
           score: 76, location: "Potsdam, NY", source: "Email listing", place: "Potsdam",
-          links: [{ label: "AllEvents event page", url: "https://allevents.in/potsdam/free-cheese-of-the-month-sampling/200030558301248" }, { label: "Baselocal roundup", url: "https://baselocal.com/ny/north-country/events/?utm_module=highlights&utm_source=baselocal-northcountry.beehiiv.com&utm_medium=newsletter&utm_campaign=this-week-around-the-north-country#shrinky-dink-earring-workshop-old-soul-295067" }, { label: "Potsdam Food Co-op", url: "http://www.potsdamcoop.com/" }] },
+          links: [{ label: "AllEvents event page", url: "https://allevents.in/potsdam/free-cheese-of-the-month-sampling/200030558301248" }, { label: "Baselocal roundup", url: "https://baselocal.com/ny/north-country/events/?utm_module=highlights&utm_source=baselocal-northcountry.beehiiv.com&utm_medium=newsletter&utm_campaign=this-week-around-the-north-country" }, { label: "Potsdam Food Co-op", url: "http://www.potsdamcoop.com/" }] },
         { id: "frosty-pumpkin", title: "Frosty Pumpkin Event", date: "2026-10-11", cat: "canton",
           desc: "A seasonal community event in Canton.",
           reason: "Seasonal and group-friendly, without a standout hook.",
@@ -678,7 +348,7 @@
           links: [{ label: "AllEvents · Canton in October", url: "https://allevents.in/canton-ny/october" }, { label: "Stay Happening · Canton", url: "https://stayhappening.com/canton-ny" }] },
         { id: "bca-5k", title: "Breast Cancer Awareness 5K", date: "2026-10-18", cat: "campus", time: "100000",
           desc: "American Cancer Society event at 10:00 AM behind the Student Center.",
-          reason: "Good cause, real crowd energy -- but it is still a 10 AM 5K.",
+          reason: "Good cause, real crowd energy — but it is still a 10 AM 5K.",
           score: 70, location: "Behind the Student Center", source: "Clarkson announcements", place: "Clarkson campus", campusPick: true,
           links: [{ label: "Potsdam Chamber events", url: "https://www.potsdamchamber.com/events/" }] },
         { id: "fright-night", title: "Fright Night", date: "2026-10-29", cat: "potsdam",
@@ -709,20 +379,19 @@
           whenLabel: "In season",
           desc: "Apple picking, weekly foliage reports and scenic hikes are in season. Rainbow Falls in Clare was recently featured.",
           source: "Visit STLC", place: "St. Lawrence County",
-          links: [{ label: "NY foliage report (Oct 1)", url: "https://www.democratandchronicle.com/story/news/2026/10/01/new-york-fall-foliage-report-october-2026/92034647007/" }, { label: "NCPR Adirondack report", url: "https://www.northcountrypublicradio.org/news/story/53994/20260924/this-weekend-in-the-adirondacks-high-winds-low-water-and-fall-foliage" }] },
+          links: [{ label: "NCPR Adirondack report", url: "https://www.northcountrypublicradio.org/news/story/53994/20260924/this-weekend-in-the-adirondacks-high-winds-low-water-and-fall-foliage" }] },
         { id: "route-11", title: "Route 11 Rivalry Series", cat: "campus", ongoing: true,
           whenLabel: "All year",
           desc: "Clarkson and St. Lawrence University launched a year-long athletics competition.",
           source: "Clarkson announcements", place: "Clarkson campus",
           links: [{ label: "Route 11 Rivalry announcement", url: "https://saintsathletics.com/news/2026/9/22/general-st-lawrence-clarkson-launch-route-11-rivalry-series.aspx" }] },
         { id: "book-club", title: "Bring Your Own Book Club", cat: "campus", ongoing: true,
-          whenLabel: "3-4 PM · Wednesdays",
+          whenLabel: "3–4 PM · Wednesdays",
           desc: "A monthly library gathering on Wednesday afternoons. Confirm the month's date before attending.",
           score: 60, source: "Clarkson library", place: "ERC 2201 · Clarkson campus",
           reason: "An easy library hangout, reliably mild.", campusPick: true }
       ];
 
-      // One color meaning across the whole page: the publishing source.
       var SOURCES = {
         "Clarkson announcements": { label: "Clarkson announcements", color: "#7fc4d8" },
         "Clarkson email": { label: "Clarkson email", color: "#8fd6a4" },
@@ -731,541 +400,44 @@
         "Visit STLC": { label: "Visit STLC", color: "#f0bd37" }
       };
 
+      // Local activity feed — static snapshot synced Oct 1, 2026. All 9 post
+      // URLs verified live on Oct 2, 2026.
+      var FEED_ICONS = {
+        fb: '<svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path fill="currentColor" d="M13.5 21v-7h2.4l.4-3h-2.8V9.1c0-.9.3-1.5 1.6-1.5h1.3V5.1c-.2 0-1-.1-1.9-.1-1.9 0-3.2 1.2-3.2 3.3V11H9v3h2.3v7h2.2z"/></svg>'
+      };
+      var FEED = [
+        { platform: "fb", source: "Potsdam-Canton Community", time: "Oct 1", title: "Mobile mammogram screenings at St. Lawrence University", summary: "Upstate Mammo Van brings breast cancer screening to SLU's Stafford Fitness Center on Oct 14 — details and registration in the event post.", links: [{ label: "Open post", url: "https://facebook.com/groups/2166021530323082/permalink/4573011709624040/" }] },
+        { platform: "fb", source: "Potsdam-Canton Community", time: "Oct 1", title: "Pumpkins, gourds and squash at Goodwin's Orchard", summary: "Goodwin's Orchard on Needham Road in Potsdam has a big selection of pumpkins, gourds and squash for fall.", links: [{ label: "Open post", url: "https://facebook.com/groups/2166021530323082/permalink/4572818199643391/" }] },
+        { platform: "fb", source: "Potsdam-Canton Community", time: "Oct 1", title: "Bingo in 2 days — last call for basket donations", summary: "Bingo night is 2 days out; organizers are still collecting last-minute donated baskets.", links: [{ label: "Open post", url: "https://facebook.com/groups/2166021530323082/permalink/4572645892993955/" }] },
+        { platform: "fb", source: "Potsdam-Canton Community", time: "Sep 30", title: "Breaking Bread potluck sign-up for Nov 14", summary: "A sign-up list is open for the Nov 14 community potluck to coordinate dishes and variety.", links: [{ label: "Open post", url: "https://facebook.com/groups/2166021530323082/permalink/4571856899739521/" }] },
+        { platform: "fb", source: "Growing Potsdam, NY", time: "Oct 1", title: "Hands-on STEM activity at the children's museum", summary: "Dr. Blair Madore and SUNY Potsdam students lead a 3D-shape building activity, open to all museum visitors and included with admission.", links: [{ label: "Open post", url: "https://facebook.com/groups/268472031339446/permalink/1632250934961542/" }] },
+        { platform: "fb", source: "Growing Potsdam, NY", time: "Sep 30", title: "Museum afterschool and Pre-K classes starting", summary: "North Country Children's Museum afterschool and Pre-K classes start next week, with bus service from PCS to the museum.", links: [{ label: "Open post", url: "https://facebook.com/groups/268472031339446/permalink/1631478868372082/" }] },
+        { platform: "fb", source: "Clarkson Alumni - North Country Chapter", time: "Sep 15", title: "Clarkson alumni event in Warrensburg", summary: "A Clarkson alumni gathering in Warrensburg — see the post for details.", links: [{ label: "Open post", url: "https://facebook.com/groups/294582896609087/permalink/926319590102078/" }] },
+        { platform: "fb", source: "Clarkson Alumni - North Country Chapter", time: "May 2025", title: "Volunteers wanted: Energy Navigator program", summary: "Cornell Cooperative Extension and the North Country Clean Energy Hub are recruiting Energy Navigator volunteers across the region.", links: [{ label: "Open post", url: "https://facebook.com/groups/294582896609087/permalink/571151385618902/" }] },
+        { platform: "fb", source: "COMMUNITY EVENTS IN THE NORTH COUNTRY", time: "Sep 30", title: "8U girls competitive hockey coming to the North Country", summary: "A new local 8U girls competitive hockey team is forming — open to area players looking to compete and grow the game.", links: [{ label: "Open post", url: "https://facebook.com/groups/336043796416831/permalink/28994753280119167/" }] }
+      ];
+
       var MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
       var MONTH_S = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
       var DAY_S = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+      var SNAP_KEY = "2026-09-29";
 
-      EVENTS.forEach(function (e, i) {
-        if (e.ongoing) { // plotted on the labeled ongoing lane at the radar's edge
-          var jitter = ((i * 37) % 41) - 20;
-          e.angle = CATS[e.cat].angle + jitter;
-          return;
-        }
+      EVENTS.forEach(function (e) {
+        if (e.ongoing) return;
         var parts = e.date.split("-");
         var d = new Date(+parts[0], +parts[1] - 1, +parts[2]);
         e.days = Math.max(0, Math.round((d - TODAY) / MS_DAY));
         e.monthS = MONTH_S[d.getMonth()];
-        e.month = MONTHS[d.getMonth()];
         e.day = d.getDate();
         e.dow = DAY_S[d.getDay()];
-        e.full = e.dow + ", " + e.month + " " + e.day;
-        var jitter = ((i * 37) % 31) - 15;
-        e.angle = CATS[e.cat].angle + jitter;
+        e.full = e.dow + ", " + MONTHS[d.getMonth()] + " " + e.day;
       });
 
-      var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      var state = { filter: "all", calYear: 2026, calMonth: 8, selectedDay: null, calSingle: null, calIdx: 0 };
 
-      var grid = document.getElementById("event-list");
-      var count = document.getElementById("event-count");
-      var empty = document.getElementById("empty-state");
-      var toast = document.getElementById("toast");
-      var detail = document.getElementById("detail-card");
-      var tip = document.getElementById("blip-tip");
-      var radarPanel = document.getElementById("radar-panel");
-      var radarSvg = document.getElementById("radar-svg");
-      var legend = document.getElementById("radar-legend");
-      var radarSection = document.getElementById("radar-section");
-      var listSection = document.getElementById("list-section");
-      var calendarSection = document.getElementById("calendar-section");
-      var sortWrap = document.getElementById("sort-wrap");
-      var toastTimer;
-
-      var state = { filter: "all", sort: "date", view: "month", selected: null, blips: [], sweep: 0,
-        calYear: 2026, calMonth: 8, selectedDay: null, calSingle: null, calIdx: 0 };
-
-      /* ---------------- radar construction ---------------- */
-      var CX = 300, CY = 300, R = 258, R_ONGOING = 288; // center pole + labeled ongoing lane at the edge
-      function el(tag, attrs, parent) {
-        var n = document.createElementNS(NS, tag);
-        for (var k in attrs) n.setAttribute(k, attrs[k]);
-        if (parent) parent.appendChild(n);
-        return n;
-      }
-      function polar(a, r) {
-        var rad = (a - 90) * Math.PI / 180;
-        return [CX + r * Math.cos(rad), CY + r * Math.sin(rad)];
-      }
-      function radiusFor(e) {
-        if (e.ongoing) return R_ONGOING;
-        var t = Math.min(1, e.days / 80);
-        return R * (0.10 + 0.86 * Math.pow(t, 0.7));
-      }
-
-      // guarantee every blip center is at least 30px from every other one,
-      // so hit areas never cover a neighbor's center
-      var placed = [];
-      function placeEvent(e) {
-        var rr = radiusFor(e), aa = e.angle, p;
-        for (var t = 0; t < 24; t++) {
-          p = polar(aa, rr);
-          var ok = true;
-          for (var k = 0; k < placed.length; k++) {
-            var dx = p[0] - placed[k][0], dy = p[1] - placed[k][1];
-            if (dx * dx + dy * dy < 900) { ok = false; break; }
-          }
-          if (ok) break;
-          aa = (aa + 23) % 360;
-        }
-        placed.push(p);
-        e.angle = aa;
-        return p;
-      }
-
-      (function buildRadar() {
-        // range rings
-        var rings = [ { l: "1 wk", d: 7 }, { l: "1 mo", d: 30 }, { l: "2 mo", d: 60 }, { l: "3 mo", d: 90 } ];
-        rings.forEach(function (rg) {
-          var r = radiusFor({ days: rg.d });
-          el("circle", { cx: CX, cy: CY, r: r, fill: "none", stroke: "rgba(190,220,208,0.13)", "stroke-width": 1 }, radarSvg);
-          var label = el("text", { x: CX + 7, y: CY - r + 16, "font-size": 11, fill: "rgba(147,163,157,0.75)",
-            "font-family": "'DM Sans', sans-serif", "font-weight": 700, "letter-spacing": "0.08em" }, radarSvg);
-          label.textContent = rg.l.toUpperCase();
-        });
-        // ongoing lane: labeled dashed ring at the edge for undated / recurring items
-        el("circle", { cx: CX, cy: CY, r: R_ONGOING, fill: "none", stroke: "rgba(240,189,55,0.28)",
-          "stroke-width": 1, "stroke-dasharray": "5 7" }, radarSvg);
-        var og = el("text", { x: CX, y: CY - R_ONGOING - 4, "text-anchor": "middle", "font-size": 10,
-          fill: "rgba(240,189,55,0.7)", "font-family": "'DM Sans', sans-serif", "font-weight": 800,
-          "letter-spacing": "0.22em" }, radarSvg);
-        og.textContent = "ONGOING";
-        // sector labels: a blip's angle is its area, so name each sector at the rim
-        Object.keys(CATS).forEach(function (k) {
-          var c = CATS[k];
-          var sp = polar(c.angle, 270);
-          var st = el("text", { x: sp[0], y: sp[1], "text-anchor": "middle", "font-size": 10,
-            fill: c.color, opacity: 0.8, "font-family": "'DM Sans', sans-serif", "font-weight": 800,
-            "letter-spacing": "0.14em" }, radarSvg);
-          st.textContent = c.label.toUpperCase();
-        });
-        // cross hairs + diagonal ticks
-        el("line", { x1: CX - R, y1: CY, x2: CX + R, y2: CY, stroke: "rgba(190,220,208,0.08)" }, radarSvg);
-        el("line", { x1: CX, y1: CY - R, x2: CX, y2: CY + R, stroke: "rgba(190,220,208,0.08)" }, radarSvg);
-        [45, 135, 225, 315].forEach(function (a) {
-          var p1 = polar(a, 26), p2 = polar(a, R);
-          el("line", { x1: p1[0], y1: p1[1], x2: p2[0], y2: p2[1], stroke: "rgba(190,220,208,0.05)" }, radarSvg);
-        });
-        el("circle", { cx: CX, cy: CY, r: 4, fill: "#f0bd37" }, radarSvg);
-        var now = el("text", { x: CX + 12, y: CY + 26, "font-size": 10, fill: "rgba(240,189,55,0.65)",
-          "font-family": "'DM Sans', sans-serif", "font-weight": 800, "letter-spacing": "0.12em" }, radarSvg);
-        now.textContent = "TODAY";
-
-        // sweep: trail of fading wedges inside one rotating group
-        var defs = document.createElementNS(NS, "defs");
-        radarSvg.appendChild(defs);
-        var lg = el("linearGradient", { id: "sweepg", x1: 0, y1: 0, x2: 1, y2: 0 }, defs);
-        el("stop", { offset: "0%", "stop-color": "#ffd978", "stop-opacity": 0.95 }, lg);
-        el("stop", { offset: "100%", "stop-color": "#ffd978", "stop-opacity": 0 }, lg);
-        window._sweepGroup = el("g", {}, radarSvg);
-        var sweepArc = el("path", { fill: "url(#sweepg)", opacity: 0.55 }, window._sweepGroup);
-        var hiArc = el("path", { fill: "#ffe9ad", opacity: 0.5 }, window._sweepGroup);
-        function wedgePath(radius, width) {
-          var a0 = -width, a1 = 0, steps = 9, pts = ["M " + CX + " " + CY];
-          for (var s = 0; s <= steps; s++) {
-            var a = a0 + (a1 - a0) * s / steps;
-            var rad = (a - 90) * Math.PI / 180;
-            pts.push("L " + (CX + radius * Math.cos(rad)) + " " + (CY + radius * Math.sin(rad)));
-          }
-          pts.push("Z");
-          return pts.join(" ");
-        }
-        sweepArc.setAttribute("d", wedgePath(R, 62));
-        hiArc.setAttribute("d", wedgePath(R, 9));
-
-        // blip layer
-        window._blipLayer = el("g", {}, radarSvg);
-
-        // place nearest events first so they keep their preferred sector angles
-        var ordered = EVENTS.slice().sort(function (a, b) {
-          return (a.ongoing ? 999 : a.days) - (b.ongoing ? 999 : b.days);
-        });
-        ordered.forEach(function (e, i) {
-          var pt = placeEvent(e);
-          var g = el("g", { "class": "blip", transform: "translate(" + pt[0] + "," + pt[1] + ")",
-            "data-id": e.id }, window._blipLayer);
-          var inner = el("g", { "class": "inner" }, g);
-          el("circle", { "class": "halo", r: 13, fill: sourceOf(e).color, opacity: 0.35,
-            style: "filter: blur(5px)" }, inner);
-          var hit = el("circle", { "class": "hit", r: 18, fill: "transparent",
-            tabindex: "0", role: "button",
-            "aria-label": e.ongoing ? (e.title + " · " + e.whenLabel) : (e.title + " on " + e.full) }, inner);
-          // blip size carries the fun score, so a big blip reads as a big deal
-          el("circle", { "class": "core", r: (typeof e.score === "number" ? 3 + e.score * 0.06 : 5.2), fill: sourceOf(e).color,
-            stroke: e.ongoing ? "#fff" : "none", "stroke-width": e.ongoing ? "1" : "0" }, inner);
-          e.blip = g;
-          state.blips.push(e);
-          g.style.opacity = 0;
-          setTimeout(function () { g.classList.add("recent"); g.style.opacity = ""; }, 120 + i * 70);
-          hit.addEventListener("click", function (ev) { ev.stopPropagation(); selectEvent(e.id, { from: "blip" }); hideTip(); });
-          hit.addEventListener("keydown", function (ev) {
-            if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); selectEvent(e.id, { from: "blip" }); }
-          });
-          hit.addEventListener("mouseenter", function () { showTip(e, pt); });
-          hit.addEventListener("mouseleave", hideTip);
-        });
-      })();
-
-      // legend: color names the source (same as the calendar and list);
-      // distance and blip size carry the when and the fun score
-      (function () {
-        Object.keys(SOURCES).forEach(function (k) {
-          var s = SOURCES[k];
-          var sp = document.createElement("span");
-          sp.innerHTML = '<i style="background:' + s.color + '"></i>' + s.label;
-          legend.appendChild(sp);
-        });
-        var n1 = document.createElement("span");
-        n1.className = "lg-note";
-        n1.textContent = "Closer to center = sooner";
-        legend.appendChild(n1);
-        var n2 = document.createElement("span");
-        n2.className = "lg-note";
-        n2.textContent = "Bigger blip = higher fun score";
-        legend.appendChild(n2);
-      })();
-
-      // sweep loop
-      var sweepAng = 0, lastTs = 0;
-      function tick(ts) {
-        if (reduceMotion) {
-          window._sweepGroup.setAttribute("transform", "rotate(45 300 300)");
-          return;
-        }
-        if (!lastTs) lastTs = ts;
-        var dt = (ts - lastTs) / 1000; lastTs = ts;
-        sweepAng = (sweepAng + dt * 46) % 360;
-        window._sweepGroup.setAttribute("transform", "rotate(" + sweepAng + " " + CX + " " + CY + ")");
-        var head = sweepAng; // wedge head is drawn at param-angle 0, so the head equals the rotation itself
-        state.blips.forEach(function (e) {
-          var lit = e.blip.classList.contains("lit");
-          if (e.blip.classList.contains("hide")) { if (lit) e.blip.classList.remove("lit"); return; }
-          var diff = Math.abs(((e.angle - head + 540) % 360) - 180);
-          if (diff < 11) { if (!lit) e.blip.classList.add("lit"); }
-          else if (diff < 30) { if (!lit) { e.blip.classList.add("lit"); flashRing(e); } }
-          else if (lit) { e.blip.classList.remove("lit"); }
-        });
-        requestAnimationFrame(tick);
-      }
-      function flashRing(e) {
-        var r = radiusFor(e), pt = polar(e.angle, r);
-        var ring = el("circle", { cx: pt[0], cy: pt[1], r: 9, fill: "none",
-          stroke: sourceOf(e).color, "stroke-width": 2, "class": "ring-flash",
-          style: "transform-origin:" + pt[0] + "px " + pt[1] + "px" }, window._blipLayer);
-        setTimeout(function () { ring.remove(); }, 1300);
-      }
-      requestAnimationFrame(tick);
-
-      function showTip(e, pt) {
-        var rect = radarPanel.getBoundingClientRect(), sr = radarSvg.getBoundingClientRect();
-        var scale = sr.width / 600;
-        tip.innerHTML = e.title + "<small>" + countdown(e) + "</small>";
-        tip.style.left = (sr.left - rect.left + pt[0] * scale) + "px";
-        tip.style.top = (sr.top - rect.top + pt[1] * scale) + "px";
-        tip.classList.add("show");
-      }
-      function hideTip() { tip.classList.remove("show"); }
-      radarSvg.addEventListener("mouseleave", hideTip);
-
-      /* ---------------- list ---------------- */
-      function countdown(e) {
-        if (e.ongoing) return e.whenLabel;
-        if (e.days === 0) return "Today";
-        if (e.days === 1) return "Tomorrow";
-        return "In " + e.days + " days";
-      }
-      function scoreBand(s) {
-        if (s >= 85) return "Make the trip";
-        if (s >= 75) return "Worth a look";
-        return "Quiet win";
-      }
-      // the fun score as a glanceable meter: length is the score, always gold,
-      // so it never competes with the source colors
-      function meterHtml(score) {
-        return '<span class="meter" role="img" aria-label="Fun score ' + score + ' of 100"><span class="meter-fill" style="width:' + score + '%"></span></span>';
-      }
-      function sortedEvents() {
-        var list = EVENTS.slice();
-        if (state.filter !== "all") list = list.filter(function (e) { return e.cat === state.filter; });
-        var byTitle = function (a, b) { return a.title.localeCompare(b.title); };
-        if (state.sort === "date") {
-          list.sort(function (a, b) { // active now -> dated chronologically -> dates unknown
-            function phase(e) { if (!e.ongoing) return 1; return e.tbd ? 2 : 0; }
-            var pa = phase(a), pb = phase(b);
-            if (pa !== pb) return pa - pb;
-            if (a.ongoing) return byTitle(a, b);
-            return a.days - b.days || b.score - a.score || byTitle(a, b);
-          });
-        } else if (state.sort === "score") {
-          list.sort(function (a, b) { // highest score first; unscored ongoing items last
-            var sa = (typeof a.score === "number") ? a.score : -1;
-            var sb = (typeof b.score === "number") ? b.score : -1;
-            if (sb !== sa) return sb - sa;
-            return (a.ongoing === b.ongoing) ? ((a.ongoing ? 0 : a.days) - (b.ongoing ? 0 : b.days)) || byTitle(a, b) : (a.ongoing ? 1 : -1);
-          });
-        } else {
-          list.sort(byTitle); // truly global A-Z across every event
-        }
-        return list;
-      }
-
-      function renderList(animate) {
-        var rows = sortedEvents();
-        var first = {};
-        if (animate && !reduceMotion && window._rowOrder) {
-          window._rowOrder.forEach(function (id) {
-            var row = grid.querySelector('[data-id="' + id + '"]');
-            if (row) first[id] = row.getBoundingClientRect().top;
-          });
-        }
-        grid.innerHTML = "";
-        rows.forEach(function (e, i) {
-          var row = document.createElement("article");
-          row.className = "event-row" + (state.selected === e.id ? " selected" : "");
-          row.setAttribute("data-id", e.id);
-          row.setAttribute("tabindex", "0");
-          row.setAttribute("role", "button");
-          row.setAttribute("aria-label", e.ongoing ? (e.title + " · " + e.whenLabel) : (e.title + " on " + e.full));
-          var dateHtml = e.ongoing
-            ? '<div class="row-date"><strong style="font-size:19px">' + (e.tbd ? "TBD" : "NOW") + '</strong><span>Ongoing</span></div>'
-            : '<div class="row-date"><strong>' + e.day + '</strong><span>' + e.monthS + ' · ' + e.dow + '</span></div>';
-          var hasScore = typeof e.score === "number";
-          var scoreHtml = hasScore
-            ? '<div class="fun-score"><strong>' + e.score + '</strong>' + meterHtml(e.score) + '<span>' + scoreBand(e.score) + '</span></div>' +
-              (!e.ongoing ? '<button class="calendar-btn" type="button">Add to calendar</button>' : '')
-            : '<div class="fun-score"><strong style="color:var(--muted)">—</strong><span>No score</span></div>';
-          row.innerHTML =
-            dateHtml +
-            '<div class="row-main"><h3>' + e.title + '</h3><p>' + e.desc + '</p>' +
-            '<div class="row-tags"><span class="place-tag">' + e.place + '</span>' +
-            '<span class="place-tag"><i class="src-dot" style="background:' + sourceOf(e).color + '"></i>' + escapeHtml(sourceOf(e).label) + '</span>' +
-            '<span class="place-tag">' + countdown(e) + '</span>' +
-            (e.links && e.links.length ? '<span class="place-tag">' + e.links.length + (e.links.length === 1 ? ' link' : ' links') + '</span>' : '') +
-            (e.campusPick ? '<span class="place-tag" style="color:var(--green)">Campus pick</span>' : '') + '</div></div>' +
-            '<div class="row-tail">' + scoreHtml + '</div>';
-          if (animate && !reduceMotion && !window._rowOrder) {
-            row.style.opacity = "0";
-            row.style.transform = "translateY(14px)";
-            setTimeout(function () {
-              row.style.transition = "opacity .5s var(--ease), transform .5s var(--ease)";
-              row.style.opacity = ""; row.style.transform = "";
-              setTimeout(function () { row.style.transition = ""; }, 550);
-            }, i * 55);
-          }
-          row.addEventListener("click", function () { selectEvent(e.id, { from: "list" }); });
-          row.addEventListener("keydown", function (ev) {
-            if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); selectEvent(e.id, { from: "list" }); }
-          });
-          var calBtn = row.querySelector(".calendar-btn");
-          if (calBtn) calBtn.addEventListener("click", function (ev) { ev.stopPropagation(); downloadICS(e); });
-          grid.appendChild(row);
-        });
-        count.textContent = rows.length + (rows.length === 1 ? " event" : " events");
-        empty.classList.toggle("show", rows.length === 0);
-
-        if (animate && !reduceMotion && window._rowOrder) {
-          rows.forEach(function (e) {
-            var row = grid.querySelector('[data-id="' + e.id + '"]');
-            var f = first[e.id];
-            if (row && typeof f === "number") {
-              var dy = f - row.getBoundingClientRect().top;
-              if (Math.abs(dy) > 4) {
-                row.style.transition = "none";
-                row.style.transform = "translateY(" + dy + "px)";
-                requestAnimationFrame(function () {
-                  requestAnimationFrame(function () {
-                    row.style.transition = "transform .55s cubic-bezier(0.22,1,0.36,1)";
-                    row.style.transform = "";
-                    setTimeout(function () { row.style.transition = ""; }, 600);
-                  });
-                });
-              }
-            }
-          });
-        }
-        window._rowOrder = rows.map(function (e) { return e.id; });
-      }
-
-      /* ---------------- detail card ---------------- */
       function escapeHtml(s) { return (s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
       function escUrl(u) { return (u || "").replace(/&/g, "&amp;").replace(/"/g, "&quot;"); }
-      function renderDetail(e, instant) {
-        var was = detail.classList.contains("swap");
-        function paint() {
-          var whenHtml = e.ongoing
-            ? '<div class="detail-when"><strong>' + e.whenLabel + '</strong><span>·</span><span>' + e.place + '</span></div>'
-            : '<div class="detail-when"><strong>' + e.full + '</strong><span>·</span><span>' + e.place + '</span></div>';
-          var scoreHtml = (typeof e.score === "number")
-            ? '<div class="detail-score"><div class="score-number">' + e.score + '</div>' +
-              '<div class="score-meta"><strong>' + scoreBand(e.score) + '</strong>' + meterHtml(e.score) + 'Fun potential / 100' +
-              (e.ongoing ? ' · ongoing' : '') + '</div></div>' +
-              (e.reason ? '<span class="score-reason">' + escapeHtml(e.reason) + '</span>' : '')
-            : "";
-          var linksHtml = "";
-          if (e.links && e.links.length) {
-            linksHtml = e.links.map(function (l) {
-              return '<a class="btn-ghost" target="_blank" rel="noopener" href="' + escUrl(l.url) + '">' + escapeHtml(l.label) + ' &#8599;</a>';
-            }).join("");
-          }
-          var actionsHtml = '<div class="detail-actions">' +
-            (e.ongoing ? '' : '<button class="btn-gold" type="button" data-ics>Add to calendar</button>') +
-            linksHtml +
-            '<button class="btn-ghost" type="button" data-next>Next event</button></div>';
-          detail.innerHTML =
-            '<span class="detail-tag">' + countdown(e) + '</span>' +
-            '<h2>' + e.title + '</h2>' + whenHtml +
-            '<p class="detail-desc">' + e.desc + '</p>' +
-            scoreHtml +
-            '<div class="source">' + e.source + '</div>' +
-            actionsHtml;
-          var ics = detail.querySelector("[data-ics]");
-          if (ics) ics.addEventListener("click", function () { downloadICS(e); });
-          detail.querySelector("[data-next]").addEventListener("click", function () { stepSelected(1); });
-        }
-        if (instant || reduceMotion || was) { paint(); detail.classList.remove("swap"); return; }
-        detail.classList.add("swap");
-        clearTimeout(window._swapT);
-        window._swapT = setTimeout(function () { paint(); detail.classList.remove("swap"); }, 160);
-      }
-
-      function selectEvent(id, opts) {
-        var prev = state.selected;
-        state.selected = id;
-        EVENTS.forEach(function (e) {
-          var b = e.blip; if (!b) return;
-          b.classList.toggle("selected", e.id === id);
-        });
-        var rows = grid.querySelectorAll(".event-row");
-        rows.forEach(function (r) { r.classList.toggle("selected", r.getAttribute("data-id") === id); });
-        var e = EVENTS.filter(function (x) { return x.id === id; })[0];
-        if (e) {
-          renderDetail(e, prev === id);
-          if (opts && opts.from === "list" && state.view !== "radar") {
-            // keep list context; nothing extra
-          }
-        }
-      }
-
-      function stepSelected(dir) {
-        var order = EVENTS.filter(function (e) { return !e.ongoing; })
-          .sort(function (a, b) { return a.days - b.days || b.score - a.score; });
-        var i = order.findIndex(function (e) { return e.id === state.selected; });
-        var n = order[(i + dir + order.length) % order.length];
-        if (n) selectEvent(n.id, {});
-      }
-
-      /* ---------------- filters / views / sort ---------------- */
-      function applyFilter() {
-        state.blips.forEach(function (e) {
-          e.blip.classList.toggle("hide", state.filter !== "all" && e.cat !== state.filter);
-          if (state.filter === "all" || e.cat === state.filter) e.blip.classList.add("recent");
-          else e.blip.classList.remove("lit");
-        });
-        renderList(true);
-        renderCalendar(); renderOngoing(); renderSidebarForState();
-        var visible = sortedEvents();
-        if (!visible.some(function (e) { return e.id === state.selected; }) && visible.length) {
-          selectEvent(visible[0].id, {});
-        }
-      }
-
-      document.querySelectorAll(".filter-row .chip").forEach(function (chip) {
-        chip.addEventListener("click", function () {
-          document.querySelectorAll(".filter-row .chip").forEach(function (c) {
-            c.classList.remove("active"); c.setAttribute("aria-pressed", "false");
-          });
-          chip.classList.add("active");
-          chip.setAttribute("aria-pressed", "true");
-          state.filter = chip.getAttribute("data-filter");
-          applyFilter();
-        });
-      });
-
-      document.querySelectorAll(".view-toggle button").forEach(function (btn) {
-        btn.addEventListener("click", function () {
-          document.querySelectorAll(".view-toggle button").forEach(function (b) {
-            b.classList.remove("active"); b.setAttribute("aria-pressed", "false");
-          });
-          btn.classList.add("active");
-          btn.setAttribute("aria-pressed", "true");
-          state.view = btn.getAttribute("data-view");
-          radarSection.hidden = state.view !== "radar";
-          listSection.hidden = state.view !== "list";
-          calendarSection.hidden = state.view !== "month";
-          sortWrap.style.display = state.view === "list" ? "" : "none";
-          if (state.view === "list") renderList(true);
-          if (state.view === "month") { renderCalendar(); renderOngoing(); renderSidebarForState(); }
-        });
-      });
-
-      document.getElementById("sort").addEventListener("change", function (ev) {
-        state.sort = ev.target.value;
-        renderList(true);
-      });
-
-      radarPanel.addEventListener("keydown", function (ev) {
-        if (ev.key === "ArrowRight") { ev.preventDefault(); stepSelected(1); }
-        if (ev.key === "ArrowLeft") { ev.preventDefault(); stepSelected(-1); }
-      });
-
-      /* ---------------- ICS ---------------- */
-      function nextDay(date) {
-        var d = new Date(date + "T12:00:00");
-        d.setDate(d.getDate() + 1);
-        return d.getFullYear() + String(d.getMonth() + 1).padStart(2, "0") + String(d.getDate()).padStart(2, "0");
-      }
-      function escapeICS(v) {
-        return (v || "").replace(/\\/g, "\\\\").replace(/,/g, "\\,").replace(/;/g, "\\;").replace(/\n/g, "\\n");
-      }
-      function veventLines(e) {
-        var compact = e.date.replace(/-/g, "");
-        var start = e.time ? compact + "T" + e.time : compact;
-        var end = e.time ? compact + "T" + String(parseInt(e.time.slice(0, 2), 10) + 1).padStart(2, "0") + e.time.slice(2) : nextDay(e.date);
-        var lines = ["BEGIN:VEVENT","UID:" + compact + "-" + e.id + "@north-country-radar","DTSTAMP:20260929T180000Z"];
-        lines.push((e.time ? "DTSTART:" : "DTSTART;VALUE=DATE:") + start);
-        lines.push((e.time ? "DTEND:" : "DTEND;VALUE=DATE:") + end);
-        lines.push("SUMMARY:" + escapeICS(e.title));
-        if (e.location) lines.push("LOCATION:" + escapeICS(e.location));
-        lines.push("DESCRIPTION:" + escapeICS(e.desc + " -- confirm details with the organizer before attending."));
-        lines.push("END:VEVENT");
-        return lines;
-      }
-      function saveICSFile(filename, lines) {
-        var blob = new Blob([lines.join("\r\n")], { type: "text/calendar;charset=utf-8" });
-        var url = URL.createObjectURL(blob);
-        var link = document.createElement("a");
-        link.href = url;
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        setTimeout(function () { URL.revokeObjectURL(url); }, 1200);
-      }
-      function showToast(msg) {
-        toast.textContent = msg;
-        toast.classList.add("show");
-        clearTimeout(toastTimer);
-        toastTimer = setTimeout(function () { toast.classList.remove("show"); }, 2200);
-      }
-      function downloadICS(e) {
-        var lines = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//North Country Events Radar//EN","CALSCALE:GREGORIAN"]
-          .concat(veventLines(e)).concat(["END:VCALENDAR"]);
-        saveICSFile(e.id + ".ics", lines);
-        showToast("Calendar file downloaded");
-      }
-      function downloadAllICS(key, evts) {
-        var dated = evts.filter(function (e) { return !e.ongoing; });
-        if (!dated.length) return;
-        var lines = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//North Country Events Radar//EN","CALSCALE:GREGORIAN"];
-        dated.forEach(function (e) { lines = lines.concat(veventLines(e)); });
-        lines.push("END:VCALENDAR");
-        saveICSFile("north-country-" + key + ".ics", lines);
-        showToast(dated.length + (dated.length === 1 ? " event" : " events") + " added to calendar file");
-      }
-
-      /* ---------------- month calendar ---------------- */
-      var SNAP_KEY = "2026-09-29";
-      function sourceOf(e) {
-        return SOURCES[e.source] || { label: e.source, color: "#93a39d" };
-      }
+      function sourceOf(e) { return SOURCES[e.source] || { label: e.source, color: "#93a39d" }; }
       function areaOk(e) { return state.filter === "all" || e.cat === state.filter; }
       function pad2(n) { return String(n).padStart(2, "0"); }
       function dateKey(y, m, d) { return y + "-" + pad2(m + 1) + "-" + pad2(d); }
@@ -1274,8 +446,16 @@
         return EVENTS.filter(function (e) { return !e.ongoing && e.date === key && areaOk(e); })
           .sort(function (a, b) { return ((b.score || -1) - (a.score || -1)) || a.title.localeCompare(b.title); });
       }
-      function ongoingVisible() {
-        return EVENTS.filter(function (e) { return e.ongoing && areaOk(e); });
+      function ongoingVisible() { return EVENTS.filter(function (e) { return e.ongoing && areaOk(e); }); }
+      function countdown(e) {
+        if (e.ongoing) return e.whenLabel;
+        if (e.days === 0) return "Today";
+        if (e.days === 1) return "Tomorrow";
+        return "In " + e.days + " days";
+      }
+      function scoreBand(s) { if (s >= 85) return "Make the trip"; if (s >= 75) return "Worth a look"; return "Quiet win"; }
+      function meterHtml(score) {
+        return '<span class="meter" role="img" aria-label="Fun score ' + score + ' of 100"><span class="meter-fill" style="width:' + score + '%"></span></span>';
       }
       function timeLabel(e) {
         if (!e.time) return "";
@@ -1294,7 +474,7 @@
       var calMonthEl = document.getElementById("cal-month");
       var ongoingRow = document.getElementById("ongoing-row");
       var ongoingBlock = document.getElementById("ongoing-block");
-      var sidebar = document.getElementById("day-sidebar");
+      var detail = document.getElementById("day-detail");
 
       function renderCalendar() {
         calMonthEl.textContent = MONTHS[state.calMonth] + " " + state.calYear;
@@ -1307,9 +487,6 @@
         });
         var first = new Date(state.calYear, state.calMonth, 1).getDay();
         var dim = new Date(state.calYear, state.calMonth + 1, 0).getDate();
-        // Rows size to their tallest cell (and stretch evenly when the panel
-        // has room), so chips always get the height their wrapped titles
-        // need and every month renders with the same cell design.
         var cells = Math.ceil((first + dim) / 7) * 7;
         for (var i = 0; i < cells; i++) {
           var dayNum = i - first + 1;
@@ -1317,8 +494,7 @@
           if (dayNum < 1 || dayNum > dim) { cell.className = "cal-day dim"; cell.setAttribute("aria-hidden", "true"); calGrid.appendChild(cell); continue; }
           var key = dateKey(state.calYear, state.calMonth, dayNum);
           var evts = eventsOnDay(key);
-          cell.className = "cal-day" + (evts.length ? " has-events" : "") +
-            (key === SNAP_KEY ? " today" : "") + (key === state.selectedDay ? " selected" : "");
+          cell.className = "cal-day" + (evts.length ? " has-events" : "") + (key === SNAP_KEY ? " today" : "") + (key === state.selectedDay ? " selected" : "");
           cell.setAttribute("role", "button");
           cell.setAttribute("tabindex", "0");
           cell.setAttribute("aria-label", dayHeading(key) + (evts.length ? ", " + evts.length + (evts.length === 1 ? " event" : " events") : ", no events"));
@@ -1331,14 +507,17 @@
           }
           html += '</span><span class="cal-chips">';
           evts.forEach(function (e) {
-            html += '<span class="cal-chip" style="--sc:' + sourceOf(e).color + '">' + escapeHtml(e.title) + '</span>';
+            html += '<span class="cal-chip" data-eid="' + e.id + '" style="--sc:' + sourceOf(e).color + '">' + escapeHtml(e.title) + '</span>';
           });
           html += '</span>';
           cell.innerHTML = html;
           (function (k) {
-            cell.addEventListener("click", function () { selectDay(k); });
+            cell.addEventListener("click", function (ev) {
+              var eid = ev.target && ev.target.getAttribute ? ev.target.getAttribute("data-eid") : null;
+              selectDay(k, eid);
+            });
             cell.addEventListener("keydown", function (ev) {
-              if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); selectDay(k); }
+              if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); selectDay(k, null); }
             });
           })(key);
           calGrid.appendChild(cell);
@@ -1353,8 +532,7 @@
           var c = document.createElement("button");
           c.type = "button";
           c.className = "ongoing-card" + (state.calSingle === e.id ? " selected" : "");
-          c.innerHTML = '<span class="ot"><i style="background:' + sourceOf(e).color + '"></i>' + e.title + '</span>' +
-            '<small>' + e.whenLabel + '</small>';
+          c.innerHTML = '<span class="ot"><i style="background:' + sourceOf(e).color + '"></i>' + escapeHtml(e.title) + '</span><small>' + escapeHtml(e.whenLabel) + '</small>';
           (function (id) { c.addEventListener("click", function () { selectOngoing(id); }); })(e.id);
           ongoingRow.appendChild(c);
         });
@@ -1362,145 +540,110 @@
 
       function cardHTML(e) {
         var s = sourceOf(e);
-        var when = e.ongoing
-          ? e.whenLabel
-          : "<strong>" + e.full + "</strong>" + (e.time ? " · " + timeLabel(e) : "") + " · " + countdown(e);
+        var when = e.ongoing ? escapeHtml(e.whenLabel) : "<strong>" + escapeHtml(e.full) + "</strong>" + (e.time ? " · " + timeLabel(e) : "") + " · " + countdown(e);
         var where = [e.location, e.place].filter(Boolean).join(" · ");
         var mapQuery = [e.location, e.place].filter(Boolean).join(", ");
         var mapsUrl = mapQuery ? "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(mapQuery) : "";
         var searchUrl = "https://www.google.com/search?q=" + encodeURIComponent(e.title + " " + (e.place || ""));
         var links = "";
-        if (!e.ongoing) links += '<button class="sb-link primary" type="button" data-ics="' + e.id + '">Add to calendar</button>';
         if (e.links && e.links.length) {
           e.links.forEach(function (l) {
             links += '<a class="sb-link src-link" target="_blank" rel="noopener" href="' + escUrl(l.url) + '">' + escapeHtml(l.label) + ' &#8599;</a>';
           });
         }
-        if (mapsUrl) links += '<a class="sb-link" target="_blank" rel="noopener" href="' + mapsUrl + '">View on map</a>';
-        links += '<a class="sb-link" target="_blank" rel="noopener" href="' + searchUrl + '">Web search</a>';
+        if (mapsUrl) links += '<a class="sb-link" target="_blank" rel="noopener" href="' + escUrl(mapsUrl) + '">View on map</a>';
+        links += '<a class="sb-link" target="_blank" rel="noopener" href="' + escUrl(searchUrl) + '">Web search</a>';
         var score = "";
         if (typeof e.score === "number") {
-          score = '<div class="sb-score"><strong>' + e.score + '</strong><span><b>' + scoreBand(e.score) + '</b>' + meterHtml(e.score) + 'Fun potential / 100' +
-            (e.ongoing ? ' · ongoing' : '') + '</span></div>' +
+          score = '<div class="sb-score"><strong>' + e.score + '</strong><span><b>' + scoreBand(e.score) + '</b>' + meterHtml(e.score) + 'Fun potential / 100' + (e.ongoing ? ' · ongoing' : '') + '</span></div>' +
             (e.reason ? '<p class="sb-reason">' + escapeHtml(e.reason) + '</p>' : '');
         }
         return '<article class="sb-card" style="border-top-color:' + s.color + '">' +
-          '<div class="sb-card-top"><span class="sb-src" style="color:' + s.color + '"><i style="background:' + s.color + '"></i>' +
-          escapeHtml(s.label) + '</span><span class="sb-area">' + CATS[e.cat].label + '</span></div>' +
-          '<h4>' + e.title + '</h4>' +
-          '<dl class="sb-meta">' +
-          '<div><dt>When</dt><dd>' + when + '</dd></div>' +
-          '<div><dt>Where</dt><dd>' + escapeHtml(where) + '</dd></div>' +
-          '</dl>' +
-          '<p class="sb-desc">' + e.desc + '</p>' +
-          score +
+          '<div class="sb-card-top"><span class="sb-src" style="color:' + s.color + '"><i style="background:' + s.color + '"></i>' + escapeHtml(s.label) + '</span><span class="sb-area">' + CATS[e.cat].label + '</span></div>' +
+          '<h4>' + escapeHtml(e.title) + '</h4>' +
+          '<dl class="sb-meta"><div><dt>When</dt><dd>' + when + '</dd></div>' +
+          '<div><dt>Where</dt><dd>' + escapeHtml(where) + '</dd></div></dl>' +
+          '<p class="sb-desc">' + escapeHtml(e.desc) + '</p>' + score +
           '<div class="sb-links">' + links + '</div></article>';
       }
 
-      function renderSidebarCards(evts, heading, sub, dayKey, back) {
-        var html = '<h3 class="sb-heading">' + heading + '</h3>' +
-          (sub ? '<p class="sb-sub">' + sub + '</p>' : '');
-        if (dayKey && evts.length > 1) {
-          html += '<div class="sb-day-actions"><button class="sb-link primary" type="button" data-all="' + dayKey + '">Add all to calendar</button></div>';
-        }
-        html += evts.map(cardHTML).join("");
-        if (back) {
-          html += '<div class="sb-day-actions" style="margin-top:14px;margin-bottom:0"><button class="sb-link" type="button" data-back="1">Back to month</button></div>';
-        }
-        sidebar.innerHTML = html;
+      function renderMonthEmpty() {
+        var heading = MONTHS[state.calMonth] + " " + state.calYear;
+        detail.innerHTML = '<h3 class="sb-heading">' + heading + '</h3>' +
+          '<p class="sb-sub">No listed events this month.</p>' +
+          '<p class="sb-empty">Use the month arrows' + (state.filter !== "all" ? ' or clear the area filter' : '') + ' to browse September through December 2026. Recurring &amp; ongoing items are below the calendar.</p>';
       }
 
-      function renderMonthSummary() {
-        var heading = MONTHS[state.calMonth] + " " + state.calYear;
-        var dim = new Date(state.calYear, state.calMonth + 1, 0).getDate();
-        var all = [];
-        for (var d = 1; d <= dim; d++) {
-          var key = dateKey(state.calYear, state.calMonth, d);
-          eventsOnDay(key).forEach(function (e) { all.push(e); });
-        }
-        all.sort(function (a, b) {
-          if (a.date !== b.date) return a.date < b.date ? -1 : 1;
-          return (b.score || -1) - (a.score || -1);
-        });
-        var html = '<h3 class="sb-heading">' + heading + '</h3>';
-        if (!all.length) {
-          html += '<p class="sb-sub">No listed events this month.</p><p class="sb-empty">Try the month arrows' +
-            (state.filter !== "all" ? ' or clear the area filter' : '') + ' to browse September through December 2026.</p>';
-          sidebar.innerHTML = html;
+      function renderDayDetail(key) {
+        var evts = eventsOnDay(key);
+        if (!evts.length) {
+          detail.innerHTML = '<h3 class="sb-heading">' + dayHeading(key) + '</h3>' +
+            '<p class="sb-sub">No listed events this day.</p>' +
+            '<p class="sb-empty">Pick a highlighted day on the calendar to see its event in full. Recurring &amp; ongoing items are below the calendar.</p>';
           return;
         }
-        html += '<p class="sb-sub">' + all.length + (all.length === 1 ? " event" : " events") + ' · pick a day</p>';
-        all.forEach(function (e) {
-          html += '<button class="sb-row" type="button" data-day="' + e.date + '">' +
-            '<span class="sb-row-date">' + e.day + '</span>' +
-            '<span class="sb-row-main"><b>' + e.title + '</b><small>' + e.monthS + ' ' + e.day + ' · ' + escapeHtml(sourceOf(e).label) + '</small></span>' +
-            (typeof e.score === "number" ? '<span class="sb-row-score">' + e.score + '</span>' : '') +
-            '<i style="background:' + sourceOf(e).color + '"></i></button>';
-        });
-        sidebar.innerHTML = html;
-      }
-
-      function renderDaySidebar(key) {
-        var evts = eventsOnDay(key);
-        if (!evts.length) { renderMonthSummary(); return; }
-        // One selected event at a time so the sidebar never has to scroll.
         if (state.calIdx >= evts.length) state.calIdx = 0;
         var e = evts[state.calIdx];
         var html = '<h3 class="sb-heading">' + dayHeading(key) + '</h3>' +
-          '<p class="sb-sub">' + evts.length + (evts.length === 1 ? " event" : " events") + '</p>';
+          '<p class="sb-sub">' + evts.length + (evts.length === 1 ? " event" : " events") + ' · shown once, in full below</p>';
         if (evts.length > 1) {
           html += '<div class="sb-pager" role="group" aria-label="Browse events on this day">' +
             '<button class="cal-nav" type="button" data-step="-1" aria-label="Previous event">‹</button>' +
             '<span class="sb-pager-label">' + (state.calIdx + 1) + " of " + evts.length + '</span>' +
-            '<button class="cal-nav" type="button" data-step="1" aria-label="Next event">›</button>' +
-            '<button class="sb-link primary" type="button" data-all="' + key + '">Add all to calendar</button></div>';
+            '<button class="cal-nav" type="button" data-step="1" aria-label="Next event">›</button></div>';
         }
         html += cardHTML(e);
-        sidebar.innerHTML = html;
+        detail.innerHTML = html;
       }
 
+      function renderOngoingDetail(e) {
+        detail.innerHTML = '<h3 class="sb-heading">Recurring &amp; ongoing</h3>' +
+          '<p class="sb-sub">' + escapeHtml(e.whenLabel) + ' · ' + escapeHtml(e.place) + '</p>' + cardHTML(e);
+      }
+
+      function renderDetailForState() {
+        if (state.calSingle) {
+          var e = findEvent(state.calSingle);
+          if (e && areaOk(e)) { renderOngoingDetail(e); return; }
+          state.calSingle = null;
+        }
+        if (state.selectedDay && eventsOnDay(state.selectedDay).length) { renderDayDetail(state.selectedDay); return; }
+        state.selectedDay = null;
+        renderMonthEmpty();
+      }
+
+      function selectDay(key, eventId) {
+        state.selectedDay = key;
+        state.calSingle = null;
+        state.calIdx = 0;
+        if (eventId) {
+          var evts = eventsOnDay(key);
+          for (var i = 0; i < evts.length; i++) {
+            if (evts[i].id === eventId) { state.calIdx = i; break; }
+          }
+        }
+        renderCalendar(); renderOngoing(); renderDayDetail(key);
+        detail.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+      function selectOngoing(id) {
+        state.calSingle = id;
+        state.selectedDay = null;
+        renderCalendar(); renderOngoing();
+        var e = findEvent(id);
+        if (e) renderOngoingDetail(e);
+        detail.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
       function stepDayEvent(dir) {
         if (!state.selectedDay) return;
         var evts = eventsOnDay(state.selectedDay);
         if (evts.length < 2) return;
         state.calIdx = (state.calIdx + dir + evts.length) % evts.length;
-        renderDaySidebar(state.selectedDay);
-      }
-
-      function renderOngoingSidebar(e) {
-        renderSidebarCards([e], "Recurring &amp; ongoing", e.whenLabel + " · " + e.place, null, true);
-      }
-
-      function selectDay(key) {
-        state.selectedDay = key;
-        state.calSingle = null;
-        state.calIdx = 0;
-        renderCalendar();
-        renderOngoing();
-        renderDaySidebar(key);
-      }      function selectOngoing(id) {
-        state.calSingle = id;
-        state.selectedDay = null;
-        renderCalendar();
-        renderOngoing();
-        var e = findEvent(id);
-        if (e) renderOngoingSidebar(e);
-      }
-      function renderSidebarForState() {
-        if (state.calSingle) {
-          var e = findEvent(state.calSingle);
-          if (e && areaOk(e)) { renderOngoingSidebar(e); return; }
-          state.calSingle = null;
-        }
-        if (state.selectedDay && eventsOnDay(state.selectedDay).length) { renderDaySidebar(state.selectedDay); return; }
-        state.selectedDay = null;
-        renderMonthSummary();
+        renderDayDetail(state.selectedDay);
       }
       function firstEventDayInMonth(y, m) {
         var dim = new Date(y, m + 1, 0).getDate();
         for (var d = 1; d <= dim; d++) {
-          var key = dateKey(y, m, d);
-          if (eventsOnDay(key).length) return key;
+          if (eventsOnDay(dateKey(y, m, d)).length) return dateKey(y, m, d);
         }
         return null;
       }
@@ -1508,41 +651,50 @@
         state.calMonth += dir;
         while (state.calMonth < 0) { state.calMonth += 12; state.calYear--; }
         while (state.calMonth > 11) { state.calMonth -= 12; state.calYear++; }
-        state.selectedDay = null; state.calSingle = null;
-        renderCalendar(); renderOngoing(); renderMonthSummary();
+        state.selectedDay = firstEventDayInMonth(state.calYear, state.calMonth);
+        state.calSingle = null;
+        state.calIdx = 0;
+        renderCalendar(); renderOngoing(); renderDetailForState();
       }
+      function refresh() { renderCalendar(); renderOngoing(); renderDetailForState(); }
 
       document.getElementById("cal-prev").addEventListener("click", function () { shiftMonth(-1); });
       document.getElementById("cal-next").addEventListener("click", function () { shiftMonth(1); });
       document.getElementById("cal-today").addEventListener("click", function () {
-        state.calYear = 2026; state.calMonth = 8;
-        state.calSingle = null;
+        state.calYear = 2026; state.calMonth = 8; state.calSingle = null;
         state.selectedDay = firstEventDayInMonth(2026, 8);
-        renderCalendar(); renderOngoing(); renderSidebarForState();
+        refresh();
       });
 
-      sidebar.addEventListener("click", function (ev) {
+      detail.addEventListener("click", function (ev) {
         var t = ev.target;
-        while (t && t !== sidebar) {
-          if (t.getAttribute && (t.getAttribute("data-ics") || t.getAttribute("data-day") ||
-              t.getAttribute("data-all") || t.getAttribute("data-back") || t.getAttribute("data-step"))) break;
+        while (t && t !== detail) {
+          if (t.getAttribute && t.getAttribute("data-step")) break;
           t = t.parentNode;
         }
-        if (!t || t === sidebar) return;
-        var icsId = t.getAttribute("data-ics");
-        if (icsId) { var e = findEvent(icsId); if (e) downloadICS(e); return; }
-        var dayK = t.getAttribute("data-day");
-        if (dayK) { selectDay(dayK); return; }
-        var allK = t.getAttribute("data-all");
-        if (allK) { downloadAllICS(allK, eventsOnDay(allK)); return; }
+        if (!t || t === detail) return;
         var stepS = t.getAttribute("data-step");
-        if (stepS) { stepDayEvent(parseInt(stepS, 10)); return; }
-        state.calSingle = null;
-        renderOngoing(); renderSidebarForState();
+        if (stepS) stepDayEvent(parseInt(stepS, 10));
+      });
+
+      document.querySelectorAll(".filter-row .chip").forEach(function (chip) {
+        chip.addEventListener("click", function () {
+          document.querySelectorAll(".filter-row .chip").forEach(function (c) {
+            c.classList.remove("active"); c.setAttribute("aria-pressed", "false");
+          });
+          chip.classList.add("active");
+          chip.setAttribute("aria-pressed", "true");
+          state.filter = chip.getAttribute("data-filter");
+          refresh();
+        });
       });
 
       (function buildSrcLegend() {
         var lg = document.getElementById("src-legend");
+        var lbl = document.createElement("span");
+        lbl.className = "lbl";
+        lbl.textContent = "Who published it";
+        lg.appendChild(lbl);
         Object.keys(SOURCES).forEach(function (k) {
           var s = SOURCES[k];
           var sp = document.createElement("span");
@@ -1551,8 +703,7 @@
         });
       })();
 
-      /* ---------------- freshness ---------------- */
-      function renderFreshness() {
+      (function renderFreshness() {
         var badge = document.getElementById("freshness");
         var now = new Date();
         var snap = new Date(2026, 8, 29);
@@ -1563,122 +714,55 @@
         var age = days === 0 ? "from today" : (days === 1 ? "1 day old" : days + " days old");
         badge.className = "freshness " + band;
         badge.innerHTML = "<i></i><span>" + bandLabel + " · Info from Sep 29 · " + age + "</span>";
-        badge.setAttribute("title", "Event information was compiled on September 29, 2026. Confirm details with the organizer before traveling.");
-      }
+        badge.setAttribute("title", "Event information was compiled on September 29, 2026. Links were re-tested October 2, 2026. Confirm details with the organizer before traveling.");
+      })();
 
-      /* ---------------- Meta activity feed ---------------- */
-      // Posts are attributed only to the public group or account they came from;
-      // no account-holder name, photo, or profile details appear here.
-      var FEED = [
-        { platform: "fb", source: "Potsdam-Canton Community", time: "Oct 1",
-          title: "Mobile mammogram screening Oct 14 at SLU",
-          summary: "A mobile mammogram screening rolls into St. Lawrence University's Stafford Fitness Center on Oct 14 for Breast Cancer Awareness Month -- registration details are in the Facebook event.",
-          links: [{ label: "Open post", url: "https://facebook.com/groups/2166021530323082/permalink/4573011709624040/" }] },
-        { platform: "fb", source: "Potsdam-Canton Community", time: "Oct 1",
-          title: "Goodwin's Orchard stocked for fall",
-          summary: "Goodwin's Orchard at 37 Needham Road in Potsdam is carrying a big selection of pumpkins, gourds, and squash.",
-          links: [{ label: "Open post", url: "https://facebook.com/groups/2166021530323082/permalink/4572818199643391/" }] },
-        { platform: "fb", source: "Potsdam-Canton Community", time: "Oct 1",
-          title: "Community bingo night two days out",
-          summary: "The community bingo night is happening in two days, and last-minute basket drop-offs are still welcome.",
-          links: [{ label: "Open post", url: "https://facebook.com/groups/2166021530323082/permalink/4572645892993955/" }] },
-        { platform: "fb", source: "Potsdam-Canton Community", time: "Oct 1",
-          title: "\"Breaking Bread\" potluck signup for Nov 14",
-          summary: "A community \"Breaking Bread\" potluck is set for November 14 -- comment with your name and dish to sign up.",
-          links: [{ label: "Open post", url: "https://facebook.com/groups/2166021530323082/permalink/4571856899739521/" }] },
-        { platform: "fb", source: "Growing Potsdam, NY", time: "Oct 1",
-          title: "Hands-on STEM build at the museum",
-          summary: "Dr. Blair Madore and SUNY Potsdam students are hosting a hands-on STEM activity at the museum: build 3D objects from giant triangles, squares, pentagons, and hexagons. Open to all visitors, included with admission or membership.",
-          links: [{ label: "Open post", url: "https://facebook.com/groups/268472031339446/permalink/1632250934961542/" }] },
-        { platform: "fb", source: "Growing Potsdam, NY", time: "Oct 1",
-          title: "Children's museum classes start next week",
-          summary: "North Country Children's Museum afterschool and Pre-K classes start next week -- kids can ride the school bus directly from Potsdam Central School to the museum.",
-          links: [
-            { label: "Sign-up form", url: "https://www.cognitoforms.com/NorthCountryChildrensMuseumAfterschoolClasses1" },
-            { label: "Open post", url: "https://facebook.com/groups/268472031339446/permalink/1631478868372082/" }
-          ] },
-        { platform: "fb", source: "Clarkson Alumni - North Country Chapter", time: "Recent",
-          title: "Clarkson alumni gathering in Warrensburg",
-          summary: "A Clarkson alumni event is planned in Warrensburg -- see the post for details.",
-          links: [{ label: "Open post", url: "https://facebook.com/groups/294582896609087/permalink/926319590102078/" }] },
-        { platform: "fb", source: "Clarkson Alumni - North Country Chapter", time: "Recent",
-          title: "Energy Navigator volunteers wanted",
-          summary: "Cornell Cooperative Extension and the North Country Clean Energy Hub are recruiting Energy Navigator volunteers.",
-          links: [{ label: "Open post", url: "https://facebook.com/groups/294582896609087/permalink/571151385618902/" }] },
-        { platform: "fb", source: "Community Events in the North Country", time: "Oct 1",
-          title: "8U girls competitive hockey team forming",
-          summary: "A new competitive 8U girls hockey team is forming in the North Country, focused on local girls playing together, competing, and building friendships.",
-          links: [{ label: "Open post", url: "https://facebook.com/groups/336043796416831/permalink/28994753280119167/" }] }
-      ];
-
-      var feedList = document.getElementById("feed-list");
-      var feedTab = document.getElementById("feed-tab");
-      var feedOpen = true;
-
-      var FEED_ICONS = {
-        fb: '<svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path fill="currentColor" d="M13.5 21v-7h2.4l.4-3h-2.8V9.1c0-.9.3-1.5 1.6-1.5h1.3V5.1c-.2 0-1-.1-1.9-.1-1.9 0-3.2 1.2-3.2 3.3V11H9v3h2.3v7h2.2z"/></svg>'
-      };
+      /* ---- activity feed drawer ---- */
+      var feedDrawer = document.getElementById("feed-drawer");
+      var feedPanel = document.getElementById("feed-panel");
+      var feedRail = document.getElementById("feed-rail");
+      var feedPill = document.getElementById("feed-pill");
+      var feedBackdrop = document.getElementById("feed-backdrop");
+      var feedCollapseBtn = document.getElementById("feed-collapse");
 
       function renderFeed() {
-        feedList.innerHTML = "";
-        if (!FEED.length) {
-          feedList.innerHTML = '<div class="feed-empty">No posts here.</div>';
-          return;
-        }
-        FEED.forEach(function (it) {
-          var item = document.createElement("article");
-          item.className = "feed-item";
-          item.setAttribute("role", "article");
-          var linksHtml = "";
-          if (it.links && it.links.length) {
-            linksHtml = '<div class="feed-links">' + it.links.map(function (l) {
-              return '<a class="feed-link" target="_blank" rel="noopener" href="' + l.url + '">' + l.label + ' &#8599;</a>';
+        var list = document.getElementById("feed-items");
+        document.getElementById("feed-count").textContent = FEED.length;
+        feedPill.innerHTML = 'Feed <b>· ' + FEED.length + '</b>';
+        list.innerHTML = FEED.map(function (item) {
+          var links = "";
+          if (item.links && item.links.length) {
+            links = '<div class="feed-links">' + item.links.map(function (l) {
+              return '<a class="feed-link" target="_blank" rel="noopener" href="' + escUrl(l.url) + '">' + escapeHtml(l.label) + ' &#8599;</a>';
             }).join("") + '</div>';
           }
-          item.innerHTML =
-            '<div class="feed-item-top">' +
-              '<span class="feed-source ' + it.platform + '">' +
-                '<span class="feed-platform ' + it.platform + '">' + FEED_ICONS[it.platform] + '</span>' +
-                '<span class="pname">' + it.source + '</span>' +
-              '</span>' +
-              '<time class="feed-time">' + it.time + '</time>' +
-            '</div>' +
-            '<h4>' + it.title + '</h4>' +
-            '<p>' + it.summary + '</p>' +
-            linksHtml;
-          feedList.appendChild(item);
-        });
+          return '<article class="feed-item">' +
+            '<div class="feed-top"><span class="feed-src"><span class="feed-ico">' + (FEED_ICONS[item.platform] || "") + '</span>' + escapeHtml(item.source) + '</span>' +
+            '<span class="feed-time">' + escapeHtml(item.time) + '</span></div>' +
+            '<h4>' + escapeHtml(item.title) + '</h4>' +
+            '<p>' + escapeHtml(item.summary) + '</p>' + links + '</article>';
+        }).join("");
       }
 
-      function setFeed(open) {
-        feedOpen = open;
-        document.body.classList.toggle("feed-collapsed", !open);
-        feedTab.setAttribute("aria-expanded", open ? "true" : "false");
-        feedTab.setAttribute("aria-label", open ? "Collapse local events feed" : "Open local events feed");
-        feedTab.setAttribute("title", open ? "Collapse feed" : "Open feed");
+      function setFeedOpen(open) {
+        feedDrawer.classList.toggle("collapsed", !open);
+        feedPanel.hidden = !open;
+        feedRail.hidden = open;
+        feedCollapseBtn.setAttribute("aria-expanded", String(open));
+        feedRail.setAttribute("aria-expanded", String(open));
+        feedPill.classList.toggle("show", !open);
+        feedBackdrop.classList.toggle("show", open);
+        if (open) feedBackdrop.removeAttribute("hidden"); else feedBackdrop.setAttribute("hidden", "");
       }
-
-      feedTab.querySelector(".cnt").textContent = FEED.length;
-      feedTab.addEventListener("click", function () { setFeed(!feedOpen); });
-      document.addEventListener("keydown", function (ev) {
-        if (ev.key === "Escape" && feedOpen) setFeed(false);
-      });
-      // The drawer starts open on every viewport and only collapses when the
-      // user taps the handle.
+      feedCollapseBtn.addEventListener("click", function () { setFeedOpen(false); });
+      feedRail.addEventListener("click", function () { setFeedOpen(true); });
+      feedPill.addEventListener("click", function () { setFeedOpen(true); });
+      feedBackdrop.addEventListener("click", function () { setFeedOpen(false); });
       renderFeed();
-      setFeed(true);
+      setFeedOpen(true);
 
-      /* ---------------- init ---------------- */
-      renderList(false);
-      var first = EVENTS.filter(function (e) { return !e.ongoing; })
-        .sort(function (a, b) { return a.days - b.days || b.score - a.score; })[0];
-      selectEvent(first.id, {});
       state.selectedDay = firstEventDayInMonth(2026, 8);
-      renderCalendar();
-      renderOngoing();
-      renderSidebarForState();
-      renderFreshness();
-      sortWrap.style.display = "none";
+      refresh();
     }());
   </script>
 </body>
