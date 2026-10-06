@@ -91,10 +91,14 @@
   .mk.sel .dot { transform: translate(-50%, -50%) scale(1.5); box-shadow: 0 0 0 3px #fff, 0 2px 12px rgba(0,0,0,0.7); }
   .mk.past .dot { opacity: 0.35; }
   .mk.faded .dot { opacity: 0.18; }
-  /* places are hatched circles; events stay solid */
-  .mk .dot.ph {
-    background-color: rgba(8, 12, 14, 0.55);
-    background-image: repeating-linear-gradient(45deg, var(--hc) 0 2.5px, transparent 2.5px 6px);
+  /* places get a bigger hatched circumference around their solid dot */
+  .mk .pring {
+    position: absolute; left: 0; top: 0; width: 38px; height: 38px;
+    transform: translate(-50%, -50%); border-radius: 50%;
+    background: repeating-conic-gradient(var(--hc) 0deg 10deg, transparent 10deg 20deg);
+    -webkit-mask: radial-gradient(circle, transparent 12px, #000 12.5px);
+    mask: radial-gradient(circle, transparent 12px, #000 12.5px);
+    pointer-events: none; z-index: 0;
   }
 
   /* gradient radius behind pins whose location is not dialed in yet */
@@ -587,9 +591,13 @@
         wrap.title = p.name;
         var color = PLACE_COLORS[p.category] || "#fff";
         if (p.approx) addHalo(wrap, color);
+        var ring = document.createElement("div");
+        ring.className = "pring";
+        ring.style.setProperty("--hc", color);
+        wrap.appendChild(ring);
         var dot = document.createElement("div");
-        dot.className = "dot ph";
-        dot.style.setProperty("--hc", color);
+        dot.className = "dot";
+        dot.style.background = color;
         wrap.appendChild(dot);
         wrap.addEventListener("click", function (ev) { ev.stopPropagation(); openSheet(p.id); });
         var m = new maplibregl.Marker({ element: wrap, draggable: state.admin }).setLngLat([pos.lng, pos.lat]).addTo(map);
