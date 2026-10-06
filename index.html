@@ -95,7 +95,9 @@
   /* node motion: pop-in for new pins, hot on card hover, pulse on selection */
   .mk.born { animation: mpop 0.22s ease; }
   @keyframes mpop { from { opacity: 0; } to { opacity: 1; } }
-  .mk.hot .dot { transform: translate(-50%, -50%) scale(1.35); }
+  .mk.hot { z-index: 30; }
+  .mk.hot .dot { transform: translate(-50%, -50%) scale(1.6); box-shadow: 0 0 0 7px rgba(255,255,255,0.35), 0 0 22px rgba(255,255,255,0.55); }
+  .mk.hot .pring { transform: translate(-50%, -50%) scale(1.35); border-color: #fff; }
   .mk.sel::after {
     content: ""; position: absolute; left: 0; top: 0; width: 22px; height: 22px;
     transform: translate(-50%, -50%); border-radius: 50%;
@@ -733,8 +735,8 @@
     main.appendChild(t); main.appendChild(s);
     d.appendChild(dot); d.appendChild(main);
     d.addEventListener("click", function () { openSheet(e.id); });
-    d.addEventListener("mouseenter", function () { document.title = "HOT-" + e.id; hotNode(e.id, true); });
-    d.addEventListener("mouseleave", function () { document.title = "North Country Radar"; hotNode(e.id, false); });
+    d.addEventListener("mouseenter", function () { hotNode(e.id, true); });
+    d.addEventListener("mouseleave", function () { hotNode(e.id, false); });
     return d;
   }
   function refreshList() {
