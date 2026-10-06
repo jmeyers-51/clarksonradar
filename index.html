@@ -72,8 +72,9 @@
   .legend .r { display: flex; align-items: center; gap: 8px; margin: 5px 0; }
   .legend .dot { width: 11px; height: 11px; border-radius: 50%; flex: none; box-shadow: 0 0 0 2px rgba(255,255,255,0.25); }
   .legend .dot.hatch {
-    background-color: rgba(8,12,14,0.6);
-    background-image: repeating-linear-gradient(45deg, var(--hc) 0 2px, transparent 2px 4.5px);
+    background-color: var(--hc);
+    border: 2px dashed rgba(255,255,255,0.95);
+    box-shadow: none;
   }
 
   /* markers: the wrapper is positioned by MapLibre and must never transition
@@ -126,13 +127,11 @@
     overflow: hidden; text-overflow: ellipsis;
     box-shadow: 0 4px 16px rgba(0,0,0,0.5);
   }
-  /* places get a bigger hatched circumference around their solid dot */
+  /* places get a dashed white ring around their solid dot: pattern = kind, color = category */
   .mk .pring {
-    position: absolute; left: 0; top: 0; width: 38px; height: 38px;
+    position: absolute; left: 0; top: 0; width: 40px; height: 40px;
     transform: translate(-50%, -50%); border-radius: 50%;
-    background: repeating-conic-gradient(var(--hc) 0deg 10deg, transparent 10deg 20deg);
-    -webkit-mask: radial-gradient(circle, transparent 12px, #000 12.5px);
-    mask: radial-gradient(circle, transparent 12px, #000 12.5px);
+    border: 3px dashed rgba(255,255,255,0.95);
     pointer-events: none; z-index: 0;
   }
 
@@ -196,8 +195,8 @@
   .node.faded { opacity: 0.45; }
   .ndot { width: 16px; height: 16px; border-radius: 50%; flex: none; border: 2px solid rgba(255,255,255,0.9); }
   .ndot.hatch {
-    background-color: rgba(8,12,14,0.55);
-    background-image: repeating-linear-gradient(45deg, var(--hc) 0 2px, transparent 2px 4.5px);
+    background-color: var(--hc);
+    border: 2px dashed rgba(255,255,255,0.95);
   }
   .nmain { min-width: 0; }
   .ntitle { font-size: 13.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -584,7 +583,6 @@
     if (e.kind === "place") {
       var ring = document.createElement("div");
       ring.className = "pring";
-      ring.style.setProperty("--hc", c);
       wrap.appendChild(ring);
     }
     var dot = document.createElement("div");
