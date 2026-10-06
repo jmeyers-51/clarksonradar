@@ -40,19 +40,6 @@
    "town": "Canton"
   },
   {
-   "address": "180 Johnson Rd, Rensselaer Falls, NY",
-   "approx": false,
-   "category": "Orchard",
-   "desc": "Fall farm with corn maze, pumpkin patch and pick-your-own apples; fun for all ages.",
-   "id": "fobares-fruits",
-   "lat": 44.60415,
-   "link": "",
-   "lng": -75.31668,
-   "name": "Fobare's Fruits",
-   "source": "Local knowledge",
-   "town": "Rensselaer Falls"
-  },
-  {
    "address": "3740 County Rd 14, Madrid, NY",
    "approx": false,
    "category": "Coffee",
