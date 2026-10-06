@@ -194,7 +194,7 @@
     "Email listing": "#ff8a5c",
     "Visit STLC": "#f0bd37"
   };
-  var CARTO_ATTR = "Tiles \u00A9 <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">OpenStreetMap</a> contributors \u00A9 <a href=\"https://carto.com/attributions\" target=\"_blank\">CARTO</a>";
+  var ESRI_ATTR = "Tiles \u00A9 Esri \u2014 Source: Esri, HERE, Garmin, OpenStreetMap contributors, and the GIS user community";
 
   var map = new maplibregl.Map({
     container: "map",
@@ -203,8 +203,8 @@
       sources: {
         "basemap": {
           type: "raster",
-          tiles: ["https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"],
-          tileSize: 256, maxzoom: 20, attribution: CARTO_ATTR
+          tiles: ["https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"],
+          tileSize: 256, maxzoom: 19, attribution: ESRI_ATTR
         }
       },
       layers: [
