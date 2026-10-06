@@ -732,8 +732,8 @@
     main.appendChild(t); main.appendChild(s);
     d.appendChild(dot); d.appendChild(main);
     d.addEventListener("click", function () { openSheet(e.id); });
-    d.addEventListener("mouseenter", function () { hotNode(e.id, true); });
-    d.addEventListener("mouseleave", function () { hotNode(e.id, false); });
+    d.addEventListener("mouseenter", function () { document.title = "HOT-" + e.id; hotNode(e.id, true); });
+    d.addEventListener("mouseleave", function () { document.title = "North Country Radar"; hotNode(e.id, false); });
     return d;
   }
   function refreshList() {
