@@ -170,6 +170,7 @@
     background: rgba(255,255,255,0.1); color: var(--ink);
   }
   .admintools #dlBtn { background: #f0bd37; border-color: #f0bd37; color: #101414; }
+  .admintools button:disabled { opacity: 0.35; cursor: default; }
   .efield { margin-bottom: 10px; }
   .efield label { display: block; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin-bottom: 4px; }
   .efield input, .efield textarea, .efield select {
@@ -308,8 +309,11 @@
 <button class="adminbtn" id="adminBtn" title="Edit events and move pins">Admin</button>
 <div class="admintools" id="admintools" style="display:none">
   <span>Admin: drag pins to move them, tap one to edit</span>
-  <button id="dlBtn">Download events.json</button>
-  <button id="dlBtn2">Download places.json</button>
+  <button id="undoBtn" title="Undo last change">Undo</button>
+  <button id="redoBtn" title="Redo">Redo</button>
+  <button id="dlBtn" title="Saves the updated events file to your device -- then I can push it live">Save events</button>
+  <button id="dlBtn2" title="Saves the updated places file to your device -- then I can push it live">Save places</button>
+  <button id="discardBtn" title="Throw away all changes made in this admin session">Discard</button>
   <button id="exitAdminBtn">Exit</button>
 </div>
 
@@ -482,6 +486,7 @@
         wrap.addEventListener("click", function (ev) { ev.stopPropagation(); openSheet(e.id); });
         var m = new maplibregl.Marker({ element: wrap, draggable: state.admin }).setLngLat([pos.lng, pos.lat]).addTo(map);
         if (state.admin) {
+          m.on("dragstart", function () { pushUndo(); });
           m.on("dragend", function () {
             var ll = m.getLngLat();
             e.lat = +ll.lat.toFixed(5);
@@ -532,6 +537,7 @@
         wrap.addEventListener("click", function (ev) { ev.stopPropagation(); openSheet(p.id); });
         var m = new maplibregl.Marker({ element: wrap, draggable: state.admin }).setLngLat([pos.lng, pos.lat]).addTo(map);
         if (state.admin) {
+          m.on("dragstart", function () { pushUndo(); });
           m.on("dragend", function () {
             var ll = m.getLngLat();
             p.lat = +ll.lat.toFixed(5);
@@ -549,7 +555,41 @@
 
   function markDirtyPlace() {
     state.dirty = true;
-    document.getElementById("dlBtn2").textContent = "Download places.json \u25CF";
+    document.getElementById("dlBtn2").textContent = "Save places \u25CF";
+  }
+
+  /* ---- robust editing: undo / redo / discard, with 5-minute admin grace ---- */
+  var undoStack = [], redoStack = [], pristineData = null, adminUnlockUntil = 0;
+  function snapData() {
+    return {
+      events: JSON.parse(JSON.stringify(state.events)),
+      places: JSON.parse(JSON.stringify(state.places))
+    };
+  }
+  function pushUndo() {
+    var s = snapData();
+    var top = undoStack[undoStack.length - 1];
+    if (top && JSON.stringify(top) === JSON.stringify(s)) return;
+    undoStack.push(s);
+    if (undoStack.length > 50) undoStack.shift();
+    redoStack = [];
+    updateUndoBtns();
+  }
+  function restoreData(snap) {
+    state.events = JSON.parse(JSON.stringify(snap.events));
+    state.places = JSON.parse(JSON.stringify(snap.places));
+    state.events.forEach(function (e) { e.kind = "event"; });
+    state.places.forEach(function (p) { p.kind = "place"; p.title = p.name; });
+    state.dirty = true;
+    document.getElementById("dlBtn").textContent = "Save events \u25CF";
+    document.getElementById("dlBtn2").textContent = "Save places \u25CF";
+    renderMarkers();
+    if (state.selected && state.admin) { var e = byId(state.selected); if (e) openEditor(e, true); }
+    updateUndoBtns();
+  }
+  function updateUndoBtns() {
+    document.getElementById("undoBtn").disabled = !undoStack.length;
+    document.getElementById("redoBtn").disabled = !redoStack.length;
   }
 
   function openSheet(id) {
@@ -698,7 +738,7 @@
   /* ---- admin mode: password gate, edit fields, draggable pins ---- */
   function markDirty() {
     state.dirty = true;
-    document.getElementById("dlBtn").textContent = "Download events.json \u25CF";
+    document.getElementById("dlBtn").textContent = "Save events \u25CF";
   }
   function setAdmin(on) {
     state.admin = on;
@@ -706,18 +746,43 @@
     document.body.classList.toggle("admin", on);
     document.getElementById("admintools").style.display = on ? "" : "none";
     document.getElementById("adminBtn").textContent = on ? "Admin \u25CF" : "Admin";
-    document.getElementById("dlBtn").textContent = "Download events.json";
-    document.getElementById("dlBtn2").textContent = "Download places.json";
+    document.getElementById("dlBtn").textContent = "Save events";
+    document.getElementById("dlBtn2").textContent = "Save places";
+    if (on) pushUndo();
+    updateUndoBtns();
     closeSheet();
     renderMarkers();
   }
   document.getElementById("adminBtn").addEventListener("click", function () {
     if (state.admin) { setAdmin(false); return; }
+    if (Date.now() < adminUnlockUntil) { setAdmin(true); return; }
     var pw = prompt("Admin password:");
-    if (pw === "admin") setAdmin(true);
+    if (pw === "admin") { adminUnlockUntil = Date.now() + 5 * 60 * 1000; setAdmin(true); }
     else if (pw !== null) alert("Wrong password.");
   });
   document.getElementById("exitAdminBtn").addEventListener("click", function () { setAdmin(false); });
+  document.getElementById("undoBtn").addEventListener("click", function () {
+    if (!undoStack.length) return;
+    redoStack.push(snapData());
+    restoreData(undoStack.pop());
+    updateUndoBtns();
+  });
+  document.getElementById("redoBtn").addEventListener("click", function () {
+    if (!redoStack.length) return;
+    undoStack.push(snapData());
+    restoreData(redoStack.pop());
+    updateUndoBtns();
+  });
+  document.getElementById("discardBtn").addEventListener("click", function () {
+    if (!pristineData) return;
+    if (!confirm("Throw away all changes made in this admin session?")) return;
+    undoStack = []; redoStack = [];
+    restoreData(pristineData);
+    state.dirty = false;
+    document.getElementById("dlBtn").textContent = "Save events";
+    document.getElementById("dlBtn2").textContent = "Save places";
+    updateUndoBtns();
+  });
   document.getElementById("dlBtn").addEventListener("click", function () {
     var events = state.events.map(function (e) {
       return { id: e.id, title: e.title, date: e.date, time: e.time, venue: e.venue, town: e.town, address: e.address, lat: e.lat, lng: e.lng, approx: e.approx, desc: e.desc, score: e.score, link: e.link, source: e.source };
@@ -730,7 +795,7 @@
     a.click();
     setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
     state.dirty = false;
-    document.getElementById("dlBtn").textContent = "Download events.json";
+    document.getElementById("dlBtn").textContent = "Save events";
   });
   document.getElementById("dlBtn2").addEventListener("click", function () {
     var places = state.places.map(function (p) {
@@ -744,9 +809,9 @@
     a.click();
     setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
     state.dirty = false;
-    document.getElementById("dlBtn2").textContent = "Download places.json";
+    document.getElementById("dlBtn2").textContent = "Save places";
   });
-  function openEditor(e) {
+  function openEditor(e, noFly) {
     var dirtyFn = e.kind === "place" ? markDirtyPlace : markDirty;
     ["sheetKicker", "sheetTitle", "sheetWhere", "sheetFacts", "sheetDesc", "sheetMeter", "sheetActions"].forEach(function (x) {
       document.getElementById(x).style.display = "none";
@@ -777,6 +842,7 @@
         });
       } else { inp = document.createElement("input"); inp.type = type || "text"; }
       inp.value = e[key] == null ? "" : e[key];
+      inp.addEventListener("focus", function () { pushUndo(); });
       inp.addEventListener("input", function () {
         var v = inp.value;
         if (type === "number") v = v === "" ? null : +v;
@@ -812,7 +878,7 @@
     note.textContent = "Pin: " + e.lat.toFixed(5) + ", " + e.lng.toFixed(5) + (e.approx ? " (approx)" : " (exact)") + ". Drag the pin on the map to move it.";
     box.appendChild(note);
     showPanel();
-    flyToPin(e);
+    if (!noFly) flyToPin(e);
   }
 
   document.getElementById("chips").addEventListener("click", function (ev) {
@@ -963,6 +1029,7 @@
       var data = res[0], pdata = res[1];
       state.events = (data.events || []).map(function (e) { e.kind = "event"; return e; });
       state.places = (pdata.places || []).map(function (p) { p.kind = "place"; p.title = p.name; return p; });
+      pristineData = snapData();
       document.getElementById("updated").textContent = "Updated " + (data.updated || "");
       buildLegend();
       buildCatChips();
