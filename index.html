@@ -91,6 +91,41 @@
   .mk.sel .dot { transform: translate(-50%, -50%) scale(1.5); box-shadow: 0 0 0 3px #fff, 0 2px 12px rgba(0,0,0,0.7); }
   .mk.past .dot { opacity: 0.35; }
   .mk.faded .dot { opacity: 0.18; }
+  /* node motion: pop-in for new pins, hot on card hover, pulse on selection */
+  .mk.born { animation: mpop 0.22s ease; }
+  @keyframes mpop { from { opacity: 0; } to { opacity: 1; } }
+  .mk.hot .dot { transform: translate(-50%, -50%) scale(1.35); }
+  .mk.sel::after {
+    content: ""; position: absolute; left: 0; top: 0; width: 22px; height: 22px;
+    transform: translate(-50%, -50%); border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.9); pointer-events: none;
+    animation: selping 1.8s ease-out infinite;
+  }
+  @keyframes selping {
+    0% { width: 22px; height: 22px; opacity: 0.9; }
+    100% { width: 58px; height: 58px; opacity: 0; }
+  }
+  /* cluster bubble: one node standing in for many */
+  .mk .bub {
+    min-width: 36px; height: 36px; padding: 0 8px; border-radius: 999px;
+    transform: translate(-50%, -50%);
+    background: rgba(10, 14, 16, 0.88); border: 2px solid rgba(255,255,255,0.9);
+    color: #fff; font-weight: 800; font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.6);
+    transition: transform 0.15s ease;
+  }
+  .mk .bub:hover { transform: translate(-50%, -50%) scale(1.15); }
+  /* hover tooltip naming the node */
+  .mtip {
+    position: fixed; z-index: 40; display: none; pointer-events: none;
+    transform: translate(-50%, -100%);
+    background: rgba(10, 14, 16, 0.94); border: 1px solid var(--line);
+    color: var(--ink); font-size: 12.5px; font-weight: 600;
+    padding: 6px 11px; border-radius: 10px; white-space: nowrap; max-width: 70vw;
+    overflow: hidden; text-overflow: ellipsis;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+  }
   /* places get a bigger hatched circumference around their solid dot */
   .mk .pring {
     position: absolute; left: 0; top: 0; width: 38px; height: 38px;
@@ -138,25 +173,16 @@
   }
   body.panel-open .expandtab { display: none; }
 
-  /* category checkboxes */
-  .catfilters { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
-  .catsec {
-    width: 100%; font-size: 10.5px; font-weight: 700; text-transform: uppercase;
-    letter-spacing: 0.5px; color: var(--muted); margin: 4px 0 2px;
+  /* hero master toggle: Events | Places */
+  .modetoggle { display: flex; gap: 8px; margin-bottom: 12px; }
+  .mseg {
+    flex: 1; padding: 13px 0; border-radius: 16px; border: 1px solid var(--line);
+    background: rgba(255,255,255,0.05); color: var(--muted);
+    font: inherit; font-size: 16px; font-weight: 800; letter-spacing: 0.2px; cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease, transform 0.12s ease;
   }
-  .catsec:first-child { margin-top: 0; }
-  .catf {
-    display: inline-flex; align-items: center; gap: 7px;
-    padding: 5px 11px 5px 8px; border: 1px solid var(--line); border-radius: 999px;
-    font-size: 12.5px; cursor: pointer; color: var(--ink); user-select: none;
-  }
-  .catf.off { opacity: 0.38; }
-  .catf input { display: none; }
-  .cdot { width: 12px; height: 12px; border-radius: 50%; flex: none; box-shadow: 0 0 0 2px rgba(255,255,255,0.25); }
-  .cdot.hatch {
-    background-color: rgba(8,12,14,0.6);
-    background-image: repeating-linear-gradient(45deg, var(--hc) 0 2px, transparent 2px 4.5px);
-  }
+  .mseg:active { transform: scale(0.97); }
+  .mseg.on { background: #fff; border-color: #fff; color: #101414; box-shadow: 0 3px 14px rgba(0,0,0,0.45); }
 
   /* stacked in-view cards */
   .node {
@@ -356,7 +382,7 @@
   <button id="exitAdminBtn">Exit</button>
 </div>
 
-<div class="empty" id="empty">Nothing in view. Try another search or filter.</div>
+<div class="empty" id="empty">Nothing in view. Try another search.</div>
 <div class="updated" id="updated"></div>
 
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
@@ -406,7 +432,7 @@
   });
   map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
 
-  var state = { q: "", events: [], markers: {}, selected: null, admin: false, dirty: false, places: [], pmarkers: {}, hidden: {} };
+  var state = { q: "", events: [], places: [], nodes: {}, clusters: [], mode: "events", selected: null, admin: false, dirty: false };
 
   function todayStr() {
     var d = new Date();
@@ -429,6 +455,7 @@
 
   function buildLegend() {
     var lg = document.getElementById("legend");
+    lg.innerHTML = '<div class="t">' + (state.mode === "events" ? "Events" : "Places") + "</div>";
     function row(txt, color, hatched) {
       var r = document.createElement("div");
       r.className = "r";
@@ -439,58 +466,42 @@
       t.textContent = txt;
       r.appendChild(d); r.appendChild(t); lg.appendChild(r);
     }
-    var seen = {};
-    state.events.forEach(function (e) { seen[e.source] = true; });
-    Object.keys(seen).sort().forEach(function (s) { row(s, SRC_COLORS[s] || "#ffffff", false); });
-    var cats = {};
-    state.places.forEach(function (p) { cats[p.category] = true; });
-    var ck = Object.keys(cats).sort();
-    if (ck.length) {
-      var t = document.createElement("div");
-      t.className = "t"; t.style.marginTop = "10px"; t.textContent = "Places";
-      lg.appendChild(t);
-      ck.forEach(function (c) { row(c, PLACE_COLORS[c] || "#ffffff", true); });
+    if (state.mode === "events") {
+      var seen = {};
+      state.events.forEach(function (e) { seen[e.source] = true; });
+      Object.keys(seen).sort().forEach(function (s) { row(s, SRC_COLORS[s] || "#ffffff", false); });
+    } else {
+      var cats = {};
+      state.places.forEach(function (p) { cats[p.category] = true; });
+      Object.keys(cats).sort().forEach(function (c) { row(c, PLACE_COLORS[c] || "#ffffff", true); });
     }
   }
 
-  /* category checkboxes: every source / place type, all on by default */
-  function buildCatFilters() {
+  /* hero master toggle: Events | Places at the top of the sidebar */
+  function buildModeToggle() {
     var box = document.getElementById("catFilters");
     box.innerHTML = "";
-    function sec(label) {
-      var d = document.createElement("div");
-      d.className = "catsec"; d.textContent = label;
-      box.appendChild(d);
-    }
-    function item(key, label, color, hatched) {
-      var lab = document.createElement("label");
-      lab.className = "catf";
-      var cb = document.createElement("input");
-      cb.type = "checkbox"; cb.checked = true;
-      var dot = document.createElement("span");
-      dot.className = "cdot" + (hatched ? " hatch" : "");
-      if (hatched) dot.style.setProperty("--hc", color); else dot.style.background = color;
-      var tx = document.createElement("span"); tx.textContent = label;
-      lab.appendChild(cb); lab.appendChild(dot); lab.appendChild(tx);
-      lab.addEventListener("change", function () {
-        if (cb.checked) { delete state.hidden[key]; lab.classList.remove("off"); }
-        else { state.hidden[key] = true; lab.classList.add("off"); }
+    box.className = "modetoggle";
+    [["events", "Events"], ["places", "Places"]].forEach(function (pair) {
+      var b = document.createElement("button");
+      b.className = "mseg" + (state.mode === pair[0] ? " on" : "");
+      b.textContent = pair[1];
+      b.addEventListener("click", function () {
+        if (state.mode === pair[0]) return;
+        state.mode = pair[0];
+        var segs = box.children;
+        for (var i = 0; i < segs.length; i++) segs[i].classList.toggle("on", segs[i] === b);
+        document.getElementById("search").placeholder = state.mode === "events" ? "Search events" : "Search places";
+        updatePlayerVis();
+        buildLegend();
+        goBack();
         renderAll();
       });
-      box.appendChild(lab);
-    }
-    sec("Events");
-    var seen = {};
-    state.events.forEach(function (e) { seen[e.source] = true; });
-    Object.keys(seen).sort().forEach(function (s) { item("e:" + s, s, SRC_COLORS[s] || "#fff", false); });
-    sec("Places");
-    var cats = {};
-    state.places.forEach(function (p) { cats[p.category] = true; });
-    Object.keys(cats).sort().forEach(function (c) { item("p:" + c, c, PLACE_COLORS[c] || "#fff", true); });
+      box.appendChild(b);
+    });
   }
 
   function visible(e) {
-    if (state.hidden["e:" + e.source]) return false;
     if (state.q) {
       var hay = (e.title + " " + (e.venue || "") + " " + e.town + " " + (e.desc || "")).toLowerCase();
       if (hay.indexOf(state.q) < 0) return false;
@@ -498,7 +509,6 @@
     return true;
   }
   function visiblePlace(p) {
-    if (state.hidden["p:" + p.category]) return false;
     if (state.q) {
       var hay = (p.name + " " + (p.address || "") + " " + p.town + " " + (p.desc || "") + " " + p.category).toLowerCase();
       if (hay.indexOf(state.q) < 0) return false;
@@ -534,93 +544,133 @@
     return null;
   }
 
-  function renderMarkers() {
-    Object.keys(state.markers).forEach(function (id) { state.markers[id].remove(); });
-    state.markers = {};
+  /* ---- unified node pipeline: filter -> spread -> cluster -> pins ----
+     One base shape, two sub-types (visual sub-typing: color carries the
+     category, pattern carries the kind):
+       events = solid dot, color = publisher
+       places = solid dot + hatched ring, color = category
+     Overlapping nodes collapse into count bubbles that zoom on click. */
+  var tipEl = null;
+  function nodeColor(e) {
+    return e.kind === "place" ? (PLACE_COLORS[e.category] || "#fff") : (SRC_COLORS[e.source] || "#fff");
+  }
+  function ensureTip() {
+    if (!tipEl) {
+      tipEl = document.createElement("div");
+      tipEl.className = "mtip";
+      document.body.appendChild(tipEl);
+    }
+  }
+  function showTip(e, wrap) {
+    ensureTip();
+    tipEl.textContent = e.kind === "place" ? (e.name + " \u00B7 " + e.category) : e.title;
+    tipEl.style.display = "block";
+    var r = wrap.getBoundingClientRect();
+    tipEl.style.left = (r.left + r.width / 2) + "px";
+    tipEl.style.top = (r.top - 8) + "px";
+  }
+  function hideTip() { if (tipEl) tipEl.style.display = "none"; }
+  function hotNode(id, on) {
+    var m = state.nodes[id];
+    if (m) { var el = m.getElement(); if (el) el.classList.toggle("hot", on); }
+  }
+
+  function addNodeMarker(p, born) {
+    var e = p.e;
+    var wrap = document.createElement("div");
+    wrap.className = "mk" + (e.kind === "event" && bucket(e) === "past" ? " past" : "") + (born ? " born" : "");
+    var c = nodeColor(e);
+    if (e.approx) addHalo(wrap, c);
+    if (e.kind === "place") {
+      var ring = document.createElement("div");
+      ring.className = "pring";
+      ring.style.setProperty("--hc", c);
+      wrap.appendChild(ring);
+    }
+    var dot = document.createElement("div");
+    dot.className = "dot";
+    dot.style.background = c;
+    wrap.appendChild(dot);
+    if (state.selected === e.id) wrap.classList.add("sel");
+    wrap.addEventListener("click", function (ev) { ev.stopPropagation(); hideTip(); openSheet(e.id); });
+    wrap.addEventListener("mouseenter", function () { showTip(e, wrap); });
+    wrap.addEventListener("mouseleave", hideTip);
+    var m = new maplibregl.Marker({ element: wrap, draggable: state.admin }).setLngLat([p.pos.lng, p.pos.lat]).addTo(map);
+    if (state.admin) {
+      var dirtyFn = e.kind === "place" ? markDirtyPlace : markDirty;
+      m.on("dragstart", function () { pushUndo(); });
+      m.on("dragend", function () {
+        var ll = m.getLngLat();
+        e.lat = +ll.lat.toFixed(5);
+        e.lng = +ll.lng.toFixed(5);
+        e.approx = false;
+        dirtyFn();
+        renderAll();
+      });
+    }
+    state.nodes[e.id] = m;
+  }
+
+  function addCluster(cell) {
+    var slng = 0, slat = 0;
+    cell.forEach(function (p) { slng += p.pos.lng; slat += p.pos.lat; });
+    var n = cell.length;
+    var el = document.createElement("div");
+    el.className = "mk born";
+    var bub = document.createElement("div");
+    bub.className = "bub";
+    bub.textContent = n;
+    el.appendChild(bub);
+    el.addEventListener("click", function (ev) {
+      ev.stopPropagation();
+      map.easeTo({ center: [slng / n, slat / n], zoom: Math.min(map.getZoom() + 2.5, 17), duration: 450 });
+    });
+    var m = new maplibregl.Marker({ element: el }).setLngLat([slng / n, slat / n]).addTo(map);
+    state.clusters.push(m);
+  }
+
+  function renderNodes() {
+    var prevIds = {};
+    Object.keys(state.nodes).forEach(function (id) { prevIds[id] = true; state.nodes[id].remove(); });
+    state.nodes = {};
+    state.clusters.forEach(function (m) { m.remove(); });
+    state.clusters = [];
+    var items = (state.mode === "events" ? state.events : state.places).filter(function (e) {
+      return state.mode === "events" ? visible(e) : visiblePlace(e);
+    });
     var groups = {};
-    state.events.forEach(function (e) {
-      if (!visible(e)) return;
+    items.forEach(function (e) {
       var k = e.lat.toFixed(5) + "," + e.lng.toFixed(5);
       (groups[k] = groups[k] || []).push(e);
     });
+    var pts = [];
     Object.keys(groups).forEach(function (k) {
       groups[k].forEach(function (e, i) {
         var pos = spreadPos(e, i, groups[k].length);
-        var wrap = document.createElement("div");
-        wrap.className = "mk" + (bucket(e) === "past" ? " past" : "");
-        wrap.title = e.title;
-        var c = SRC_COLORS[e.source] || "#fff";
-        if (e.approx) addHalo(wrap, c);
-        var dot = document.createElement("div");
-        dot.className = "dot";
-        dot.style.background = c;
-        dot.style.color = c;
-        wrap.appendChild(dot);
-        wrap.addEventListener("click", function (ev) { ev.stopPropagation(); openSheet(e.id); });
-        var m = new maplibregl.Marker({ element: wrap, draggable: state.admin }).setLngLat([pos.lng, pos.lat]).addTo(map);
-        if (state.admin) {
-          m.on("dragstart", function () { pushUndo(); });
-          m.on("dragend", function () {
-            var ll = m.getLngLat();
-            e.lat = +ll.lat.toFixed(5);
-            e.lng = +ll.lng.toFixed(5);
-            e.approx = false;
-            markDirty();
-            renderAll();
-          });
-        }
-        state.markers[e.id] = m;
+        var px = map.project([pos.lng, pos.lat]);
+        pts.push({ e: e, pos: pos, x: px.x, y: px.y });
       });
     });
-  }
-
-  function renderPlaces() {
-    Object.keys(state.pmarkers).forEach(function (id) { state.pmarkers[id].remove(); });
-    state.pmarkers = {};
-    var groups = {};
-    state.places.forEach(function (p) {
-      if (!visiblePlace(p)) return;
-      var k = p.lat.toFixed(5) + "," + p.lng.toFixed(5);
-      (groups[k] = groups[k] || []).push(p);
+    if (state.admin) {
+      pts.forEach(function (p) { addNodeMarker(p, !prevIds[p.e.id]); });
+      return;
+    }
+    var CELL = 64, grid = {}, order = [];
+    pts.forEach(function (p) {
+      var k = Math.floor(p.x / CELL) + ":" + Math.floor(p.y / CELL);
+      if (!grid[k]) { grid[k] = []; order.push(k); }
+      grid[k].push(p);
     });
-    Object.keys(groups).forEach(function (k) {
-      groups[k].forEach(function (p, i) {
-        var pos = spreadPos(p, i, groups[k].length);
-        var wrap = document.createElement("div");
-        wrap.className = "mk";
-        wrap.title = p.name;
-        var color = PLACE_COLORS[p.category] || "#fff";
-        if (p.approx) addHalo(wrap, color);
-        var ring = document.createElement("div");
-        ring.className = "pring";
-        ring.style.setProperty("--hc", color);
-        wrap.appendChild(ring);
-        var dot = document.createElement("div");
-        dot.className = "dot";
-        dot.style.background = color;
-        wrap.appendChild(dot);
-        wrap.addEventListener("click", function (ev) { ev.stopPropagation(); openSheet(p.id); });
-        var m = new maplibregl.Marker({ element: wrap, draggable: state.admin }).setLngLat([pos.lng, pos.lat]).addTo(map);
-        if (state.admin) {
-          m.on("dragstart", function () { pushUndo(); });
-          m.on("dragend", function () {
-            var ll = m.getLngLat();
-            p.lat = +ll.lat.toFixed(5);
-            p.lng = +ll.lng.toFixed(5);
-            p.approx = false;
-            markDirtyPlace();
-            renderAll();
-          });
-        }
-        state.pmarkers[p.id] = m;
-      });
+    order.forEach(function (k) {
+      var cell = grid[k];
+      if (cell.length === 1) addNodeMarker(cell[0], !prevIds[cell[0].e.id]);
+      else addCluster(cell);
     });
   }
 
   function renderAll() {
-    renderMarkers();
-    renderPlaces();
-    if (state.selected && !state.markers[state.selected] && !state.pmarkers[state.selected]) goBack();
+    renderNodes();
+    if (state.selected && !state.nodes[state.selected]) goBack();
     refreshList();
   }
 
@@ -645,6 +695,8 @@
     main.appendChild(t); main.appendChild(s);
     d.appendChild(dot); d.appendChild(main);
     d.addEventListener("click", function () { openSheet(e.id); });
+    d.addEventListener("mouseenter", function () { hotNode(e.id, true); });
+    d.addEventListener("mouseleave", function () { hotNode(e.id, false); });
     return d;
   }
   function refreshList() {
@@ -652,26 +704,22 @@
     if (!cards) return;
     cards.innerHTML = "";
     var b = map.getBounds();
-    var evs = [], pls = [];
-    Object.keys(state.markers).forEach(function (id) {
-      var ll = state.markers[id].getLngLat();
-      if (b.contains([ll.lng, ll.lat])) { var e = byId(id); if (e) evs.push(e); }
+    var list = [];
+    Object.keys(state.nodes).forEach(function (id) {
+      var ll = state.nodes[id].getLngLat();
+      if (b.contains([ll.lng, ll.lat])) { var e = byId(id); if (e) list.push(e); }
     });
-    Object.keys(state.pmarkers).forEach(function (id) {
-      var ll = state.pmarkers[id].getLngLat();
-      if (b.contains([ll.lng, ll.lat])) { var p = byId(id); if (p) pls.push(p); }
-    });
-    evs.sort(function (a, z) { return (a.date || "0000").localeCompare(z.date || "0000"); });
-    pls.sort(function (a, z) { return a.name.localeCompare(z.name); });
+    if (state.mode === "events") list.sort(function (a, z) { return (a.date || "0000").localeCompare(z.date || "0000"); });
+    else list.sort(function (a, z) { return a.name.localeCompare(z.name); });
     var n = 0;
-    evs.concat(pls).forEach(function (e) { cards.appendChild(nodeCard(e)); n++; });
+    list.forEach(function (e) { cards.appendChild(nodeCard(e)); n++; });
     var hc = document.getElementById("inviewCount");
     if (hc) hc.textContent = n ? n + " in view" : "";
     document.getElementById("empty").classList.toggle("show", n === 0);
     setSel(state.selected);
     applyScrub();
   }
-  map.on("moveend", refreshList);
+  map.on("moveend", function () { hideTip(); renderNodes(); refreshList(); });
 
   /* ---- sidebar: list <-> detail, collapse <-> expand ---- */
   function setHeadTitle(t) {
@@ -704,11 +752,9 @@
   document.getElementById("backBtn").addEventListener("click", goBack);
 
   function setSel(id) {
-    [state.markers, state.pmarkers].forEach(function (dict) {
-      Object.keys(dict).forEach(function (k) {
-        var el = dict[k].getElement();
-        if (el) el.classList.toggle("sel", k === id);
-      });
+    Object.keys(state.nodes).forEach(function (k) {
+      var el = state.nodes[k].getElement();
+      if (el) el.classList.toggle("sel", k === id);
     });
     var cards = document.getElementById("cards");
     if (cards) {
@@ -1031,8 +1077,8 @@
     var cur = scrub.t <= 0.001 ? null : scrubStr();
     document.getElementById("ph").style.left = (scrub.t * 100) + "%";
     document.getElementById("pdate").textContent = cur ? fmtDate(cur) : "All dates";
-    Object.keys(state.markers).forEach(function (id) {
-      var e = byId(id), el = state.markers[id].getElement();
+    Object.keys(state.nodes).forEach(function (id) {
+      var e = byId(id), el = state.nodes[id].getElement();
       if (e && el) el.classList.toggle("faded", !!cur && !!e.date && e.date < cur);
     });
     var cards = document.getElementById("cards");
@@ -1047,11 +1093,17 @@
     var seen = {};
     state.events.forEach(function (e) { if (e.date) seen[e.date] = true; });
     var ds = Object.keys(seen).sort();
-    if (ds.length < 2) { document.getElementById("player").style.display = "none"; return; }
+    scrubAvailable = ds.length >= 2;
+    if (!scrubAvailable) { updatePlayerVis(); return; }
     scrub.dmin = dayNum(ds[0]);
     scrub.dmax = dayNum(ds[ds.length - 1]);
     scrub.t = 0;
+    updatePlayerVis();
     applyScrub();
+  }
+  var scrubAvailable = false;
+  function updatePlayerVis() {
+    document.getElementById("player").style.display = (state.mode === "events" && scrubAvailable) ? "" : "none";
   }
   var scrubbing = false;
   var trackEl = document.getElementById("track");
@@ -1098,7 +1150,7 @@
       pristineData = snapData();
       document.getElementById("updated").textContent = "Updated " + (data.updated || "");
       buildLegend();
-      buildCatFilters();
+      buildModeToggle();
       renderAll();
       initScrub();
       if (window.innerWidth < 900) collapsePanel();
