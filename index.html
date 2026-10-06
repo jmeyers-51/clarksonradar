@@ -215,7 +215,7 @@
     zoom: 10,
     attributionControl: { compact: true }
   });
-  map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "right");
+  map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
 
   var state = { filter: "upcoming", q: "", events: [], markers: {}, selected: null };
 
