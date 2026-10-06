@@ -666,8 +666,47 @@
     });
   }
 
+  /* ---- heat indicators: a warm density glow under the clusters ----
+     Shows there is stuff in an area before you zoom in enough to see pins.
+     Fades out as you zoom in and the individual nodes take over. */
+  function heatFeatures() {
+    var items = (state.mode === "events" ? state.events : state.places).filter(function (e) {
+      return state.mode === "events" ? visible(e) : visiblePlace(e);
+    });
+    return {
+      type: "FeatureCollection",
+      features: items.map(function (e) {
+        return { type: "Feature", properties: {}, geometry: { type: "Point", coordinates: [e.lng, e.lat] } };
+      })
+    };
+  }
+  function ensureHeat() {
+    if (!map.isStyleLoaded()) return;
+    if (!map.getSource("density")) {
+      map.addSource("density", { type: "geojson", data: heatFeatures() });
+      map.addLayer({
+        id: "heat", type: "heatmap", source: "density",
+        paint: {
+          "heatmap-weight": 1,
+          "heatmap-intensity": ["interpolate", ["linear"], ["zoom"], 8, 1.1, 12, 0.5],
+          "heatmap-color": ["interpolate", ["linear"], ["heatmap-density"],
+            0, "rgba(0,0,0,0)",
+            0.25, "rgba(240,189,55,0.32)",
+            0.55, "rgba(255,138,92,0.5)",
+            0.8, "rgba(224,90,90,0.7)"],
+          "heatmap-radius": ["interpolate", ["linear"], ["zoom"], 8, 30, 12, 44],
+          "heatmap-opacity": ["interpolate", ["linear"], ["zoom"], 9, 0.9, 13.5, 0]
+        }
+      });
+    } else {
+      map.getSource("density").setData(heatFeatures());
+    }
+  }
+  map.on("load", ensureHeat);
+
   function renderAll() {
     renderNodes();
+    ensureHeat();
     if (state.selected && !state.nodes[state.selected]) goBack();
     refreshList();
   }
