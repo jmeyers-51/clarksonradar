@@ -98,6 +98,12 @@
   .mk.hot { z-index: 30; }
   .mk.hot .dot { transform: translate(-50%, -50%) scale(1.6); box-shadow: 0 0 0 7px rgba(255,255,255,0.35), 0 0 22px rgba(255,255,255,0.55); }
   .mk.hot .pring { transform: translate(-50%, -50%) scale(1.35); border-color: #fff; }
+  /* JD's notes: the dashed ring slowly spins on places he has reviewed */
+  .mk.noted .pring { animation: jspin 10s linear infinite; }
+  @keyframes jspin { from { transform: translate(-50%,-50%) rotate(0deg); } to { transform: translate(-50%,-50%) rotate(360deg); } }
+  .jdnotes { margin: 12px 0; padding: 12px 14px; border-radius: 12px; background: rgba(240,189,55,0.08); border: 1px solid rgba(240,189,55,0.35); }
+  .jdnotes-lab { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #f0bd37; margin-bottom: 6px; }
+  .jdnotes-body { font-size: 14px; line-height: 1.55; white-space: pre-wrap; }
   .mk.sel::after {
     content: ""; position: absolute; left: 0; top: 0; width: 22px; height: 22px;
     transform: translate(-50%, -50%); border-radius: 50%;
@@ -361,6 +367,7 @@
       <div class="where" id="sheetWhere"></div>
       <div class="facts" id="sheetFacts"></div>
       <p class="desc" id="sheetDesc"></p>
+      <div class="jdnotes" id="sheetNotes" style="display:none"><div class="jdnotes-lab">JD's notes</div><div class="jdnotes-body" id="sheetNotesText"></div></div>
       <div class="meter" id="sheetMeter" style="display:none">
         <div class="lab"><span>Fun potential</span><span id="meterVal"></span></div>
         <div class="bar"><div class="fill" id="meterFill"></div></div>
@@ -433,7 +440,9 @@
   });
   map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
 
-  var state = { q: "", events: [], places: [], nodes: {}, clusters: [], mode: "events", selected: null, admin: false, dirty: false };
+  /* JD's notes backend: paste the Apps Script web app /exec URL here after deploying. */
+  var NOTES_API_URL = "";
+  var state = { q: "", events: [], places: [], nodes: {}, clusters: [], notes: {}, mode: "places", selected: null, admin: false, dirty: false };
 
   function todayStr() {
     var d = new Date();
@@ -580,6 +589,8 @@
     var e = p.e;
     var wrap = document.createElement("div");
     wrap.className = "mk" + (e.kind === "event" && bucket(e) === "past" ? " past" : "") + (born ? " born" : "");
+    var _mnn = state.notes[e.id];
+    if (e.kind === "place" && _mnn && _mnn.note) wrap.classList.add("noted");
     var c = nodeColor(e);
     if (e.approx) addHalo(wrap, c);
     if (e.kind === "place") {
@@ -605,6 +616,10 @@
         e.lng = +ll.lng.toFixed(5);
         e.approx = false;
         dirtyFn();
+        if (e.kind === "place" && NOTES_API_URL) {
+          var _dn = state.notes[e.id] || {};
+          saveNoteToBackend(e.id, _dn.note || "", !!_dn.visited, e.lat, e.lng);
+        }
         renderAll();
       });
     }
@@ -816,7 +831,7 @@
     if (e.kind === "place") { openPlace(e); return; }
     if (state.admin) { openEditor(e); return; }
     document.getElementById("sheetEdit").style.display = "none";
-    ["sheetKicker", "sheetTitle", "sheetWhere", "sheetFacts", "sheetDesc", "sheetMeter", "sheetActions"].forEach(function (x) {
+    ["sheetKicker", "sheetTitle", "sheetWhere", "sheetFacts", "sheetDesc", "sheetNotes", "sheetMeter", "sheetActions"].forEach(function (x) {
       document.getElementById(x).style.display = "";
     });
     var b = bucket(e);
@@ -877,7 +892,7 @@
     setSel(e.id);
     if (state.admin) { openEditor(e); return; }
     document.getElementById("sheetEdit").style.display = "none";
-    ["sheetKicker", "sheetTitle", "sheetWhere", "sheetFacts", "sheetDesc", "sheetMeter", "sheetActions"].forEach(function (x) {
+    ["sheetKicker", "sheetTitle", "sheetWhere", "sheetFacts", "sheetDesc", "sheetNotes", "sheetMeter", "sheetActions"].forEach(function (x) {
       document.getElementById(x).style.display = "";
     });
     var kick = document.getElementById("sheetKicker");
@@ -891,9 +906,14 @@
     }
     pill(e.category, "src", PLACE_COLORS[e.category] || "#fff");
     if (e.approx) pill("Approx. location");
+    var _nn = state.notes[e.id];
+    if (_nn && _nn.visited) pill("JD's been here", "src", "#f0bd37");
     document.getElementById("sheetTitle").textContent = e.name;
     document.getElementById("sheetWhere").textContent = e.town;
     document.getElementById("sheetDesc").textContent = e.desc || "";
+    var _nb = document.getElementById("sheetNotes");
+    if (_nn && _nn.note) { _nb.style.display = ""; document.getElementById("sheetNotesText").textContent = _nn.note; }
+    else _nb.style.display = "none";
     var facts = document.getElementById("sheetFacts");
     facts.innerHTML = "";
     function fact(label, val) {
@@ -1039,7 +1059,7 @@
   });
   function openEditor(e, noFly) {
     var dirtyFn = e.kind === "place" ? markDirtyPlace : markDirty;
-    ["sheetKicker", "sheetTitle", "sheetWhere", "sheetFacts", "sheetDesc", "sheetMeter", "sheetActions"].forEach(function (x) {
+    ["sheetKicker", "sheetTitle", "sheetWhere", "sheetFacts", "sheetDesc", "sheetNotes", "sheetMeter", "sheetActions"].forEach(function (x) {
       document.getElementById(x).style.display = "none";
     });
     var box = document.getElementById("sheetEdit");
@@ -1090,6 +1110,44 @@
       box.appendChild(field("Address", "address", "text"));
       box.appendChild(field("Description", "desc", "textarea"));
       box.appendChild(field("Website", "link", "text"));
+      var _en = state.notes[e.id] || {};
+      var _nw = document.createElement("div"); _nw.className = "efield";
+      var _nl = document.createElement("label"); _nl.textContent = "JD's notes (public)"; _nw.appendChild(_nl);
+      var _nta = document.createElement("textarea"); _nta.value = _en.note || ""; _nta.placeholder = "Your take...";
+      _nta.addEventListener("focus", function () { pushUndo(); });
+      _nw.appendChild(_nta);
+      box.appendChild(_nw);
+      var _vw = document.createElement("div"); _vw.className = "efield";
+      var _vl = document.createElement("label");
+      var _vcb = document.createElement("input"); _vcb.type = "checkbox"; _vcb.checked = !!_en.visited;
+      _vl.appendChild(_vcb); _vl.appendChild(document.createTextNode(" Been here"));
+      _vw.appendChild(_vl); box.appendChild(_vw);
+      var _srow = document.createElement("div"); _srow.style.cssText = "display:flex;gap:8px;margin-top:10px;";
+      var _sb = document.createElement("button"); _sb.className = "btn primary"; _sb.textContent = "Save note"; _sb.style.flex = "1";
+      _sb.addEventListener("click", function () {
+        if (!saveNoteToBackend(e.id, _nta.value.trim(), _vcb.checked, e.lat, e.lng)) {
+          alert("Notes backend isn't connected yet.");
+          return;
+        }
+        _sb.textContent = "Saved"; _sb.disabled = true;
+        setTimeout(function () { _sb.textContent = "Save note"; _sb.disabled = false; }, 2000);
+      });
+      _srow.appendChild(_sb);
+      var _rb = document.createElement("button"); _rb.className = "btn"; _rb.textContent = "Remove"; _rb.style.flex = "0 0 auto";
+      _rb.addEventListener("click", function () {
+        if (!NOTES_API_URL) { alert("Notes backend isn't connected yet."); return; }
+        if (!confirm("Remove your note for this place?")) return;
+        deleteNoteBackend(e.id);
+        _nta.value = ""; _vcb.checked = false;
+      });
+      _srow.appendChild(_rb);
+      box.appendChild(_srow);
+      if (!NOTES_API_URL) {
+        var _nh = document.createElement("div");
+        _nh.style.cssText = "font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5;";
+        _nh.textContent = "Notes backend not connected yet -- deploy the Apps Script and paste its URL into NOTES_API_URL.";
+        box.appendChild(_nh);
+      }
     } else {
       box.appendChild(field("Title", "title", "text"));
       box.appendChild(efrow(field("Date", "date", "date"), field("Time", "time", "text")));
@@ -1177,6 +1235,63 @@
     document.getElementById("legend").classList.toggle("open");
   });
 
+  /* ---- JD's notes: public layer stored in his Google Sheet via Apps Script ---- */
+  function applyNoteOverrides() {
+    state.places.forEach(function (p) {
+      var n = state.notes[p.id];
+      var hasLat = n && typeof n.lat === "number" && isFinite(n.lat);
+      var hasLng = n && typeof n.lng === "number" && isFinite(n.lng);
+      if (hasLat && hasLng) {
+        if (p._baseLat == null) { p._baseLat = p.lat; p._baseLng = p.lng; p._baseApprox = p.approx; }
+        p.lat = n.lat; p.lng = n.lng; p.approx = false;
+      } else if (p._baseLat != null) {
+        p.lat = p._baseLat; p.lng = p._baseLng; p.approx = p._baseApprox;
+        delete p._baseLat; delete p._baseLng; delete p._baseApprox;
+      }
+    });
+  }
+  function loadNotes() {
+    if (!NOTES_API_URL) return;
+    var cb = "__jdNotesCb" + Date.now();
+    window[cb] = function (data) {
+      try {
+        state.notes = (data && data.ok && data.notes) || {};
+        applyNoteOverrides();
+      } finally {
+        delete window[cb];
+        var s = document.getElementById(cb); if (s) s.remove();
+        renderAll();
+      }
+    };
+    var s = document.createElement("script");
+    s.id = cb;
+    s.onerror = function () { delete window[cb]; s.remove(); };
+    s.src = NOTES_API_URL + "?action=get&callback=" + encodeURIComponent(cb) + "&ts=" + Date.now();
+    document.head.appendChild(s);
+  }
+  function saveNoteToBackend(placeId, note, visited, lat, lng) {
+    if (!NOTES_API_URL) return false;
+    var fd = new FormData();
+    fd.append("action", "save");
+    fd.append("place_id", placeId);
+    fd.append("note", note || "");
+    fd.append("visited", visited ? "true" : "false");
+    if (typeof lat === "number" && isFinite(lat)) fd.append("lat", lat);
+    if (typeof lng === "number" && isFinite(lng)) fd.append("lng", lng);
+    try { fetch(NOTES_API_URL, { method: "POST", mode: "no-cors", body: fd }); } catch (err) {}
+    setTimeout(loadNotes, 1800);
+    return true;
+  }
+  function deleteNoteBackend(placeId) {
+    if (!NOTES_API_URL) return false;
+    var fd = new FormData();
+    fd.append("action", "delete");
+    fd.append("place_id", placeId);
+    try { fetch(NOTES_API_URL, { method: "POST", mode: "no-cors", body: fd }); } catch (err) {}
+    setTimeout(loadNotes, 1800);
+    return true;
+  }
+
   Promise.all([
     fetch("./events.json", { cache: "no-store" })
       .then(function (r) { if (!r.ok) throw new Error("events.json " + r.status); return r.json(); }),
@@ -1191,7 +1306,9 @@
       document.getElementById("updated").textContent = "Updated " + (data.updated || "");
       buildLegend();
       buildModeToggle();
+      document.getElementById("search").placeholder = state.mode === "events" ? "Search events" : "Search places";
       renderAll();
+      loadNotes();
       initScrub();
       if (window.innerWidth < 900) collapsePanel();
       var bounds = new maplibregl.LngLatBounds();
