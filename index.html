@@ -50,8 +50,8 @@
   }
   #search::placeholder { color: var(--muted); }
   #search:focus { border-color: rgba(255,255,255,0.28); }
-  body.panel-open .topbar { transform: translateX(calc(-50% - min(200px, 15vw))); }
-  body.panel-open .player { transform: translateX(calc(-50% - min(200px, 15vw))); }
+  body.panel-open .topbar { transform: translateX(calc(-50% - 32px - min(200px, 15vw))); }
+  body.panel-open .player { transform: translateX(calc(-50% - 32px - min(200px, 15vw))); }
 
   /* legend */
   .legend-toggle {
@@ -152,7 +152,7 @@
   /* right sidebar: always up by default, collapsible */
   .sheet {
     position: fixed; z-index: 20;
-    right: 14px; top: 84px; bottom: 16px; width: min(400px, 30%);
+    right: 64px; top: 84px; bottom: 16px; width: min(400px, 30%);
     background: var(--glass-2); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
     border: 1px solid var(--line); border-radius: 20px;
     padding: 14px 16px 16px;
@@ -241,17 +241,16 @@
   .mapctl button:hover { background: rgba(255,255,255,0.14); }
   .mapctl button:active { transform: scale(0.93); }
   .mapctl #needle { transition: transform 0.25s ease; display: block; }
-  body.panel-open .mapctl { right: calc(min(400px, 30%) + 22px); }
   /* admin toolbar stays clear of the sidebar on desktop, above the sheet on mobile */
   .admintools { transition: left 0.32s ease; }
-  body.panel-open .admintools { left: calc((100% - min(400px, 30%)) / 2); }
+  body.panel-open .admintools { left: calc((100% - 64px - min(400px, 30%)) / 2); }
   /* southeast utility dock: admin + updated timestamp, one aligned stack */
   .dock-right {
     position: fixed; right: 14px; bottom: 22px; z-index: 10;
     display: flex; flex-direction: column; align-items: flex-end; gap: 8px;
     transition: right 0.32s ease, top 0.32s ease, left 0.32s ease, bottom 0.32s ease;
   }
-  body.panel-open .dock-right { right: calc(min(400px, 30%) + 22px); }
+  body.panel-open .dock-right { right: calc(min(400px, 30%) + 74px); }
   .adminbtn {
     font: inherit; font-size: 11px; font-weight: 600; color: var(--muted);
     background: var(--glass); border: 1px solid var(--line); border-radius: 999px; padding: 6px 11px;
@@ -300,7 +299,7 @@
     backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
   }
   .empty.show { display: block; }
-  body.panel-open .empty { left: calc((100% - min(400px, 30%)) / 2); }
+  body.panel-open .empty { left: calc((100% - 64px - min(400px, 30%)) / 2); }
 
   /* timeline scrubber (no autoplay: drag to fade out past events) */
   .player {
