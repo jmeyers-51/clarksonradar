@@ -97,9 +97,16 @@
   .mk.hot { z-index: 30; }
   .mk.hot .dot { transform: translate(-50%, -50%) scale(1.6); box-shadow: 0 0 0 7px rgba(255,255,255,0.35), 0 0 22px rgba(255,255,255,0.55); }
   .mk.hot .pring { transform: translate(-50%, -50%) scale(1.35); border-color: #fff; }
-  /* JD's notes: the dashed ring slowly spins on places he has reviewed */
-  .mk.noted .pring { animation: jspin 10s linear infinite; }
-  @keyframes jspin { from { transform: translate(-50%,-50%) rotate(0deg); } to { transform: translate(-50%,-50%) rotate(360deg); } }
+  /* JD's rating: N dashes orbit the dot, N = rating (1-5). Unrated places keep a plain faint ring. */
+  .mk .rring {
+    position: absolute; left: 0; top: 0; width: 46px; height: 46px;
+    transform: translate(-50%, -50%);
+    animation: rorbit 14s linear infinite;
+    pointer-events: none; z-index: 0;
+  }
+  @keyframes rorbit { from { transform: translate(-50%,-50%) rotate(0deg); } to { transform: translate(-50%,-50%) rotate(360deg); } }
+  .mk.hot .rring { animation: rorbitHot 14s linear infinite; }
+  @keyframes rorbitHot { from { transform: translate(-50%,-50%) scale(1.3) rotate(0deg); } to { transform: translate(-50%,-50%) scale(1.3) rotate(360deg); } }
   .jdnotes { margin: 12px 0; padding: 12px 14px; border-radius: 12px; background: rgba(240,189,55,0.08); border: 1px solid rgba(240,189,55,0.35); }
   .jdnotes-lab { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #f0bd37; margin-bottom: 6px; }
   .jdnotes-body { font-size: 14px; line-height: 1.55; white-space: pre-wrap; }
@@ -134,11 +141,11 @@
     overflow: hidden; text-overflow: ellipsis;
     box-shadow: 0 4px 16px rgba(0,0,0,0.5);
   }
-  /* places get a dashed white ring around their solid dot: pattern = kind, color = category */
+  /* places get a thin ring around their solid dot; rated places get an orbiting dash ring instead */
   .mk .pring {
     position: absolute; left: 0; top: 0; width: 40px; height: 40px;
     transform: translate(-50%, -50%); border-radius: 50%;
-    border: 3px dashed rgba(255,255,255,0.95);
+    border: 2px solid rgba(255,255,255,0.35);
     pointer-events: none; z-index: 0;
   }
 
@@ -465,8 +472,7 @@
   });
   var homeBounds = null;
   function goHome() {
-    if (homeBounds) map.fitBounds(homeBounds, { padding: 90, maxZoom: 12, duration: 600 });
-    map.resetNorth({ duration: 600 });
+    if (homeBounds) map.fitBounds(homeBounds, { padding: 90, maxZoom: 12, duration: 600, pitch: 0, bearing: 0 });
   }
   function updateNeedle() {
     var n = document.getElementById("needle");
@@ -627,14 +633,32 @@
     var e = p.e;
     var wrap = document.createElement("div");
     wrap.className = "mk" + (e.kind === "event" && bucket(e) === "past" ? " past" : "") + (born ? " born" : "");
-    var _mnn = state.notes[e.id];
-    if (e.kind === "place" && _mnn && _mnn.note) wrap.classList.add("noted");
+    var _mnn = state.notes[e.id] || {};
+    var _rate = parseInt(_mnn.rating, 10);
+    if (!(_rate >= 1 && _rate <= 5)) _rate = 0;
     var c = nodeColor(e);
     if (e.approx) addHalo(wrap, c);
     if (e.kind === "place") {
-      var ring = document.createElement("div");
-      ring.className = "pring";
-      wrap.appendChild(ring);
+      if (_rate) {
+        var _ns = "http://www.w3.org/2000/svg";
+        var _svg = document.createElementNS(_ns, "svg");
+        _svg.setAttribute("viewBox", "0 0 46 46");
+        _svg.setAttribute("class", "rring");
+        var _cc = 2 * Math.PI * 20, _dl = 8;
+        var _ci = document.createElementNS(_ns, "circle");
+        _ci.setAttribute("cx", "23"); _ci.setAttribute("cy", "23"); _ci.setAttribute("r", "20");
+        _ci.setAttribute("fill", "none");
+        _ci.setAttribute("stroke", "rgba(255,255,255,0.95)");
+        _ci.setAttribute("stroke-width", "3");
+        _ci.setAttribute("stroke-linecap", "round");
+        _ci.setAttribute("stroke-dasharray", _dl + " " + (_cc / _rate - _dl).toFixed(2));
+        _svg.appendChild(_ci);
+        wrap.appendChild(_svg);
+      } else {
+        var ring = document.createElement("div");
+        ring.className = "pring";
+        wrap.appendChild(ring);
+      }
     }
     var dot = document.createElement("div");
     dot.className = "dot";
@@ -656,7 +680,7 @@
         dirtyFn();
         if (e.kind === "place" && NOTES_API_URL) {
           var _dn = state.notes[e.id] || {};
-          saveNoteToBackend(e.id, _dn.note || "", !!_dn.visited, e.lat, e.lng);
+          saveNoteToBackend(e.id, _dn.note || "", !!_dn.visited, e.lat, e.lng, _dn.rating);
         }
         renderAll();
       });
@@ -946,6 +970,8 @@
     if (e.approx) pill("Approx. location");
     var _nn = state.notes[e.id];
     if (_nn && _nn.visited) pill("JD's been here", "src", "#f0bd37");
+    var _rt = _nn && parseInt(_nn.rating, 10);
+    if (_rt >= 1 && _rt <= 5) pill("★".repeat(_rt) + "☆".repeat(5 - _rt), "src", "#f0bd37");
     document.getElementById("sheetTitle").textContent = e.name;
     document.getElementById("sheetWhere").textContent = e.town;
     document.getElementById("sheetDesc").textContent = e.desc || "";
@@ -1149,6 +1175,24 @@
       box.appendChild(field("Description", "desc", "textarea"));
       box.appendChild(field("Website", "link", "text"));
       var _en = state.notes[e.id] || {};
+      var _rating = parseInt(_en.rating, 10);
+      if (!(_rating >= 1 && _rating <= 5)) _rating = 0;
+      var _rw = document.createElement("div"); _rw.className = "efield";
+      var _rl = document.createElement("label"); _rl.textContent = "Rating (1-5)"; _rw.appendChild(_rl);
+      var _rsw = document.createElement("div");
+      _rsw.style.cssText = "display:flex;gap:6px;font-size:24px;line-height:1;cursor:pointer;user-select:none;-webkit-user-select:none;";
+      var _rbtns = [];
+      function paintStars() { for (var _k = 0; _k < 5; _k++) { _rbtns[_k].textContent = _k < _rating ? "★" : "☆"; _rbtns[_k].style.color = _k < _rating ? "#f0bd37" : "var(--muted)"; } }
+      for (var _k = 0; _k < 5; _k++) {
+        (function (_sx) {
+          var _b = document.createElement("span");
+          _b.addEventListener("click", function () { _rating = (_rating === _sx + 1) ? 0 : _sx + 1; paintStars(); });
+          _rbtns.push(_b); _rsw.appendChild(_b);
+        })(_k);
+      }
+      paintStars();
+      _rw.appendChild(_rsw);
+      box.appendChild(_rw);
       var _nw = document.createElement("div"); _nw.className = "efield";
       var _nl = document.createElement("label"); _nl.textContent = "JD's notes (public)"; _nw.appendChild(_nl);
       var _nta = document.createElement("textarea"); _nta.value = _en.note || ""; _nta.placeholder = "Your take..."; _nta.maxLength = 1500;
@@ -1161,22 +1205,22 @@
       _vl.appendChild(_vcb); _vl.appendChild(document.createTextNode(" Been here"));
       _vw.appendChild(_vl); box.appendChild(_vw);
       var _srow = document.createElement("div"); _srow.style.cssText = "display:flex;gap:8px;margin-top:10px;";
-      var _sb = document.createElement("button"); _sb.className = "btn primary"; _sb.textContent = "Save note"; _sb.style.flex = "1";
+      var _sb = document.createElement("button"); _sb.className = "btn primary"; _sb.textContent = "Save"; _sb.style.flex = "1";
       _sb.addEventListener("click", function () {
-        if (!saveNoteToBackend(e.id, _nta.value.trim(), _vcb.checked, e.lat, e.lng)) {
+        if (!saveNoteToBackend(e.id, _nta.value.trim(), _vcb.checked, e.lat, e.lng, _rating)) {
           alert("Notes backend isn't connected yet.");
           return;
         }
         _sb.textContent = "Saved"; _sb.disabled = true;
-        setTimeout(function () { _sb.textContent = "Save note"; _sb.disabled = false; }, 2000);
+        setTimeout(function () { _sb.textContent = "Save"; _sb.disabled = false; }, 2000);
       });
       _srow.appendChild(_sb);
       var _rb = document.createElement("button"); _rb.className = "btn"; _rb.textContent = "Remove"; _rb.style.flex = "0 0 auto";
       _rb.addEventListener("click", function () {
         if (!NOTES_API_URL) { alert("Notes backend isn't connected yet."); return; }
-        if (!confirm("Remove your note for this place?")) return;
+        if (!confirm("Remove your note and rating for this place?")) return;
         deleteNoteBackend(e.id);
-        _nta.value = ""; _vcb.checked = false;
+        _nta.value = ""; _vcb.checked = false; _rating = 0; paintStars();
       });
       _srow.appendChild(_rb);
       box.appendChild(_srow);
@@ -1321,10 +1365,12 @@
     document.head.appendChild(s);
     return true;
   }
-  function saveNoteToBackend(placeId, note, visited, lat, lng) {
+  function saveNoteToBackend(placeId, note, visited, lat, lng, rating) {
     var p = { action: "save", place_id: placeId, note: note || "", visited: visited ? "true" : "false" };
     if (typeof lat === "number" && isFinite(lat)) p.lat = lat;
     if (typeof lng === "number" && isFinite(lng)) p.lng = lng;
+    var _r = parseInt(rating, 10);
+    if (_r >= 1 && _r <= 5) p.rating = _r;
     return apiCall(p, function () { loadNotes(); });
   }
   function deleteNoteBackend(placeId) {
