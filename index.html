@@ -479,8 +479,8 @@
   document.getElementById("homeBtn").addEventListener("click", goHome);
   map.on("rotate", updateNeedle);
 
-  /* JD's notes backend: paste the Apps Script web app /exec URL here after deploying. */
-  var NOTES_API_URL = "";
+  /* JD's notes backend: Apps Script web app URL (deployed 2026-10-07). */
+  var NOTES_API_URL = "https://script.google.com/a/macros/clarkson.edu/s/AKfycbwy6VmnhyBxmteJ9HQO6ZGljcqCmth6ToJ6GS_m-NZZZU3iIVG5RpS2TmsY1bUwQz-NAA/exec";
   var state = { q: "", events: [], places: [], nodes: {}, clusters: [], notes: {}, mode: "places", selected: null, admin: false, dirty: false };
 
   function todayStr() {
