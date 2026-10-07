@@ -52,7 +52,6 @@
   #search:focus { border-color: rgba(255,255,255,0.28); }
   body.panel-open .topbar { transform: translateX(calc(-50% - min(200px, 15%))); }
   body.panel-open .player { transform: translateX(calc(-50% - min(200px, 15%))); }
-  body.panel-open .updated { right: calc(min(400px, 30%) + 28px); }
 
   /* legend */
   .legend-toggle {
@@ -246,15 +245,21 @@
   /* admin toolbar stays clear of the sidebar on desktop, above the sheet on mobile */
   .admintools { transition: left 0.32s ease; }
   body.panel-open .admintools { left: calc((100% - min(400px, 30%)) / 2); }
+  /* southeast utility dock: admin + updated timestamp, one aligned stack */
+  .dock-right {
+    position: fixed; right: 14px; bottom: 22px; z-index: 10;
+    display: flex; flex-direction: column; align-items: flex-end; gap: 8px;
+    transition: right 0.32s ease, top 0.32s ease, left 0.32s ease, bottom 0.32s ease;
+  }
+  body.panel-open .dock-right { right: calc(min(400px, 30%) + 14px); }
   .adminbtn {
-    position: fixed; right: 14px; bottom: 66px; z-index: 10;
     font: inherit; font-size: 11px; font-weight: 600; color: var(--muted);
     background: var(--glass); border: 1px solid var(--line); border-radius: 999px; padding: 6px 11px;
     backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); cursor: pointer;
-    transition: right 0.32s ease, background 0.2s ease;
+    transition: background 0.2s ease;
   }
   body.admin .adminbtn { background: #f0bd37; border-color: #f0bd37; color: #101414; }
-  body.panel-open .adminbtn { right: calc(min(400px, 30%) + 28px); }
+  .updated { font-size: 11px; color: var(--muted); padding-right: 4px; }
   .admintools {
     position: fixed; left: 50%; transform: translateX(-50%); bottom: 86px; z-index: 16;
     display: flex; align-items: center; gap: 8px;
@@ -288,13 +293,6 @@
     background: rgba(255,255,255,0.08); color: var(--ink); cursor: pointer;
   }
   .btn.primary { background: var(--accent); border-color: var(--accent); color: #101414; }
-  .updated {
-    position: fixed; right: 14px; bottom: 34px; z-index: 10;
-    font-size: 11px; color: var(--muted);
-    background: var(--glass); border: 1px solid var(--line); border-radius: 999px; padding: 6px 11px;
-    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-    transition: right 0.32s ease;
-  }
   .empty {
     position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 5;
     background: var(--glass); border: 1px solid var(--line); border-radius: var(--radius);
@@ -302,6 +300,7 @@
     backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
   }
   .empty.show { display: block; }
+  body.panel-open .empty { left: calc((100% - min(400px, 30%)) / 2); }
 
   /* timeline scrubber (no autoplay: drag to fade out past events) */
   .player {
@@ -337,9 +336,9 @@
     }
     body.panel-open .sheet { transform: translate(-50%, 0); opacity: 1; pointer-events: auto; }
     body.panel-open .topbar, body.panel-open .player { transform: translateX(-50%); }
-    body.panel-open .updated, body.panel-open .adminbtn { right: 14px; }
-    body.panel-open .mapctl { right: 14px; }
-    body.panel-open .admintools { left: 50%; bottom: auto; top: 86px; max-width: calc(100% - 28px); }
+    .mapctl { top: 84px; }
+    body.panel-open .dock-right { right: auto; left: 12px; bottom: auto; top: 84px; flex-direction: row; align-items: center; }
+    body.panel-open .admintools { left: 12px; right: 12px; transform: none; bottom: auto; top: 134px; justify-content: center; }
     .expandtab { top: auto; bottom: 120px; transform: none; }
   }
   @media (max-width: 560px) {
@@ -398,7 +397,10 @@
 </aside>
 <button class="expandtab" id="expandTab" aria-label="Open panel">&larr;</button>
 
-<button class="adminbtn" id="adminBtn" title="Edit events and move pins">Admin</button>
+<div class="dock-right" id="dockRight">
+  <button class="adminbtn" id="adminBtn" title="Edit events and move pins">Admin</button>
+  <div class="updated" id="updated"></div>
+</div>
 <div class="mapctl" id="mapCtl" aria-label="Map controls">
   <button id="zinBtn" title="Zoom in">+</button>
   <button id="zoutBtn" title="Zoom out">&minus;</button>
@@ -416,7 +418,6 @@
 </div>
 
 <div class="empty" id="empty">Nothing in view. Try another search.</div>
-<div class="updated" id="updated"></div>
 
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script>
@@ -1151,7 +1152,7 @@
       var _en = state.notes[e.id] || {};
       var _nw = document.createElement("div"); _nw.className = "efield";
       var _nl = document.createElement("label"); _nl.textContent = "JD's notes (public)"; _nw.appendChild(_nl);
-      var _nta = document.createElement("textarea"); _nta.value = _en.note || ""; _nta.placeholder = "Your take...";
+      var _nta = document.createElement("textarea"); _nta.value = _en.note || ""; _nta.placeholder = "Your take..."; _nta.maxLength = 1500;
       _nta.addEventListener("focus", function () { pushUndo(); });
       _nw.appendChild(_nta);
       box.appendChild(_nw);
@@ -1307,27 +1308,28 @@
     s.src = NOTES_API_URL + "?action=get&callback=" + encodeURIComponent(cb) + "&ts=" + Date.now();
     document.head.appendChild(s);
   }
-  function saveNoteToBackend(placeId, note, visited, lat, lng) {
+  function apiCall(params, cb) {
     if (!NOTES_API_URL) return false;
-    var fd = new FormData();
-    fd.append("action", "save");
-    fd.append("place_id", placeId);
-    fd.append("note", note || "");
-    fd.append("visited", visited ? "true" : "false");
-    if (typeof lat === "number" && isFinite(lat)) fd.append("lat", lat);
-    if (typeof lng === "number" && isFinite(lng)) fd.append("lng", lng);
-    try { fetch(NOTES_API_URL, { method: "POST", mode: "no-cors", body: fd }); } catch (err) {}
-    setTimeout(loadNotes, 1800);
+    var q = Object.keys(params).map(function (k) { return encodeURIComponent(k) + "=" + encodeURIComponent(params[k]); }).join("&");
+    var id = "__jdApi" + Date.now();
+    window[id] = function (data) {
+      try { if (cb) cb(data); } finally { delete window[id]; var s = document.getElementById(id); if (s) s.remove(); }
+    };
+    var s = document.createElement("script");
+    s.id = id;
+    s.onerror = function () { delete window[id]; s.remove(); if (cb) cb(null); };
+    s.src = NOTES_API_URL + "?callback=" + encodeURIComponent(id) + "&ts=" + Date.now() + "&" + q;
+    document.head.appendChild(s);
     return true;
   }
+  function saveNoteToBackend(placeId, note, visited, lat, lng) {
+    var p = { action: "save", place_id: placeId, note: note || "", visited: visited ? "true" : "false" };
+    if (typeof lat === "number" && isFinite(lat)) p.lat = lat;
+    if (typeof lng === "number" && isFinite(lng)) p.lng = lng;
+    return apiCall(p, function () { loadNotes(); });
+  }
   function deleteNoteBackend(placeId) {
-    if (!NOTES_API_URL) return false;
-    var fd = new FormData();
-    fd.append("action", "delete");
-    fd.append("place_id", placeId);
-    try { fetch(NOTES_API_URL, { method: "POST", mode: "no-cors", body: fd }); } catch (err) {}
-    setTimeout(loadNotes, 1800);
-    return true;
+    return apiCall({ action: "delete", place_id: placeId }, function () { loadNotes(); });
   }
 
   Promise.all([
