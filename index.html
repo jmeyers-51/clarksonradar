@@ -51,7 +51,6 @@
   #search::placeholder { color: var(--muted); }
   #search:focus { border-color: rgba(255,255,255,0.28); }
   body.panel-open .topbar { transform: translateX(calc(-50% - 32px - min(200px, 15vw))); }
-  body.panel-open .player { transform: translateX(calc(-50% - 32px - min(200px, 15vw))); }
 
   /* legend */
   .legend-toggle {
@@ -114,11 +113,12 @@
     content: ""; position: absolute; left: 0; top: 0; width: 22px; height: 22px;
     transform: translate(-50%, -50%); border-radius: 50%;
     border: 2px solid rgba(255,255,255,0.9); pointer-events: none;
-    animation: selping 1.8s ease-out infinite;
+    animation: selping 3s ease-in-out infinite;
   }
   @keyframes selping {
-    0% { width: 22px; height: 22px; opacity: 0.9; }
-    100% { width: 58px; height: 58px; opacity: 0; }
+    0% { width: 22px; height: 22px; opacity: 0.45; }
+    50% { width: 44px; height: 44px; opacity: 0.12; }
+    100% { width: 22px; height: 22px; opacity: 0.45; }
   }
   /* cluster bubble: one node standing in for many */
   .mk .bub {
@@ -226,10 +226,6 @@
   .sheet h2 { margin: 0 0 4px; font-size: 20px; line-height: 1.25; letter-spacing: -0.2px; }
   .sheet .where { color: var(--muted); font-size: 13.5px; margin-bottom: 10px; }
   .sheet .desc { font-size: 14.5px; line-height: 1.55; color: #dfe6e4; margin: 0 0 12px; }
-  .meter { margin: 0 0 14px; }
-  .meter .lab { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 5px; }
-  .meter .bar { height: 5px; border-radius: 99px; background: rgba(255,255,255,0.12); overflow: hidden; }
-  .meter .fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, #d8c98f, #f0d98a); }
   .facts { margin: 0 0 12px; display: grid; gap: 6px; }
   .fact { display: flex; gap: 10px; font-size: 13px; }
   .fact b { font-weight: 700; color: var(--muted); min-width: 58px; text-transform: uppercase; font-size: 10.5px; letter-spacing: 0.5px; padding-top: 2px; }
@@ -308,31 +304,6 @@
   .empty.show { display: block; }
   body.panel-open .empty { left: calc((100% - 64px - min(400px, 30%)) / 2); }
 
-  /* timeline scrubber (no autoplay: drag to fade out past events) */
-  .player {
-    position: fixed; left: 50%; transform: translateX(-50%); bottom: 30px; z-index: 15;
-    display: flex; align-items: center; gap: 10px;
-    width: min(440px, calc(100% - 24px));
-    background: var(--glass); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-    border: 1px solid var(--line); border-radius: 999px; padding: 8px 14px;
-    transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
-  }
-  .track { position: relative; flex: 1; height: 22px; cursor: pointer; touch-action: none; }
-  .track::before {
-    content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 4px;
-    transform: translateY(-50%); border-radius: 99px; background: rgba(255,255,255,0.14);
-  }
-  .ph {
-    position: absolute; top: 50%; width: 14px; height: 14px; border-radius: 50%;
-    background: #fff; transform: translate(-50%, -50%);
-    box-shadow: 0 1px 6px rgba(0,0,0,0.6); pointer-events: none;
-  }
-  .pdate { flex: none; font-size: 12.5px; font-weight: 600; min-width: 88px; text-align: right; }
-  .sreset {
-    flex: none; border: 1px solid var(--line); background: transparent; color: var(--muted);
-    border-radius: 999px; padding: 4px 10px; font: inherit; font-size: 11.5px; font-weight: 600; cursor: pointer;
-  }
-  .sreset:hover { color: var(--ink); border-color: rgba(255,255,255,0.3); }
   @media (max-width: 899px) {
     .sheet {
       left: 50%; right: auto; top: auto; bottom: 0;
@@ -341,7 +312,7 @@
       transform: translate(-50%, 110%);
     }
     body.panel-open .sheet { transform: translate(-50%, 0); opacity: 1; pointer-events: auto; }
-    body.panel-open .topbar, body.panel-open .player { transform: translateX(-50%); }
+    body.panel-open .topbar { transform: translateX(-50%); }
     .mapctl { top: 84px; }
     body.panel-open .dock-right { right: auto; left: 12px; bottom: auto; top: 84px; flex-direction: row; align-items: center; }
     body.panel-open .admintools { left: 12px; right: 12px; transform: none; bottom: auto; top: 134px; justify-content: center; }
@@ -351,7 +322,6 @@
     .brand small { display: none; }
     .brand { font-size: 13.5px; }
     .legend { max-width: 200px; }
-    .player { bottom: 88px; }
   }
 </style>
 </head>
@@ -367,12 +337,6 @@
 
 <button class="legend-toggle" id="legendToggle">Legend</button>
 <div class="legend" id="legend"><div class="t">Events</div></div>
-
-<div class="player" id="player">
-  <div class="track" id="track"><div class="ph" id="ph" style="left:0%"></div></div>
-  <div class="pdate" id="pdate">All dates</div>
-  <button class="sreset" id="scrubReset" title="Reset to all dates">All</button>
-</div>
 
 <aside class="sheet" id="sheet">
   <div class="sheetHead">
@@ -392,10 +356,6 @@
       <div class="facts" id="sheetFacts"></div>
       <p class="desc" id="sheetDesc"></p>
       <div class="jdnotes" id="sheetNotes" style="display:none"><div class="jdnotes-lab">JD's notes</div><div class="jdnotes-body" id="sheetNotesText"></div></div>
-      <div class="meter" id="sheetMeter" style="display:none">
-        <div class="lab"><span>Fun potential</span><span id="meterVal"></span></div>
-        <div class="bar"><div class="fill" id="meterFill"></div></div>
-      </div>
       <div class="actions" id="sheetActions"></div>
       <div id="sheetEdit" style="display:none"></div>
     </div>
@@ -436,7 +396,7 @@
     "Email listing": "#ff8a5c",
     "Visit STLC": "#f0bd37"
   };
-  var PLACE_COLORS = { "Coffee": "#c98f5f", "Orchard": "#9ccc65", "Outdoors": "#4db6ac", "Groceries": "#c9a227", "Study": "#9d7bff", "Entertainment": "#c084fc", "Food": "#d9704a" };
+  var PLACE_COLORS = { "Coffee": "#c98f5f", "Orchard": "#9ccc65", "Outdoors": "#4db6ac", "Study": "#9d7bff", "Entertainment": "#c084fc", "Food": "#d9704a" };
   function hexA(hex, a) {
     var h = (hex || "#fff").replace("#", "");
     if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
@@ -546,7 +506,6 @@
         var segs = box.children;
         for (var i = 0; i < segs.length; i++) segs[i].classList.toggle("on", segs[i] === b);
         document.getElementById("search").placeholder = state.mode === "events" ? "Search events" : "Search places";
-        updatePlayerVis();
         buildLegend();
         goBack();
         renderAll();
@@ -834,7 +793,6 @@
     if (hc) hc.textContent = n ? n + " in view" : "";
     document.getElementById("empty").classList.toggle("show", n === 0);
     setSel(state.selected);
-    applyScrub();
   }
   map.on("moveend", function () { hideTip(); renderNodes(); refreshList(); });
 
@@ -893,7 +851,7 @@
     if (e.kind === "place") { openPlace(e); return; }
     if (state.admin) { openEditor(e); return; }
     document.getElementById("sheetEdit").style.display = "none";
-    ["sheetKicker", "sheetTitle", "sheetWhere", "sheetFacts", "sheetDesc", "sheetNotes", "sheetMeter", "sheetActions"].forEach(function (x) {
+    ["sheetKicker", "sheetTitle", "sheetWhere", "sheetFacts", "sheetDesc", "sheetNotes", "sheetActions"].forEach(function (x) {
       document.getElementById(x).style.display = "";
     });
     var b = bucket(e);
@@ -924,12 +882,6 @@
     }
     fact("Time", e.time);
     fact("Address", e.address);
-    var meter = document.getElementById("sheetMeter");
-    if (typeof e.score === "number") {
-      meter.style.display = "";
-      document.getElementById("meterVal").textContent = e.score + " / 100";
-      document.getElementById("meterFill").style.width = Math.max(0, Math.min(100, e.score)) + "%";
-    } else { meter.style.display = "none"; }
     var acts = document.getElementById("sheetActions");
     acts.innerHTML = "";
     if (e.link) {
@@ -954,7 +906,7 @@
     setSel(e.id);
     if (state.admin) { openEditor(e); return; }
     document.getElementById("sheetEdit").style.display = "none";
-    ["sheetKicker", "sheetTitle", "sheetWhere", "sheetFacts", "sheetDesc", "sheetNotes", "sheetMeter", "sheetActions"].forEach(function (x) {
+    ["sheetKicker", "sheetTitle", "sheetWhere", "sheetFacts", "sheetDesc", "sheetNotes", "sheetActions"].forEach(function (x) {
       document.getElementById(x).style.display = "";
     });
     var kick = document.getElementById("sheetKicker");
@@ -988,7 +940,6 @@
       d.appendChild(b2); d.appendChild(sp); facts.appendChild(d);
     }
     fact("Address", e.address);
-    document.getElementById("sheetMeter").style.display = "none";
     var acts = document.getElementById("sheetActions");
     acts.innerHTML = "";
     if (e.link) {
@@ -1123,7 +1074,7 @@
   });
   function openEditor(e, noFly) {
     var dirtyFn = e.kind === "place" ? markDirtyPlace : markDirty;
-    ["sheetKicker", "sheetTitle", "sheetWhere", "sheetFacts", "sheetDesc", "sheetNotes", "sheetMeter", "sheetActions"].forEach(function (x) {
+    ["sheetKicker", "sheetTitle", "sheetWhere", "sheetFacts", "sheetDesc", "sheetNotes", "sheetActions"].forEach(function (x) {
       document.getElementById(x).style.display = "none";
     });
     var box = document.getElementById("sheetEdit");
@@ -1236,7 +1187,7 @@
       box.appendChild(field("Venue", "venue", "text"));
       box.appendChild(efrow(field("Town", "town", "text"), field("Address", "address", "text")));
       box.appendChild(field("Description", "desc", "textarea"));
-      box.appendChild(efrow(field("Fun (0-100)", "score", "number"), field("Source", "source", "select", Object.keys(SRC_COLORS))));
+      box.appendChild(field("Source", "source", "select", Object.keys(SRC_COLORS)));
       box.appendChild(field("Link", "link", "text"));
     }
     var note = document.createElement("div");
@@ -1246,64 +1197,6 @@
     showDetail();
     if (!noFly) flyToPin(e);
   }
-
-  /* ---- timeline scrubber: drag to fade out events before the cursor ---- */
-  var scrub = { dmin: 0, dmax: 0, t: 0 };
-  function scrubStr() {
-    if (scrub.dmax <= scrub.dmin) return null;
-    return numDay(Math.round(scrub.dmin + scrub.t * (scrub.dmax - scrub.dmin)));
-  }
-  function applyScrub() {
-    var cur = scrub.t <= 0.001 ? null : scrubStr();
-    document.getElementById("ph").style.left = (scrub.t * 100) + "%";
-    document.getElementById("pdate").textContent = cur ? fmtDate(cur) : "All dates";
-    Object.keys(state.nodes).forEach(function (id) {
-      var e = byId(id), el = state.nodes[id].getElement();
-      if (e && el) el.classList.toggle("faded", !!cur && !!e.date && e.date < cur);
-    });
-    var cards = document.getElementById("cards");
-    if (cards) {
-      for (var i = 0; i < cards.children.length; i++) {
-        var e2 = byId(cards.children[i].getAttribute("data-id"));
-        cards.children[i].classList.toggle("faded", !!cur && !!e2 && e2.kind === "event" && !!e2.date && e2.date < cur);
-      }
-    }
-  }
-  function initScrub() {
-    var seen = {};
-    state.events.forEach(function (e) { if (e.date) seen[e.date] = true; });
-    var ds = Object.keys(seen).sort();
-    scrubAvailable = ds.length >= 2;
-    if (!scrubAvailable) { updatePlayerVis(); return; }
-    scrub.dmin = dayNum(ds[0]);
-    scrub.dmax = dayNum(ds[ds.length - 1]);
-    scrub.t = 0;
-    updatePlayerVis();
-    applyScrub();
-  }
-  var scrubAvailable = false;
-  function updatePlayerVis() {
-    document.getElementById("player").style.display = (state.mode === "events" && scrubAvailable) ? "" : "none";
-  }
-  var scrubbing = false;
-  var trackEl = document.getElementById("track");
-  function seekTo(clientX) {
-    var r = trackEl.getBoundingClientRect();
-    scrub.t = Math.max(0, Math.min(1, (clientX - r.left) / r.width));
-    applyScrub();
-  }
-  trackEl.addEventListener("pointerdown", function (ev) {
-    scrubbing = true;
-    try { trackEl.setPointerCapture(ev.pointerId); } catch (e) {}
-    seekTo(ev.clientX);
-  });
-  trackEl.addEventListener("pointermove", function (ev) { if (scrubbing) seekTo(ev.clientX); });
-  trackEl.addEventListener("pointerup", function () { scrubbing = false; });
-  trackEl.addEventListener("pointercancel", function () { scrubbing = false; });
-  document.getElementById("scrubReset").addEventListener("click", function () {
-    scrub.t = 0;
-    applyScrub();
-  });
 
   var searchT = null;
   document.getElementById("search").addEventListener("input", function (ev) {
@@ -1394,7 +1287,6 @@
       document.getElementById("search").placeholder = state.mode === "events" ? "Search events" : "Search places";
       renderAll();
       loadNotes();
-      initScrub();
       if (window.innerWidth < 900) collapsePanel();
       var bounds = new maplibregl.LngLatBounds();
       state.events.forEach(function (e) { bounds.extend([e.lng, e.lat]); });
