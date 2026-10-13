@@ -131,45 +131,6 @@
    "source": "Local knowledge"
   },
   {
-   "id": "potsdam-food-coop",
-   "name": "Potsdam Food Co-op",
-   "category": "Groceries",
-   "town": "Potsdam",
-   "address": "24 Elm St, Potsdam, NY",
-   "lat": 44.67001,
-   "lng": -74.98328,
-   "approx": false,
-   "desc": "Community-owned grocery with local produce and bulk goods.",
-   "link": "",
-   "source": "Local knowledge"
-  },
-  {
-   "id": "price-chopper-potsdam",
-   "name": "Price Chopper",
-   "category": "Groceries",
-   "town": "Potsdam",
-   "address": "201 Market St, Potsdam, NY",
-   "lat": 44.68555,
-   "lng": -74.98923,
-   "approx": false,
-   "desc": "Full-service supermarket; the big grocery run close to downtown.",
-   "link": "",
-   "source": "Local knowledge"
-  },
-  {
-   "id": "walmart-potsdam",
-   "name": "Walmart Supercenter",
-   "category": "Groceries",
-   "town": "Potsdam",
-   "address": "7494 US-11, Potsdam, NY",
-   "lat": 44.66135,
-   "lng": -75.02625,
-   "approx": false,
-   "desc": "Groceries, household essentials, and late hours.",
-   "link": "",
-   "source": "Local knowledge"
-  },
-  {
    "id": "potsdam-library",
    "name": "Potsdam Public Library",
    "category": "Study",
@@ -547,5 +508,5 @@
    "source": "Local research"
   }
  ],
- "updated": "2026-10-06"
+ "updated": "2026-10-13"
 }
