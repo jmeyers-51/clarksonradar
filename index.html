@@ -304,6 +304,36 @@
   .empty.show { display: block; }
   body.panel-open .empty { left: calc((100% - 64px - min(400px, 30%)) / 2); }
 
+  /* ---- review queue: staging room for raw scraped items (admin) ---- */
+  .revhead { margin-bottom: 12px; }
+  .revtitle { font-weight: 700; font-size: 15px; }
+  .revsub { font-size: 12px; color: var(--muted); margin-top: 3px; line-height: 1.5; }
+  .revpacket {
+    border: 1px solid var(--line); border-radius: 14px; margin-bottom: 12px;
+    background: rgba(255,255,255,0.03); overflow: hidden;
+    border-top: 3px solid var(--kc, #fff);
+  }
+  .revpacket.kev { --kc: #7fc4d8; }
+  .revpacket.kpl { --kc: #9ccc65; }
+  .rev-body { padding: 12px 14px 14px; }
+  .rev-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+  .rev-kind { font-size: 10.5px; font-weight: 800; letter-spacing: 0.9px; color: var(--kc); }
+  .rev-date { font-size: 12px; font-weight: 600; }
+  .rev-dist { margin-left: auto; font-size: 12px; color: var(--muted); font-weight: 600; }
+  .rev-hero { font-size: 19px; font-weight: 700; line-height: 1.25; letter-spacing: -0.2px; margin: 0 0 10px; }
+  .rev-zone { margin-bottom: 10px; }
+  .rev-zlab { font-size: 10px; font-weight: 800; letter-spacing: 0.9px; color: var(--muted); margin-bottom: 4px; }
+  .rev-where { font-size: 13.5px; font-weight: 600; }
+  .rev-geo { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .rev-fact { font-size: 12.5px; margin: 4px 0; color: #dfe6e4; line-height: 1.5; }
+  .rev-fact b { color: var(--muted); font-weight: 700; text-transform: uppercase; font-size: 10px; letter-spacing: 0.5px; margin-right: 6px; }
+  .rev-rec { font-size: 12.5px; padding: 8px 11px; border-radius: 10px; margin-bottom: 10px; line-height: 1.5; }
+  .rev-rec.ok { background: rgba(143,214,164,0.10); border: 1px solid rgba(143,214,164,0.35); }
+  .rev-rec.no { background: rgba(255,255,255,0.04); border: 1px solid var(--line); color: var(--muted); }
+  .rev-srcwarn { font-size: 11.5px; color: #f0bd37; margin-top: 6px; }
+  .rev-actions { display: flex; gap: 8px; }
+  .rev-actions .btn { font-size: 13px; padding: 9px 10px; }
+  .revempty { color: var(--muted); font-size: 13.5px; text-align: center; padding: 24px 12px; line-height: 1.6; }
   @media (max-width: 899px) {
     .sheet {
       left: 50%; right: auto; top: auto; bottom: 0;
@@ -349,6 +379,13 @@
       <div class="catfilters" id="catFilters"></div>
       <div class="cards" id="cards"></div>
     </div>
+    <div id="reviewView" style="display:none">
+      <div class="revhead">
+        <div class="revtitle">Review queue <span class="hvcount" id="revCount"></span></div>
+        <div class="revsub" id="revSub">Raw scrape — closest to Potsdam first. Approving moves the item onto the live radar.</div>
+      </div>
+      <div id="revCards"></div>
+    </div>
     <div id="detailView" style="display:none">
       <div class="kicker" id="sheetKicker"></div>
       <h2 id="sheetTitle"></h2>
@@ -377,8 +414,10 @@
   <span>Admin: drag pins to move them, tap one to edit</span>
   <button id="undoBtn" title="Undo last change">Undo</button>
   <button id="redoBtn" title="Redo">Redo</button>
+  <button id="reviewBtn" title="Review raw scraped items before they go live">Review <span id="revBadge"></span></button>
   <button id="dlBtn" title="Saves the updated events file to your device -- then I can push it live">Save events</button>
   <button id="dlBtn2" title="Saves the updated places file to your device -- then I can push it live">Save places</button>
+  <button id="dlBtn3" title="Saves the staging queue file to your device -- then I can push it live">Save staging</button>
   <button id="discardBtn" title="Throw away all changes made in this admin session">Discard</button>
   <button id="exitAdminBtn">Exit</button>
 </div>
@@ -394,7 +433,10 @@
     "Clarkson email": "#8fd6a4",
     "Clarkson library": "#e8a0a0",
     "Email listing": "#ff8a5c",
-    "Visit STLC": "#f0bd37"
+    "Visit STLC": "#f0bd37",
+    "Facebook": "#b388eb",
+    "Eventbrite": "#ef6f9c",
+    "Potsdam Library": "#26a69a"
   };
   var PLACE_COLORS = { "Coffee": "#c98f5f", "Orchard": "#9ccc65", "Outdoors": "#4db6ac", "Study": "#9d7bff", "Entertainment": "#c084fc", "Food": "#d9704a" };
   function hexA(hex, a) {
@@ -446,7 +488,7 @@
 
   /* JD's notes backend: Apps Script web app URL (deployed 2026-10-07). */
   var NOTES_API_URL = "https://script.google.com/a/macros/clarkson.edu/s/AKfycbwy6VmnhyBxmteJ9HQO6ZGljcqCmth6ToJ6GS_m-NZZZU3iIVG5RpS2TmsY1bUwQz-NAA/exec";
-  var state = { q: "", events: [], places: [], nodes: {}, clusters: [], notes: {}, mode: "places", selected: null, admin: false, dirty: false };
+  var state = { q: "", events: [], places: [], nodes: {}, clusters: [], notes: {}, mode: "places", selected: null, admin: false, dirty: false, staging: [], reviewMode: false };
 
   function todayStr() {
     var d = new Date();
@@ -809,8 +851,10 @@
   }
   function goBack() {
     state.selected = null;
+    state.reviewMode = false;
     setSel(null);
     document.getElementById("detailView").style.display = "none";
+    document.getElementById("reviewView").style.display = "none";
     document.getElementById("listView").style.display = "";
     document.getElementById("backBtn").style.display = "none";
     setHeadTitle('In view <span class="hvcount" id="inviewCount"></span>');
@@ -825,6 +869,179 @@
   document.getElementById("collapseBtn").addEventListener("click", collapsePanel);
   document.getElementById("expandTab").addEventListener("click", expandPanel);
   document.getElementById("backBtn").addEventListener("click", goBack);
+
+  /* ---- review queue: staging room for raw scraped items ----
+     Packets are color-coded by kind (blue = event, green = place), hero type
+     for the name, and three denoted zones: the event, the location, the info.
+     Sorted closest to Potsdam first. Approve moves the item onto the radar
+     (in-memory, then Save events / Save places persists it). */
+  var KIND_COLOR = { event: "#7fc4d8", place: "#9ccc65" };
+  function stagingById(id) {
+    for (var i = 0; i < state.staging.length; i++) if (state.staging[i].id === id) return state.staging[i];
+    return null;
+  }
+  function loadStaging() {
+    fetch("./staging.json", { cache: "no-store" })
+      .then(function (r) { if (!r.ok) throw new Error("no staging"); return r.json(); })
+      .then(function (d) {
+        state.staging = (d.items || []).map(function (x) { if (!x.status) x.status = "pending"; return x; });
+        updateRevBadge();
+        if (state.reviewMode) renderReview();
+      })
+      .catch(function () { state.staging = []; updateRevBadge(); });
+  }
+  function updateRevBadge() {
+    var pend = 0, appr = 0, rej = 0;
+    state.staging.forEach(function (x) {
+      if (x.status === "approved") appr++;
+      else if (x.status === "rejected") rej++;
+      else pend++;
+    });
+    var b = document.getElementById("revBadge");
+    if (b) b.textContent = pend ? "(" + pend + ")" : "";
+    var c = document.getElementById("revCount");
+    if (c) c.textContent = pend ? pend + " pending" : "";
+    var s = document.getElementById("revSub");
+    if (s) s.textContent = "Raw scrape — closest to Potsdam first. Approving moves the item onto the live radar." + (appr || rej ? " (" + appr + " approved, " + rej + " rejected)" : "");
+  }
+  function showReview() {
+    state.reviewMode = true;
+    state.selected = null;
+    setSel(null);
+    document.getElementById("listView").style.display = "none";
+    document.getElementById("detailView").style.display = "none";
+    document.getElementById("reviewView").style.display = "";
+    document.getElementById("backBtn").style.display = "";
+    setHeadTitle("Review queue");
+    if (!document.body.classList.contains("panel-open")) expandPanel();
+    renderReview();
+  }
+  function el(tag, cls, text) {
+    var d = document.createElement(tag);
+    if (cls) d.className = cls;
+    if (text != null) d.textContent = text;
+    return d;
+  }
+  function renderReview() {
+    var box = document.getElementById("revCards");
+    if (!box) return;
+    box.innerHTML = "";
+    var pend = state.staging.filter(function (x) { return x.status !== "approved" && x.status !== "rejected"; });
+    pend.sort(function (a, b) { return (a.dist_mi == null ? 9999 : a.dist_mi) - (b.dist_mi == null ? 9999 : b.dist_mi); });
+    if (!pend.length) {
+      var e = el("div", "revempty", "Queue is clear. The next scrape lands raw items here for your call.");
+      box.appendChild(e);
+      return;
+    }
+    pend.forEach(function (it) { box.appendChild(packetCard(it)); });
+  }
+  function packetCard(it) {
+    var card = el("div", "revpacket " + (it.kind === "place" ? "kpl" : "kev"));
+    var body = el("div", "rev-body");
+    card.appendChild(body);
+    var top = el("div", "rev-top");
+    top.appendChild(el("span", "rev-kind", it.kind === "place" ? "PLACE" : "EVENT"));
+    if (it.date) top.appendChild(el("span", "rev-date", fmtDate(it.date) + (it.time ? " · " + it.time : "")));
+    if (it.dist_mi != null) top.appendChild(el("span", "rev-dist", (+it.dist_mi).toFixed(1) + " mi from Potsdam"));
+    body.appendChild(top);
+    body.appendChild(el("div", "rev-hero", it.title));
+    /* zone: location */
+    var zl = el("div", "rev-zone");
+    zl.appendChild(el("div", "rev-zlab", "LOCATION"));
+    var where = [it.venue, it.town].filter(Boolean).join(" · ") || it.address || "Location TBD";
+    zl.appendChild(el("div", "rev-where", where));
+    if (it.geo_note) zl.appendChild(el("div", "rev-geo", it.geo_note + (it.approx ? " (approx.)" : "")));
+    body.appendChild(zl);
+    /* zone: info */
+    var zi = el("div", "rev-zone");
+    zi.appendChild(el("div", "rev-zlab", "INFO"));
+    function fact(label, val) {
+      if (!val) return;
+      var d = el("div", "rev-fact");
+      var b = el("b", null, label);
+      var s = el("span", null, val);
+      d.appendChild(b); d.appendChild(s); zi.appendChild(d);
+    }
+    fact("Source", it.source + (it.source_detail ? " · " + it.source_detail : ""));
+    fact("Why", it.why);
+    if (it.link) {
+      var d = el("div", "rev-fact");
+      d.appendChild(el("b", null, "Link"));
+      var a = document.createElement("a");
+      a.href = it.link; a.target = "_blank"; a.rel = "noopener";
+      a.textContent = it.link; a.style.color = "var(--ink)";
+      d.appendChild(a); zi.appendChild(d);
+    }
+    if (it.kind === "place" && it.category) fact("Category", it.category);
+    body.appendChild(zi);
+    if (it.source && !SRC_COLORS[it.source]) {
+      var w = el("div", "rev-srcwarn", "New publisher — add a color for \"" + it.source + "\" in SRC_COLORS before pushing, or the pin renders white.");
+      body.appendChild(w);
+    }
+    /* recommendation */
+    var rec = el("div", "rev-rec " + (it.recommendation === "skip" ? "no" : "ok"));
+    var rb = el("b", null, it.recommendation === "skip" ? "Recommend: skip" : "Recommend: approve");
+    rec.appendChild(rb);
+    rec.appendChild(document.createTextNode(it.rec_reason ? " — " + it.rec_reason : ""));
+    body.appendChild(rec);
+    /* actions */
+    var acts = el("div", "rev-actions");
+    var ab = el("button", "btn primary", it.kind === "place" ? "Approve → places" : "Approve → events");
+    ab.addEventListener("click", function () { approveStaging(it.id); });
+    var rb2 = el("button", "btn", "Reject");
+    rb2.addEventListener("click", function () { rejectStaging(it.id); });
+    acts.appendChild(ab); acts.appendChild(rb2);
+    body.appendChild(acts);
+    return card;
+  }
+  function approveStaging(id) {
+    var it = stagingById(id);
+    if (!it || it.status === "approved") return;
+    pushUndo();
+    if (it.kind === "place") {
+      state.places.push({
+        id: "plc-" + String(it.id).replace(/^stg-/, ""),
+        name: it.title, title: it.title,
+        category: it.category || "Entertainment",
+        town: it.town || null, address: it.address || null,
+        lat: it.lat, lng: it.lng, approx: !!it.approx,
+        desc: it.why || "", link: it.link || null,
+        source: it.source || "Facebook", kind: "place"
+      });
+      markDirtyPlace();
+    } else {
+      state.events.push({
+        id: "evt-" + String(it.id).replace(/^stg-/, ""),
+        title: it.title, date: it.date || null, time: it.time || null,
+        venue: it.venue || null, town: it.town || null, address: it.address || null,
+        lat: it.lat, lng: it.lng, approx: !!it.approx,
+        desc: it.why || "", link: it.link || null,
+        source: it.source || "Facebook", kind: "event"
+      });
+      markDirty();
+    }
+    it.status = "approved";
+    updateRevBadge(); renderReview(); renderAll();
+  }
+  function rejectStaging(id) {
+    var it = stagingById(id);
+    if (!it || it.status === "rejected") return;
+    it.status = "rejected";
+    updateRevBadge(); renderReview();
+  }
+  document.getElementById("reviewBtn").addEventListener("click", function () {
+    if (state.reviewMode) goBack(); else showReview();
+  });
+  document.getElementById("dlBtn3").addEventListener("click", function () {
+    var data = { updated: todayStr(), items: state.staging };
+    var blob = new Blob([JSON.stringify(data, null, 1)], { type: "application/json" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "staging.json";
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
+  });
 
   function setSel(id) {
     Object.keys(state.nodes).forEach(function (k) {
@@ -1287,6 +1504,7 @@
       document.getElementById("search").placeholder = state.mode === "events" ? "Search events" : "Search places";
       renderAll();
       loadNotes();
+      loadStaging();
       if (window.innerWidth < 900) collapsePanel();
       var bounds = new maplibregl.LngLatBounds();
       state.events.forEach(function (e) { bounds.extend([e.lng, e.lat]); });
