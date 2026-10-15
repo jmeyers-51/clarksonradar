@@ -88,26 +88,40 @@
 
   /* ============ markers ============
      MapLibre positions the wrapper via transform, but our own `position: relative`
-     (needed to contain the pring/halo) ties with `.maplibregl-marker`'s absolute
+     (needed to contain absolute children) ties with `.maplibregl-marker`'s absolute
      positioning and wins on source order -- without inline-block the wrapper
-     becomes a full-width block and the pring/bubble stretch across the map. */
-  .mk { cursor: pointer; position: relative; display: inline-block; vertical-align: top; }
+     becomes a full-width block and children stretch across the map. */
+  .mk { cursor: pointer; position: relative; display: inline-block; vertical-align: top;
+    transition: opacity var(--d1) var(--ease); }
+  /* event dots (timing colors) */
   .mk .dot { width: 22px; height: 22px; border-radius: 50%;
     border: 3px solid rgba(255,255,255,.92);
     box-shadow: 0 2px 10px rgba(0,0,0,.45);
     transition: transform var(--d1) var(--ease), opacity var(--d1) var(--ease); }
-  .mk .pring { position: absolute; inset: -7px; border-radius: 50%;
-    border: 2px dashed rgba(255,255,255,.55); pointer-events: none; }
+  /* place pins: teardrop whose tip marks the exact spot; white frame + inner
+     dot for figure-ground separation on the dark basemap (per POI symbol studies) */
+  .mk .pin { width: 26px; height: 33px; position: relative; }
+  .mk .pin i { position: absolute; left: 1px; top: 1px; width: 24px; height: 24px;
+    background: var(--pc, #fff);
+    border: 2.5px solid rgba(255,255,255,.95);
+    border-radius: 50% 50% 50% 6px;
+    transform: rotate(-45deg);
+    box-shadow: 0 3px 10px rgba(0,0,0,.55);
+    transition: filter var(--d1) var(--ease), box-shadow var(--d1) var(--ease); }
+  .mk .pin i::after { content: ''; position: absolute; left: 50%; top: 50%;
+    width: 8px; height: 8px; margin: -4px 0 0 -4px;
+    background: #fff; border-radius: 50%; }
+  .mk:hover .pin i { filter: brightness(1.14); }
+  .mk.sel .pin i { box-shadow: 0 0 0 3px rgba(255,255,255,.92), 0 3px 12px rgba(0,0,0,.6); }
   .mk .halo { position: absolute; inset: -22px; border-radius: 50%; pointer-events: none; }
   .mk.sel .dot { transform: scale(1.45); }
-  .mk.dim .dot { opacity: .3; }
-  .mk.born .dot { animation: pop var(--d2) var(--ease); }
-  @keyframes pop { 0% { transform: scale(0); } 60% { transform: scale(1.3); } 100% { transform: scale(1); } }
+  .mk.dim { opacity: .28; }
   .mk .bub { min-width: 30px; height: 30px; border-radius: 15px; padding: 0 9px;
-    background: var(--acc); color: #fff; font-weight: 800; font-size: 14px;
+    background: #2a2b38; color: #fff; font-weight: 800; font-size: 14px;
     display: flex; align-items: center; justify-content: center;
-    border: 3px solid rgba(255,255,255,.92); box-shadow: 0 2px 10px rgba(0,0,0,.45); }
-  .mk.closedm .dot { filter: grayscale(1); opacity: .55; }
+    border: 2.5px solid rgba(255,255,255,.9); box-shadow: 0 2px 10px rgba(0,0,0,.45); }
+  .mk.closedm .pin i { filter: grayscale(1); }
+  .mk.closedm { opacity: .55; }
   .mtip { position: fixed; z-index: 60; transform: translate(-50%, -100%);
     background: rgba(13,14,19,.92); border: 1px solid var(--line); border-radius: 10px;
     padding: 7px 12px; font-size: 12.5px; font-weight: 600; pointer-events: none;
@@ -254,8 +268,8 @@
     <input id="search" type="search" placeholder="Search events or places" autocomplete="off">
   </div>
   <div class="modeseg" id="modeSeg">
-    <button data-mode="events" class="on">Events</button>
-    <button data-mode="places">Places</button>
+    <button data-mode="events">Events</button>
+    <button data-mode="places" class="on">Places</button>
   </div>
   <a class="gearbtn" href="./admin.html" title="Admin settings" aria-label="Admin settings">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -312,14 +326,16 @@
   "use strict";
 
   /* ================= color taxonomy: color MEANS something =================
-     Places: color = what it IS (category). Events: color = WHEN it is. */
+     Places: color = what it IS (category). Events: color = WHEN it is.
+     Place palette: 3 primaries + 2 secondaries + 1 supplementary, tuned for
+     the dark slate basemap (mid-lightness, restrained saturation). */
   var PLACE_COLORS = {
-    "Food": "#e8833a",
-    "Coffee": "#8d6e63",
-    "Outdoors": "#43a047",
-    "Orchard": "#f9a825",
-    "Entertainment": "#ab47bc",
-    "Study": "#42a5f5"
+    "Food": "#e2a63b",
+    "Coffee": "#c08252",
+    "Outdoors": "#5fa968",
+    "Orchard": "#db6e5c",
+    "Entertainment": "#a281e8",
+    "Study": "#6a9be8"
   };
   var EVENT_COLORS = { "today": "#ef5350", "week": "#ff9800", "later": "#42a5f5" };
   var EVENT_LABELS = { "today": "Today", "week": "This week", "later": "Upcoming" };
@@ -332,7 +348,7 @@
 
   /* ================= state ================= */
   var state = {
-    mode: "events", events: [], places: [], notes: {},
+    mode: "places", events: [], places: [], notes: {},
     nodes: {}, clusters: [],
     selected: null, sheetDetent: "peek",
     query: "", activeCats: {},
@@ -488,27 +504,30 @@
     return { lng: e.lng + Math.cos(ang) * r, lat: e.lat + Math.sin(ang) * r };
   }
 
-  function addNodeMarker(p, born) {
+  function addNodeMarker(p) {
     var e = p.e;
     var wrap = document.createElement("div");
-    wrap.className = "mk" + (born ? " born" : "") + (e.status === "closed" ? " closedm" : "");
+    wrap.className = "mk" + (e.status === "closed" ? " closedm" : "");
     var c = nodeColor(e);
     if (e.approx) addHalo(wrap, c);
     if (e.kind === "place") {
-      var ring = document.createElement("div");
-      ring.className = "pring";
-      ring.style.borderColor = hexA(c, 0.75);
-      wrap.appendChild(ring);
+      var pin = document.createElement("div");
+      pin.className = "pin";
+      pin.style.setProperty("--pc", c);
+      pin.appendChild(document.createElement("i"));
+      wrap.appendChild(pin);
+    } else {
+      var dot = document.createElement("div");
+      dot.className = "dot";
+      dot.style.background = c;
+      wrap.appendChild(dot);
     }
-    var dot = document.createElement("div");
-    dot.className = "dot";
-    dot.style.background = c;
-    wrap.appendChild(dot);
     if (state.selected === e.id) wrap.classList.add("sel");
     wrap.addEventListener("click", function (ev) { ev.stopPropagation(); hideTip(); openSheetFor(e); });
     wrap.addEventListener("mouseenter", function () { showTip(e, wrap); });
     wrap.addEventListener("mouseleave", hideTip);
-    var m = new maplibregl.Marker({ element: wrap, draggable: state.admin })
+    /* places: teardrop tip anchored to the exact coordinate */
+    var m = new maplibregl.Marker({ element: wrap, draggable: state.admin, anchor: e.kind === "place" ? "bottom" : "center" })
       .setLngLat([p.pos.lng, p.pos.lat]).addTo(map);
     if (state.admin) {
       m.on("dragstart", pushUndo);
@@ -526,7 +545,7 @@
     var slng = 0, slat = 0, n = cell.length;
     cell.forEach(function (p) { slng += p.pos.lng; slat += p.pos.lat; });
     var el = document.createElement("div");
-    el.className = "mk born";
+    el.className = "mk";
     var bub = document.createElement("div");
     bub.className = "bub"; bub.textContent = n;
     el.appendChild(bub);
@@ -559,7 +578,7 @@
         pts.push({ e: e, pos: pos, x: px.x, y: px.y });
       });
     });
-    if (state.admin) { pts.forEach(function (p) { addNodeMarker(p, !had[p.e.id]); }); }
+    if (state.admin) { pts.forEach(function (p) { addNodeMarker(p); }); }
     else {
       var CELL = 64, grid = {}, order = [];
       pts.forEach(function (p) {
@@ -569,7 +588,7 @@
       });
       order.forEach(function (k) {
         var cell = grid[k];
-        if (cell.length === 1) addNodeMarker(cell[0], !had[cell[0].e.id]);
+        if (cell.length === 1) addNodeMarker(cell[0]);
         else addCluster(cell);
       });
     }
