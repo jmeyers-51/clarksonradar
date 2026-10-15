@@ -1,649 +1,521 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<meta name="color-scheme" content="dark" />
-<meta name="theme-color" content="#0b0e10" />
-<link rel="icon" href="data:," />
-<title>North Country Radar</title>
-<link rel="preconnect" href="https://unpkg.com" />
-<link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>North Country Radar — Events &amp; places · St. Lawrence County</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@700;800&display=swap" rel="stylesheet">
 <style>
+  /* ============ design tokens ============ */
   :root {
-    --ink: #f2f5f4;
-    --muted: #9aa7a3;
-    --glass: rgba(14, 18, 20, 0.82);
-    --glass-2: rgba(20, 26, 29, 0.92);
-    --line: rgba(255, 255, 255, 0.10);
-    --accent: #e8e4da;
-    --radius: 14px;
+    --ease: cubic-bezier(.32,.72,.24,1);
+    --d1: 200ms; --d2: 350ms;
+    --bg: #0d0e13; --panel: #16171d; --panel2: #1d1e26; --line: #2a2b35;
+    --txt: #f4f4f6; --mut: #a7a8b4; --dim: #6b6c78;
+    --acc: #5b8def;
+    --shadow: 0 16px 48px rgba(0,0,0,.5);
+    --r: 18px;
   }
-  * { box-sizing: border-box; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { margin: 0; height: 100%; overflow: hidden; }
-  body {
-    font-family: "Inter", -apple-system, "Segoe UI", Roboto, sans-serif;
-    background: #0b0e10; color: var(--ink);
-    -webkit-font-smoothing: antialiased;
-  }
+  body { background: var(--bg); color: var(--txt);
+    font-family: 'Inter', -apple-system, 'Segoe UI', Roboto, sans-serif; }
   #map { position: fixed; inset: 0; }
-  /* dark grayscale basemap; pins are DOM (not canvas) so their colors stay vivid */
-  .maplibregl-canvas { filter: grayscale(1) invert(0.93) brightness(1.04) contrast(0.95); }
 
-  /* floating top bar */
-  .topbar {
-    position: fixed; top: 14px; left: 50%; transform: translateX(-50%);
-    width: min(680px, calc(100% - 24px));
-    background: var(--glass); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-    border: 1px solid var(--line); border-radius: var(--radius);
-    padding: 10px 12px; z-index: 10;
-    transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
-  }
-  .topbar .row1 { display: flex; align-items: center; gap: 10px; }
-  .brand { font-weight: 700; font-size: 15px; letter-spacing: 0.2px; white-space: nowrap; }
-  .brand small { display: block; font-weight: 500; font-size: 11px; color: var(--muted); letter-spacing: 0; }
-  #search {
-    flex: 1; background: rgba(255,255,255,0.07); border: 1px solid var(--line);
-    border-radius: 10px; color: var(--ink); padding: 8px 12px; font: inherit; font-size: 14px;
-    outline: none; min-width: 0;
-  }
-  #search::placeholder { color: var(--muted); }
-  #search:focus { border-color: rgba(255,255,255,0.28); }
-  body.panel-open .topbar { transform: translateX(calc(-50% - 32px - min(200px, 15vw))); }
-
-  /* legend */
-  .legend-toggle {
-    position: fixed; left: 14px; bottom: 34px; z-index: 10;
-    background: var(--glass); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-    border: 1px solid var(--line); border-radius: 999px; color: var(--ink);
-    font: inherit; font-size: 12.5px; font-weight: 600; padding: 8px 14px; cursor: pointer;
-  }
-  .legend {
-    position: fixed; left: 14px; bottom: 78px; z-index: 10; display: none;
-    background: var(--glass-2); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-    border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px;
-    font-size: 12.5px; max-width: 240px;
-  }
-  .legend.open { display: block; }
-  .legend .t { font-weight: 700; font-size: 12px; margin-bottom: 8px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.6px; }
-  .legend .r { display: flex; align-items: center; gap: 8px; margin: 5px 0; }
-  .legend .dot { width: 11px; height: 11px; border-radius: 50%; flex: none; box-shadow: 0 0 0 2px rgba(255,255,255,0.25); }
-  .legend .dot.hatch {
-    background-color: var(--hc);
-    border: 2px dashed rgba(255,255,255,0.95);
-    box-shadow: none;
-  }
-
-  /* markers: the wrapper is positioned by MapLibre and must never transition
-     (that transition was the drift); the inner dot carries visuals + animation */
-  .mk { cursor: pointer; }
-  .mk .dot {
-    width: 22px; height: 22px; border-radius: 50%;
-    border: 3px solid rgba(255,255,255,0.95);
-    box-shadow: 0 2px 10px rgba(0,0,0,0.65);
-    transform: translate(-50%, -50%);
-    transition: transform 0.18s ease, box-shadow 0.25s ease, opacity 0.25s ease, filter 0.25s ease;
-    position: relative; z-index: 1;
-  }
-  .mk .dot:hover { transform: translate(-50%, -50%) scale(1.3); }
-  .mk.sel .dot { transform: translate(-50%, -50%) scale(1.5); box-shadow: 0 0 0 3px #fff, 0 2px 12px rgba(0,0,0,0.7); }
-  .mk.past .dot { opacity: 0.35; }
-  .mk.faded .dot { opacity: 0.18; }
-  /* node motion: pop-in for new pins, hot on card hover, pulse on selection */
-  .mk.born { animation: mpop 0.22s ease; }
-  @keyframes mpop { from { opacity: 0; } to { opacity: 1; } }
-  .mk.hot { z-index: 30; }
-  .mk.hot .dot { transform: translate(-50%, -50%) scale(1.6); box-shadow: 0 0 0 7px rgba(255,255,255,0.35), 0 0 22px rgba(255,255,255,0.55); }
-  .mk.hot .pring { transform: translate(-50%, -50%) scale(1.35); border-color: #fff; }
-  /* JD's rating: N dashes orbit the dot, N = rating (1-5). Unrated places keep a plain faint ring. */
-  .mk .rring {
-    position: absolute; left: 0; top: 0; width: 46px; height: 46px;
-    transform: translate(-50%, -50%);
-    animation: rorbit 14s linear infinite;
-    pointer-events: none; z-index: 0;
-  }
-  @keyframes rorbit { from { transform: translate(-50%,-50%) rotate(0deg); } to { transform: translate(-50%,-50%) rotate(360deg); } }
-  .mk.hot .rring { animation: rorbitHot 14s linear infinite; }
-  @keyframes rorbitHot { from { transform: translate(-50%,-50%) scale(1.3) rotate(0deg); } to { transform: translate(-50%,-50%) scale(1.3) rotate(360deg); } }
-  .jdnotes { margin: 12px 0; padding: 12px 14px; border-radius: 12px; background: rgba(240,189,55,0.08); border: 1px solid rgba(240,189,55,0.35); }
-  .jdnotes-lab { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #f0bd37; margin-bottom: 6px; }
-  .jdnotes-body { font-size: 14px; line-height: 1.55; white-space: pre-wrap; }
-  .mk.sel::after {
-    content: ""; position: absolute; left: 0; top: 0; width: 22px; height: 22px;
-    transform: translate(-50%, -50%); border-radius: 50%;
-    border: 2px solid rgba(255,255,255,0.9); pointer-events: none;
-    animation: selping 3s ease-in-out infinite;
-  }
-  @keyframes selping {
-    0% { width: 22px; height: 22px; opacity: 0.45; }
-    50% { width: 44px; height: 44px; opacity: 0.12; }
-    100% { width: 22px; height: 22px; opacity: 0.45; }
-  }
-  /* cluster bubble: one node standing in for many */
-  .mk .bub {
-    min-width: 36px; height: 36px; padding: 0 8px; border-radius: 999px;
-    transform: translate(-50%, -50%);
-    background: rgba(10, 14, 16, 0.88); border: 2px solid rgba(255,255,255,0.9);
-    color: #fff; font-weight: 800; font-size: 14px;
+  /* ============ top bar ============ */
+  .topbar { position: fixed; top: 0; left: 0; right: 0; z-index: 40;
+    display: flex; align-items: center; gap: 10px;
+    padding: calc(10px + env(safe-area-inset-top)) 14px 10px; }
+  .brand { font-family: 'Sora', 'Inter', sans-serif; font-weight: 800; font-size: 17px;
+    letter-spacing: -.3px; background: rgba(13,14,19,.82); backdrop-filter: blur(12px);
+    border: 1px solid var(--line); border-radius: 14px; padding: 10px 16px;
+    white-space: nowrap; }
+  .brand small { display: block; font-family: 'Inter', sans-serif; font-weight: 500;
+    font-size: 10.5px; color: var(--mut); letter-spacing: .4px; }
+  .searchwrap { flex: 1; max-width: 420px; position: relative; }
+  #search { width: 100%; background: rgba(13,14,19,.82); backdrop-filter: blur(12px);
+    border: 1px solid var(--line); border-radius: 14px; color: var(--txt);
+    padding: 12px 16px 12px 40px; font-size: 14.5px; font-family: 'Inter', sans-serif; }
+  #search:focus { outline: none; border-color: var(--acc); }
+  #search::placeholder { color: var(--dim); }
+  .searchwrap svg { position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
+    width: 17px; height: 17px; stroke: var(--dim); }
+  .modeseg { display: flex; background: rgba(13,14,19,.82); backdrop-filter: blur(12px);
+    border: 1px solid var(--line); border-radius: 14px; padding: 4px; }
+  .modeseg button { border: 0; background: none; color: var(--mut); font-weight: 700;
+    font-size: 13.5px; padding: 8px 16px; border-radius: 10px; cursor: pointer;
+    font-family: 'Inter', sans-serif; transition: all var(--d1) var(--ease); }
+  .modeseg button.on { background: var(--panel2); color: var(--txt); }
+  .gearbtn { width: 46px; height: 46px; border-radius: 14px; flex-shrink: 0;
+    background: rgba(13,14,19,.82); backdrop-filter: blur(12px);
+    border: 1px solid var(--line); color: var(--mut); cursor: pointer;
     display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.6);
-    transition: transform 0.15s ease;
-  }
-  .mk .bub:hover { transform: translate(-50%, -50%) scale(1.15); }
-  /* hover tooltip naming the node */
-  .mtip {
-    position: fixed; z-index: 40; display: none; pointer-events: none;
-    transform: translate(-50%, -100%);
-    background: rgba(10, 14, 16, 0.94); border: 1px solid var(--line);
-    color: var(--ink); font-size: 12.5px; font-weight: 600;
-    padding: 6px 11px; border-radius: 10px; white-space: nowrap; max-width: 70vw;
-    overflow: hidden; text-overflow: ellipsis;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.5);
-  }
-  /* places get a thin ring around their solid dot; rated places get an orbiting dash ring instead */
-  .mk .pring {
-    position: absolute; left: 0; top: 0; width: 40px; height: 40px;
-    transform: translate(-50%, -50%); border-radius: 50%;
-    border: 2px solid rgba(255,255,255,0.35);
-    pointer-events: none; z-index: 0;
-  }
+    transition: all var(--d1) var(--ease); text-decoration: none; }
+  .gearbtn:hover { color: var(--txt); border-color: #3a3b45; }
+  .gearbtn svg { width: 20px; height: 20px; }
 
-  /* gradient radius behind pins whose location is not dialed in yet */
-  .mk .halo {
-    position: absolute; left: 0; top: 0; width: 110px; height: 110px;
-    transform: translate(-50%, -50%); border-radius: 50%;
-    pointer-events: none; z-index: 0;
-  }
+  /* ============ legend: always visible, functional ============ */
+  .legendbar { position: fixed; z-index: 40; left: 0; right: 0;
+    top: calc(66px + env(safe-area-inset-top));
+    display: flex; gap: 8px; padding: 0 14px; overflow-x: auto;
+    scrollbar-width: none; }
+  .legendbar::-webkit-scrollbar { display: none; }
+  .lchip { flex-shrink: 0; display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(13,14,19,.82); backdrop-filter: blur(12px);
+    border: 1px solid var(--line); border-radius: 999px;
+    color: var(--txt); font-size: 12.5px; font-weight: 600;
+    padding: 8px 14px; cursor: pointer; font-family: 'Inter', sans-serif;
+    transition: all var(--d1) var(--ease); }
+  .lchip .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .lchip.off { opacity: .38; }
+  .lchip:active { transform: scale(.94); }
+  .lchip.all { color: var(--mut); }
 
-  /* right sidebar: always up by default, collapsible */
-  .sheet {
-    position: fixed; z-index: 20;
-    right: 64px; top: 84px; bottom: 16px; width: min(400px, 30%);
-    background: var(--glass-2); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
-    border: 1px solid var(--line); border-radius: 20px;
-    padding: 14px 16px 16px;
-    display: flex; flex-direction: column;
-    transform: translateX(calc(100% + 30px)); opacity: 0; pointer-events: none;
-    transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.25s ease;
-  }
-  body.panel-open .sheet { transform: none; opacity: 1; pointer-events: auto; }
-  .sheetHead { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex: none; }
-  .sheetHeadTitle { flex: 1; font-weight: 700; font-size: 14px; min-width: 0; }
-  .hvcount { color: var(--muted); font-weight: 500; font-size: 12px; }
-  .backbtn, .collapsebtn {
-    width: 30px; height: 30px; border-radius: 50%; flex: none;
-    border: 1px solid var(--line); background: rgba(255,255,255,0.07); color: var(--ink);
-    font-size: 15px; cursor: pointer; line-height: 1;
-  }
-  .sheetBody { flex: 1; min-height: 0; overflow-y: auto; }
-  .expandtab {
-    position: fixed; right: 14px; top: 50%; transform: translateY(-50%); z-index: 19;
-    width: 34px; height: 64px; border-radius: 12px 0 0 12px;
-    background: var(--glass-2); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-    border: 1px solid var(--line); border-right: none;
-    color: var(--ink); font-size: 16px; cursor: pointer;
-  }
-  body.panel-open .expandtab { display: none; }
-
-  /* hero master toggle: Events | Places */
-  .modetoggle { display: flex; gap: 8px; margin-bottom: 12px; }
-  .mseg {
-    flex: 1; padding: 13px 0; border-radius: 16px; border: 1px solid var(--line);
-    background: rgba(255,255,255,0.05); color: var(--muted);
-    font: inherit; font-size: 16px; font-weight: 800; letter-spacing: 0.2px; cursor: pointer;
-    transition: background 0.2s ease, color 0.2s ease, transform 0.12s ease;
-  }
-  .mseg:active { transform: scale(0.97); }
-  .mseg.on { background: #fff; border-color: #fff; color: #101414; box-shadow: 0 3px 14px rgba(0,0,0,0.45); }
-
-  /* stacked in-view cards */
-  .node {
-    display: flex; gap: 10px; align-items: center;
-    padding: 9px 10px; border: 1px solid var(--line); border-radius: 12px;
-    margin-bottom: 8px; cursor: pointer; background: rgba(255,255,255,0.03);
-    transition: opacity 0.25s ease, background 0.15s ease;
-  }
-  .node:hover { background: rgba(255,255,255,0.07); }
-  .node.sel { border-color: #fff; }
-  .node.faded { opacity: 0.45; }
-  .ndot { width: 16px; height: 16px; border-radius: 50%; flex: none; border: 2px solid rgba(255,255,255,0.9); }
-  .ndot.hatch {
-    background-color: var(--hc);
-    border: 2px dashed rgba(255,255,255,0.95);
-  }
-  .nmain { min-width: 0; }
-  .ntitle { font-size: 13.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .nsub { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-  /* detail view pieces */
-  .sheet .kicker { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
-  .pill {
-    font-size: 11px; font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase;
-    padding: 3px 9px; border-radius: 999px; background: rgba(255,255,255,0.10); color: var(--muted);
-  }
-  .pill.src { color: #101414; background: var(--srcc, #fff); }
-  .sheet h2 { margin: 0 0 4px; font-size: 20px; line-height: 1.25; letter-spacing: -0.2px; }
-  .sheet .where { color: var(--muted); font-size: 13.5px; margin-bottom: 10px; }
-  .sheet .desc { font-size: 14.5px; line-height: 1.55; color: #dfe6e4; margin: 0 0 12px; }
-  .facts { margin: 0 0 12px; display: grid; gap: 6px; }
-  .fact { display: flex; gap: 10px; font-size: 13px; }
-  .fact b { font-weight: 700; color: var(--muted); min-width: 58px; text-transform: uppercase; font-size: 10.5px; letter-spacing: 0.5px; padding-top: 2px; }
-  .fact span { color: #dfe6e4; }
-
-  /* custom map controls: always visible, shift clear of the sidebar */
-  .mapctl { position: fixed; top: 14px; right: 14px; z-index: 10; display: flex; flex-direction: column; gap: 6px; transition: right 0.32s ease; }
-  .mapctl button {
-    width: 36px; height: 36px; border-radius: 11px; padding: 0;
-    background: var(--glass); border: 1px solid var(--line); color: var(--ink);
-    font: inherit; font-size: 18px; font-weight: 700; cursor: pointer;
-    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  /* ============ map controls ============ */
+  .mapctl { position: fixed; right: 14px; bottom: calc(24px + env(safe-area-inset-bottom));
+    z-index: 40; display: flex; flex-direction: column; gap: 8px; }
+  .mapctl button { width: 44px; height: 44px; border-radius: 13px;
+    background: rgba(13,14,19,.85); backdrop-filter: blur(12px);
+    border: 1px solid var(--line); color: var(--txt); font-size: 19px; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
-    transition: background 0.2s ease, transform 0.1s ease;
-  }
-  .mapctl button:hover { background: rgba(255,255,255,0.14); }
-  .mapctl button:active { transform: scale(0.93); }
-  .mapctl #needle { transition: transform 0.25s ease; display: block; }
-  /* admin toolbar stays clear of the sidebar on desktop, above the sheet on mobile */
-  .admintools { transition: left 0.32s ease; }
-  body.panel-open .admintools { left: calc((100% - 64px - min(400px, 30%)) / 2); }
-  /* southeast utility dock: admin + updated timestamp, one aligned stack */
-  .dock-right {
-    position: fixed; right: 14px; bottom: 22px; z-index: 10;
-    display: flex; flex-direction: column; align-items: flex-end; gap: 8px;
-    transition: right 0.32s ease, top 0.32s ease, left 0.32s ease, bottom 0.32s ease;
-  }
-  body.panel-open .dock-right { right: calc(min(400px, 30%) + 74px); }
-  .adminbtn {
-    font: inherit; font-size: 11px; font-weight: 600; color: var(--muted);
-    background: var(--glass); border: 1px solid var(--line); border-radius: 999px; padding: 6px 11px;
-    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); cursor: pointer;
-    transition: background 0.2s ease;
-  }
-  body.admin .adminbtn { background: #f0bd37; border-color: #f0bd37; color: #101414; }
-  .updated { font-size: 11px; color: var(--muted); padding-right: 4px; }
-  .admintools {
-    position: fixed; left: 50%; transform: translateX(-50%); bottom: 86px; z-index: 16;
-    display: flex; align-items: center; gap: 8px;
-    background: rgba(40, 32, 8, 0.94); border: 1px solid rgba(240, 189, 55, 0.5);
-    border-radius: 999px; padding: 8px 8px 8px 16px; font-size: 12.5px; color: #f0d98a;
-    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-    max-width: calc(100% - 24px); flex-wrap: wrap; justify-content: center;
-  }
-  .admintools button {
-    font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; white-space: nowrap;
-    border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px;
-    background: rgba(255,255,255,0.1); color: var(--ink);
-  }
-  .admintools #dlBtn { background: #f0bd37; border-color: #f0bd37; color: #101414; }
-  .admintools button:disabled { opacity: 0.35; cursor: default; }
-  .efield { margin-bottom: 10px; }
-  .efield label { display: block; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin-bottom: 4px; }
-  .efield input, .efield textarea, .efield select {
-    width: 100%; background: rgba(255,255,255,0.07); border: 1px solid var(--line);
-    border-radius: 8px; color: var(--ink); padding: 7px 10px; font: inherit; font-size: 13.5px;
-  }
-  .efield textarea { min-height: 64px; resize: vertical; }
-  .efrow { display: flex; gap: 8px; }
-  .efrow .efield { flex: 1; min-width: 0; }
-  body.admin .mk { cursor: grab; }
-  body.admin .mk:active { cursor: grabbing; }
-  .actions { display: flex; gap: 8px; }
-  .btn {
-    flex: 1; text-align: center; text-decoration: none; font: inherit; font-size: 14px; font-weight: 600;
-    padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line);
-    background: rgba(255,255,255,0.08); color: var(--ink); cursor: pointer;
-  }
-  .btn.primary { background: var(--accent); border-color: var(--accent); color: #101414; }
-  .empty {
-    position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 5;
-    background: var(--glass); border: 1px solid var(--line); border-radius: var(--radius);
-    padding: 14px 20px; font-size: 14px; color: var(--muted); display: none;
-    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-  }
+    transition: transform var(--d1) var(--ease); }
+  .mapctl button:active { transform: scale(.9); }
+  .mapctl button svg { width: 18px; height: 18px; }
+
+  /* ============ markers ============ */
+  .mk { cursor: pointer; position: relative; }
+  .mk .dot { width: 22px; height: 22px; border-radius: 50%;
+    border: 3px solid rgba(255,255,255,.92);
+    box-shadow: 0 2px 10px rgba(0,0,0,.45);
+    transition: transform var(--d1) var(--ease), opacity var(--d1) var(--ease); }
+  .mk .pring { position: absolute; inset: -7px; border-radius: 50%;
+    border: 2px dashed rgba(255,255,255,.55); pointer-events: none; }
+  .mk .halo { position: absolute; inset: -22px; border-radius: 50%; pointer-events: none; }
+  .mk.sel .dot { transform: scale(1.45); }
+  .mk.dim .dot { opacity: .3; }
+  .mk.born .dot { animation: pop var(--d2) var(--ease); }
+  @keyframes pop { 0% { transform: scale(0); } 60% { transform: scale(1.3); } 100% { transform: scale(1); } }
+  .mk .bub { min-width: 30px; height: 30px; border-radius: 15px; padding: 0 9px;
+    background: var(--acc); color: #fff; font-weight: 800; font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    border: 3px solid rgba(255,255,255,.92); box-shadow: 0 2px 10px rgba(0,0,0,.45); }
+  .mk.closedm .dot { filter: grayscale(1); opacity: .55; }
+  .mtip { position: fixed; z-index: 60; transform: translate(-50%, -100%);
+    background: rgba(13,14,19,.92); border: 1px solid var(--line); border-radius: 10px;
+    padding: 7px 12px; font-size: 12.5px; font-weight: 600; pointer-events: none;
+    display: none; white-space: nowrap; }
+
+  /* ============ bottom sheet ============ */
+  .sheet { position: fixed; z-index: 50; left: 50%; transform: translateX(-50%) translateY(110%);
+    bottom: calc(14px + env(safe-area-inset-bottom)); width: min(520px, calc(100vw - 20px));
+    max-height: 82vh; background: var(--panel); border: 1px solid var(--line);
+    border-radius: 24px; box-shadow: var(--shadow);
+    transition: transform var(--d2) var(--ease);
+    display: flex; flex-direction: column; overflow: hidden; }
+  .sheet.open { transform: translateX(-50%) translateY(0); }
+  .sheet .grab { padding: 12px 0 4px; cursor: grab; flex-shrink: 0; touch-action: none; }
+  .sheet .grab::after { content: ''; display: block; width: 46px; height: 5px; border-radius: 3px;
+    background: #3a3b45; margin: 0 auto; }
+  .sheet .shead { display: flex; align-items: flex-start; gap: 10px; padding: 6px 20px 0; flex-shrink: 0; }
+  .sheet .shead .tt { flex: 1; min-width: 0; }
+  .sheet h2 { font-family: 'Sora', 'Inter', sans-serif; font-size: 21px; margin: 0;
+    font-weight: 800; letter-spacing: -.3px; line-height: 1.25; }
+  .sheet .x { flex-shrink: 0; width: 34px; height: 34px; border-radius: 50%;
+    background: var(--panel2); border: 1px solid var(--line); color: var(--txt);
+    font-size: 16px; cursor: pointer; }
+  .sheet .x:active { transform: scale(.9); }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .chip { font-size: 11px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase;
+    padding: 5px 11px; border-radius: 999px; display: inline-flex; align-items: center; gap: 6px; }
+  .chip .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .chip.cat { background: var(--panel2); border: 1px solid var(--line); color: var(--txt); }
+  .chip.town { background: transparent; border: 1px solid var(--line); color: var(--mut); }
+  .chip.ok { background: #123f2c; color: #4fe08f; }
+  .chip.warn { background: #4a2f12; color: #ffb35c; }
+  .chip.bad { background: #3a2226; color: #ff9d9d; }
+  .sheet .keyline { padding: 10px 20px 0; color: var(--mut); font-size: 14px; font-weight: 500; flex-shrink: 0; }
+  .sheet .sbody { overflow-y: auto; padding: 0 20px 20px; }
+  .sheet[data-detent="peek"] .sbody .more { display: none; }
+  .sheet[data-detent="peek"] .sbody .peekonly { display: block; }
+  .sheet .more { display: block; }
+  .sheet .peekonly { display: none; }
+  .sheet .expandhint { display: flex; align-items: center; justify-content: center; gap: 6px;
+    color: var(--dim); font-size: 12.5px; font-weight: 600; padding: 12px 0 4px; cursor: pointer; }
+  .sheet[data-detent="full"] .expandhint { display: none; }
+  .sheet h4 { font-size: 11px; text-transform: uppercase; letter-spacing: 1.2px; color: var(--dim);
+    margin: 20px 0 8px; font-weight: 700; }
+  .factgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .fact { background: var(--panel2); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; }
+  .fact b { display: block; font-size: 10.5px; text-transform: uppercase; letter-spacing: .8px;
+    color: var(--dim); margin-bottom: 3px; font-weight: 700; }
+  .fact span { font-size: 14px; font-weight: 600; }
+  .desc { font-size: 14.5px; line-height: 1.6; color: #d7d7de; margin: 12px 0 0; }
+  .actions { display: flex; gap: 10px; margin-top: 16px; }
+  .btn { flex: 1; border: 0; border-radius: 14px; padding: 14px; font-size: 14.5px; font-weight: 700;
+    cursor: pointer; text-align: center; text-decoration: none; font-family: 'Inter', sans-serif;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    transition: transform var(--d1) var(--ease); }
+  .btn:active { transform: scale(.96); }
+  .btn.primary { background: var(--acc); color: #fff; }
+  .btn.ghost { background: var(--panel2); color: var(--txt); border: 1px solid var(--line); }
+  .jdnotes { background: #221d10; border: 1px solid #4a3d1c; border-radius: 12px;
+    padding: 12px 14px; margin-top: 16px; }
+  .jdnotes .lab { font-size: 10.5px; text-transform: uppercase; letter-spacing: .8px;
+    color: #d8b45a; font-weight: 700; margin-bottom: 4px; }
+  .jdnotes .body { font-size: 14px; color: #f0e2c0; }
+  .stars { color: #f0bd37; letter-spacing: 2px; font-size: 15px; }
+  .freshline { display: flex; align-items: center; gap: 8px; margin-top: 14px;
+    font-size: 12.5px; color: var(--dim); }
+
+  /* ============ list panel ============ */
+  .listpanel { position: fixed; z-index: 45; top: calc(122px + env(safe-area-inset-top));
+    left: 14px; width: 340px; max-width: calc(100vw - 28px); max-height: calc(100vh - 220px);
+    background: var(--panel); border: 1px solid var(--line); border-radius: 20px;
+    box-shadow: var(--shadow); display: flex; flex-direction: column; overflow: hidden;
+    transform: translateX(-115%); transition: transform var(--d2) var(--ease); }
+  .listpanel.open { transform: none; }
+  .listpanel .lhead { display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 18px 8px; flex-shrink: 0; }
+  .listpanel .lhead b { font-family: 'Sora', sans-serif; font-size: 16px; }
+  .listpanel .lhead button { background: none; border: 0; color: var(--mut); font-size: 18px; cursor: pointer; }
+  .listpanel .cards { overflow-y: auto; padding: 4px 12px 14px; }
+  .node { display: flex; gap: 12px; align-items: center; padding: 12px; border-radius: 14px;
+    cursor: pointer; transition: background var(--d1); }
+  .node:hover { background: var(--panel2); }
+  .node:active { transform: scale(.98); }
+  .node .ndot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0;
+    border: 2.5px solid rgba(255,255,255,.9); }
+  .node .nmain { min-width: 0; }
+  .node .ntitle { font-weight: 700; font-size: 14.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .node .nsub { font-size: 12.5px; color: var(--mut); margin-top: 2px; }
+  .listtoggle { position: fixed; z-index: 40; left: 14px;
+    bottom: calc(24px + env(safe-area-inset-bottom));
+    background: rgba(13,14,19,.85); backdrop-filter: blur(12px);
+    border: 1px solid var(--line); color: var(--txt); border-radius: 999px;
+    padding: 12px 20px; font-size: 13.5px; font-weight: 700; cursor: pointer;
+    font-family: 'Inter', sans-serif; display: none; align-items: center; gap: 8px; }
+  .listtoggle.show { display: inline-flex; }
+
+  .empty { position: fixed; z-index: 40; left: 50%; top: 50%; transform: translate(-50%,-50%);
+    background: rgba(13,14,19,.9); border: 1px solid var(--line); border-radius: 16px;
+    padding: 20px 28px; font-size: 14.5px; color: var(--mut); display: none; text-align: center; }
   .empty.show { display: block; }
-  body.panel-open .empty { left: calc((100% - 64px - min(400px, 30%)) / 2); }
 
-  @media (max-width: 899px) {
-    .sheet {
-      left: 50%; right: auto; top: auto; bottom: 0;
-      width: min(560px, calc(100% - 20px)); max-height: 62vh;
-      border-radius: 20px 20px 0 0; border-bottom: none;
-      transform: translate(-50%, 110%);
-    }
-    body.panel-open .sheet { transform: translate(-50%, 0); opacity: 1; pointer-events: auto; }
-    body.panel-open .topbar { transform: translateX(-50%); }
-    .mapctl { top: 84px; }
-    body.panel-open .dock-right { right: auto; left: 12px; bottom: auto; top: 84px; flex-direction: row; align-items: center; }
-    body.panel-open .admintools { left: 12px; right: 12px; transform: none; bottom: auto; top: 134px; justify-content: center; }
-    .expandtab { top: auto; bottom: 120px; transform: none; }
-  }
-  @media (max-width: 560px) {
+  .toast { position: fixed; z-index: 80; bottom: calc(24px + env(safe-area-inset-bottom)); left: 50%;
+    transform: translateX(-50%) translateY(20px); background: var(--panel2);
+    border: 1px solid var(--line); padding: 13px 24px; border-radius: 14px;
+    font-size: 14px; font-weight: 600; opacity: 0; pointer-events: none;
+    transition: all var(--d2) var(--ease); max-width: 90vw; text-align: center; }
+  .toast.show { opacity: 1; transform: translateX(-50%); }
+
+  .updated { position: fixed; z-index: 30; left: 14px; bottom: calc(24px + env(safe-area-inset-bottom));
+    font-size: 11px; color: var(--dim); }
+  body.listopen .updated { display: none; }
+
+  .admintools { position: fixed; z-index: 70; top: calc(66px + env(safe-area-inset-top)); right: 14px;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+    padding: 12px 14px; display: none; align-items: center; gap: 8px; font-size: 12.5px; color: var(--mut);
+    box-shadow: var(--shadow); max-width: calc(100vw - 28px); flex-wrap: wrap; }
+  body.admin .admintools { display: flex; }
+  .admintools button { background: var(--panel2); border: 1px solid var(--line); color: var(--txt);
+    border-radius: 9px; padding: 8px 12px; font-size: 12.5px; font-weight: 700; cursor: pointer;
+    font-family: 'Inter', sans-serif; }
+  .admintools button:disabled { opacity: .4; }
+
+  @media (max-width: 720px) {
     .brand small { display: none; }
-    .brand { font-size: 13.5px; }
-    .legend { max-width: 200px; }
+    .brand { font-size: 14px; padding: 9px 13px; }
+    .modeseg button { padding: 8px 11px; font-size: 12.5px; }
+    #search { font-size: 13.5px; }
+    .listpanel { top: auto; bottom: calc(86px + env(safe-area-inset-bottom)); left: 10px; right: 10px;
+      width: auto; max-height: 44vh; transform: translateY(115%); }
+    .listpanel.open { transform: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition-duration: 1ms !important; animation-duration: 1ms !important; }
   }
 </style>
 </head>
-<body class="panel-open">
+<body>
 <div id="map"></div>
 
 <div class="topbar">
-  <div class="row1">
-    <div class="brand">North Country Radar<small>Events &amp; places &middot; St. Lawrence County</small></div>
-    <input id="search" type="search" placeholder="Search events or places" autocomplete="off" />
+  <div class="brand">North Country Radar<small>Events &amp; places · St. Lawrence County</small></div>
+  <div class="searchwrap">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+    <input id="search" type="search" placeholder="Search events or places" autocomplete="off">
   </div>
+  <div class="modeseg" id="modeSeg">
+    <button data-mode="events" class="on">Events</button>
+    <button data-mode="places">Places</button>
+  </div>
+  <a class="gearbtn" href="./admin.html" title="Admin settings" aria-label="Admin settings">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+  </a>
 </div>
 
-<button class="legend-toggle" id="legendToggle">Legend</button>
-<div class="legend" id="legend"><div class="t">Events</div></div>
+<div class="legendbar" id="legendBar" aria-label="Filter by category"></div>
 
-<aside class="sheet" id="sheet">
-  <div class="sheetHead">
-    <button class="backbtn" id="backBtn" style="display:none" aria-label="Back to list">&#8249;</button>
-    <div class="sheetHeadTitle" id="sheetHeadTitle">In view <span class="hvcount" id="inviewCount"></span></div>
-    <button class="collapsebtn" id="collapseBtn" aria-label="Collapse panel">&rarr;</button>
-  </div>
-  <div class="sheetBody">
-    <div id="listView">
-      <div class="catfilters" id="catFilters"></div>
-      <div class="cards" id="cards"></div>
-    </div>
-    <div id="detailView" style="display:none">
-      <div class="kicker" id="sheetKicker"></div>
-      <h2 id="sheetTitle"></h2>
-      <div class="where" id="sheetWhere"></div>
-      <div class="facts" id="sheetFacts"></div>
-      <p class="desc" id="sheetDesc"></p>
-      <div class="jdnotes" id="sheetNotes" style="display:none"><div class="jdnotes-lab">JD's notes</div><div class="jdnotes-body" id="sheetNotesText"></div></div>
-      <div class="actions" id="sheetActions"></div>
-      <div id="sheetEdit" style="display:none"></div>
-    </div>
-  </div>
+<div class="mapctl">
+  <button id="homeBtn" title="Reset to full county view" aria-label="Reset view">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 10.5L12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>
+  </button>
+  <button id="zinBtn" title="Zoom in" aria-label="Zoom in">+</button>
+  <button id="zoutBtn" title="Zoom out" aria-label="Zoom out">&minus;</button>
+</div>
+
+<button class="listtoggle" id="listToggle">
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+  <span id="listToggleTxt">List</span>
+</button>
+
+<aside class="listpanel" id="listPanel" aria-label="Results list">
+  <div class="lhead"><b id="listTitle">In view</b><button id="listClose" aria-label="Close list">&times;</button></div>
+  <div class="cards" id="cards"></div>
 </aside>
-<button class="expandtab" id="expandTab" aria-label="Open panel">&larr;</button>
 
-<div class="dock-right" id="dockRight">
-  <a class="adminbtn" id="adminBtn" title="Open the admin page" href="./admin.html" style="text-decoration:none">Admin</a>
-  <div class="updated" id="updated"></div>
-</div>
-<div class="mapctl" id="mapCtl" aria-label="Map controls">
-  <button id="zinBtn" title="Zoom in">+</button>
-  <button id="zoutBtn" title="Zoom out">&minus;</button>
-  <button id="compassBtn" title="Point north"><svg id="needle" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5 L17 14 L12 11.2 L7 14 Z" fill="#f0bd37"/><path d="M12 21.5 L7 14 L12 16.8 L17 14 Z" fill="rgba(255,255,255,0.5)"/></svg></button>
-  <button id="homeBtn" title="Back to full view">&#8962;</button>
-</div>
-<div class="admintools" id="admintools" style="display:none">
-  <span>Admin: drag pins to move them, tap one to edit</span>
-  <button id="undoBtn" title="Undo last change">Undo</button>
-  <button id="redoBtn" title="Redo">Redo</button>
-  <button id="dlBtn" title="Saves the updated events file to your device -- then I can push it live">Save events</button>
-  <button id="dlBtn2" title="Saves the updated places file to your device -- then I can push it live">Save places</button>
-  <button id="discardBtn" title="Throw away all changes made in this admin session">Discard</button>
-  <button id="exitAdminBtn">Exit</button>
+<div class="sheet" id="sheet" data-detent="peek" role="dialog" aria-modal="false">
+  <div class="grab" id="sheetGrab"></div>
+  <div class="shead">
+    <div class="tt"><h2 id="sheetTitle"></h2><div class="chips" id="sheetChips"></div></div>
+    <button class="x" id="sheetX" aria-label="Close">&times;</button>
+  </div>
+  <div class="keyline" id="sheetKey"></div>
+  <div class="sbody" id="sheetBody"></div>
 </div>
 
 <div class="empty" id="empty">Nothing in view. Try another search.</div>
+<div class="updated" id="updated"></div>
+<div class="toast" id="toast"></div>
+
+<div class="admintools" id="admintools">
+  <span>Admin: drag pins to move them</span>
+  <button id="undoBtn">Undo</button>
+  <button id="redoBtn">Redo</button>
+  <button id="dlBtn">Save events</button>
+  <button id="dlBtn2">Save places</button>
+  <button id="discardBtn">Discard</button>
+  <button id="exitAdminBtn">Exit</button>
+</div>
 
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script>
 (function () {
   "use strict";
-  var SRC_COLORS = {
-    "Clarkson announcements": "#7fc4d8",
-    "Clarkson email": "#8fd6a4",
-    "Clarkson library": "#e8a0a0",
-    "Email listing": "#ff8a5c",
-    "Visit STLC": "#f0bd37",
-    "Facebook": "#b388eb",
-    "Eventbrite": "#ef6f9c",
-    "Potsdam Library": "#26a69a"
+
+  /* ================= color taxonomy: color MEANS something =================
+     Places: color = what it IS (category). Events: color = WHEN it is. */
+  var PLACE_COLORS = {
+    "Food": "#e8833a",
+    "Coffee": "#8d6e63",
+    "Outdoors": "#43a047",
+    "Orchard": "#f9a825",
+    "Entertainment": "#ab47bc",
+    "Study": "#42a5f5"
   };
-  var PLACE_COLORS = { "Coffee": "#c98f5f", "Orchard": "#9ccc65", "Outdoors": "#4db6ac", "Study": "#9d7bff", "Entertainment": "#c084fc", "Food": "#d9704a" };
+  var EVENT_COLORS = { "today": "#ef5350", "week": "#ff9800", "later": "#42a5f5" };
+  var EVENT_LABELS = { "today": "Today", "week": "This week", "later": "Upcoming" };
+
   function hexA(hex, a) {
     var h = (hex || "#fff").replace("#", "");
-    if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
-    return "rgba(" + parseInt(h.slice(0, 2), 16) + "," + parseInt(h.slice(2, 4), 16) + "," + parseInt(h.slice(4, 6), 16) + "," + a + ")";
+    if (h.length === 3) h = h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+    return "rgba(" + parseInt(h.slice(0,2),16) + "," + parseInt(h.slice(2,4),16) + "," + parseInt(h.slice(4,6),16) + "," + a + ")";
   }
-  /* soft gradient radius behind pins whose location is not dialed in yet */
-  function addHalo(wrap, color) {
-    var halo = document.createElement("div");
-    halo.className = "halo";
-    halo.style.background = "radial-gradient(circle, " + hexA(color, 0.35) + " 0%, " + hexA(color, 0) + " 70%)";
-    wrap.appendChild(halo);
-  }
-  var ESRI_ATTR = "Tiles \u00A9 Esri \u2014 Source: Esri, HERE, Garmin, OpenStreetMap contributors, and the GIS user community";
 
+  /* ================= state ================= */
+  var state = {
+    mode: "events", events: [], places: [], notes: {},
+    nodes: {}, clusters: [],
+    selected: null, sheetDetent: "peek",
+    query: "", activeCats: {},
+    admin: false, dirty: false,
+    listOpen: false
+  };
+  var homeBounds = null;
+
+  function $(id) { return document.getElementById(id); }
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+  function toast(msg) {
+    var t = $("toast"); t.textContent = msg; t.classList.add("show");
+    clearTimeout(t._h); t._h = setTimeout(function () { t.classList.remove("show"); }, 2400);
+  }
+
+  /* ================= time helpers ================= */
+  function dayStart(d) { var x = new Date(d); x.setHours(0,0,0,0); return x; }
+  function parseDay(s) {
+    if (!s) return null;
+    var p = String(s).split("-"); if (p.length < 3) return null;
+    return new Date(+p[0], +p[1]-1, +p[2]);
+  }
+  function eventBucket(e) {
+    var d = parseDay(e.date); if (!d) return "later";
+    var diff = Math.round((dayStart(d) - dayStart(new Date())) / 86400000);
+    if (diff <= 0) return "today";
+    if (diff <= 7) return "week";
+    return "later";
+  }
+  function fmtDate(s) {
+    var d = parseDay(s); if (!d) return "";
+    return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+  }
+  function fmtMonth(s) {
+    var d = parseDay(s); if (!d) return "";
+    return d.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+  }
+  function freshness(p) {
+    if (p.status === "closed") return { label: "Permanently closed", cls: "bad", dot: "#6b6c78" };
+    if (p.status === "seasonal") return { label: "Seasonal", cls: "warn", dot: "#ffb35c" };
+    if (!p.verified) return { label: "Unverified", cls: "warn", dot: "#ffb35c" };
+    var days = (Date.now() - new Date(p.verified + "T12:00:00")) / 86400000;
+    if (days > 180) return { label: "Needs re-check", cls: "warn", dot: "#ffb35c" };
+    return { label: "Verified " + fmtMonth(p.verified), cls: "ok", dot: "#4fe08f" };
+  }
+
+  function nodeColor(e) {
+    if (e.kind === "place") {
+      if (e.status === "closed") return "#6b6c78";
+      return PLACE_COLORS[e.category] || "#fff";
+    }
+    return EVENT_COLORS[eventBucket(e)] || "#fff";
+  }
+  function nodeLabel(e) { return e.kind === "place" ? e.name : e.title; }
+
+  /* ================= map ================= */
+  var ESRI_ATTR = "Tiles \u00A9 Esri \u2014 Source: Esri, HERE, Garmin, OpenStreetMap contributors, and the GIS user community";
   var map = new maplibregl.Map({
     container: "map",
     style: {
       version: 8,
       sources: {
-        "basemap": {
-          type: "raster",
-          tiles: ["https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"],
-          tileSize: 256, maxzoom: 19, attribution: ESRI_ATTR
-        }
+        esri: { type: "raster", tiles: ["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"], tileSize: 256, attribution: ESRI_ATTR, maxzoom: 19 },
+        labels: { type: "raster", tiles: ["https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"], tileSize: 256, maxzoom: 19 }
       },
       layers: [
-        { id: "basemap", type: "raster", source: "basemap" }
+        { id: "esri", type: "raster", source: "esri" },
+        { id: "labels", type: "raster", source: "labels" }
       ]
     },
-    center: [-75.03, 44.64],
-    zoom: 10,
-    attributionControl: { compact: true }
+    center: [-75.0, 44.6], zoom: 9, attributionControl: { compact: true }
   });
-  var homeBounds = null;
-  function goHome() {
-    if (homeBounds) map.fitBounds(homeBounds, { padding: 90, maxZoom: 12, duration: 600, pitch: 0, bearing: 0 });
-  }
-  function updateNeedle() {
-    var n = document.getElementById("needle");
-    if (n) n.style.transform = "rotate(" + (-map.getBearing()) + "deg)";
-  }
-  document.getElementById("zinBtn").addEventListener("click", function () { map.zoomIn(); });
-  document.getElementById("zoutBtn").addEventListener("click", function () { map.zoomOut(); });
-  document.getElementById("compassBtn").addEventListener("click", function () { map.resetNorth({ duration: 500 }); });
-  document.getElementById("homeBtn").addEventListener("click", goHome);
-  map.on("rotate", updateNeedle);
+  map.addControl(new maplibregl.AttributionControl({ compact: true }), "bottom-left");
+  map.on("load", function () {
+    map.addLayer({ id: "veil", type: "background",
+      paint: { "background-color": "#0d0e13", "background-opacity": 0.28 } }, "labels");
+  });
 
-  /* JD's notes backend: Apps Script web app URL (deployed 2026-10-07). */
-  var NOTES_API_URL = "https://script.google.com/a/macros/clarkson.edu/s/AKfycbwy6VmnhyBxmteJ9HQO6ZGljcqCmth6ToJ6GS_m-NZZZU3iIVG5RpS2TmsY1bUwQz-NAA/exec";
-  var state = { q: "", events: [], places: [], nodes: {}, clusters: [], notes: {}, mode: "places", selected: null, admin: false, dirty: false, };
-
-  function todayStr() {
-    var d = new Date();
-    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
-  }
-  function bucket(e) {
-    if (!e.date) return "ongoing";
-    return e.date < todayStr() ? "past" : "upcoming";
-  }
-  function fmtDate(ds) {
-    if (!ds) return "Ongoing";
-    var d = new Date(ds + "T12:00:00");
-    return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
-  }
-  function dayNum(ds) { return Math.round(new Date(ds + "T12:00:00").getTime() / 86400000); }
-  function numDay(n) {
-    var d = new Date(n * 86400000);
-    return d.getUTCFullYear() + "-" + String(d.getUTCMonth() + 1).padStart(2, "0") + "-" + String(d.getUTCDate()).padStart(2, "0");
-  }
-
-  function buildLegend() {
-    var lg = document.getElementById("legend");
-    lg.innerHTML = '<div class="t">' + (state.mode === "events" ? "Events" : "Places") + "</div>";
-    function row(txt, color, hatched) {
-      var r = document.createElement("div");
-      r.className = "r";
-      var d = document.createElement("span");
-      d.className = "dot" + (hatched ? " hatch" : "");
-      if (hatched) d.style.setProperty("--hc", color); else d.style.background = color;
-      var t = document.createElement("span");
-      t.textContent = txt;
-      r.appendChild(d); r.appendChild(t); lg.appendChild(r);
-    }
-    if (state.mode === "events") {
-      var seen = {};
-      state.events.forEach(function (e) { seen[e.source] = true; });
-      Object.keys(seen).sort().forEach(function (s) { row(s, SRC_COLORS[s] || "#ffffff", false); });
-    } else {
-      var cats = {};
-      state.places.forEach(function (p) { cats[p.category] = true; });
-      Object.keys(cats).sort().forEach(function (c) { row(c, PLACE_COLORS[c] || "#ffffff", true); });
-    }
-  }
-
-  /* hero master toggle: Events | Places at the top of the sidebar */
-  function buildModeToggle() {
-    var box = document.getElementById("catFilters");
-    box.innerHTML = "";
-    box.className = "modetoggle";
-    [["events", "Events"], ["places", "Places"]].forEach(function (pair) {
-      var b = document.createElement("button");
-      b.className = "mseg" + (state.mode === pair[0] ? " on" : "");
-      b.textContent = pair[1];
-      b.addEventListener("click", function () {
-        if (state.mode === pair[0]) return;
-        state.mode = pair[0];
-        var segs = box.children;
-        for (var i = 0; i < segs.length; i++) segs[i].classList.toggle("on", segs[i] === b);
-        document.getElementById("search").placeholder = state.mode === "events" ? "Search events" : "Search places";
-        buildLegend();
-        goBack();
-        renderAll();
-      });
-      box.appendChild(b);
-    });
-  }
-
-  function visible(e) {
-    if (state.q) {
-      var hay = (e.title + " " + (e.venue || "") + " " + e.town + " " + (e.desc || "")).toLowerCase();
-      if (hay.indexOf(state.q) < 0) return false;
-    }
-    return true;
-  }
-  function visiblePlace(p) {
-    if (state.q) {
-      var hay = (p.name + " " + (p.address || "") + " " + p.town + " " + (p.desc || "") + " " + p.category).toLowerCase();
-      if (hay.indexOf(state.q) < 0) return false;
-    }
-    return true;
-  }
-
-  function hashStr(s) {
-    var h = 0;
-    for (var i = 0; i < s.length; i++) { h = ((h << 5) - h + s.charCodeAt(i)) | 0; }
-    return Math.abs(h);
-  }
-  /* Exact venues pin at their real spot. Approximate ones sprinkle around the
-     known town center. Stacked exact venues fan out in a micro spiral.
-     Deterministic per event id so pins never jump between renders. */
-  function spreadPos(e, i, total) {
-    if (e.approx) {
-      var h = hashStr(e.id);
-      var ang = (h % 360) * Math.PI / 180;
-      var rad = 0.006 + ((h >> 3) % 1000) / 1000 * 0.010;
-      return { lat: e.lat + Math.sin(ang) * rad, lng: e.lng + Math.cos(ang) * rad * 1.35 };
-    }
-    if (total > 1) {
-      var a = (i / total) * Math.PI * 2 + (hashStr(e.id) % 60) * Math.PI / 180;
-      var r = 0.0012 * (1 + Math.floor(i / 8) * 0.7);
-      return { lat: e.lat + Math.sin(a) * r, lng: e.lng + Math.cos(a) * r * 1.35 };
-    }
-    return { lat: e.lat, lng: e.lng };
-  }
   function byId(id) {
-    for (var i = 0; i < state.events.length; i++) if (state.events[i].id === id) return state.events[i];
-    for (var j = 0; j < state.places.length; j++) if (state.places[j].id === id) return state.places[j];
+    var all = state.events.concat(state.places);
+    for (var i = 0; i < all.length; i++) if (all[i].id === id) return all[i];
     return null;
   }
-
-  /* ---- unified node pipeline: filter -> spread -> cluster -> pins ----
-     One base shape, two sub-types (visual sub-typing: color carries the
-     category, pattern carries the kind):
-       events = solid dot, color = publisher
-       places = solid dot + hatched ring, color = category
-     Overlapping nodes collapse into count bubbles that zoom on click. */
-  var tipEl = null;
-  function nodeColor(e) {
-    return e.kind === "place" ? (PLACE_COLORS[e.category] || "#fff") : (SRC_COLORS[e.source] || "#fff");
-  }
-  function ensureTip() {
-    if (!tipEl) {
-      tipEl = document.createElement("div");
-      tipEl.className = "mtip";
-      document.body.appendChild(tipEl);
+  function visible(e) {
+    if (state.query) {
+      var q = state.query.toLowerCase();
+      var hay = ((e.title || "") + " " + (e.venue || "") + " " + (e.town || "") + " " + (e.desc || "")).toLowerCase();
+      if (hay.indexOf(q) < 0) return false;
     }
+    var cats = state.activeCats;
+    if (Object.keys(cats).length && !cats[eventBucket(e)]) return false;
+    return true;
+  }
+  function visiblePlace(e) {
+    if (state.query) {
+      var q = state.query.toLowerCase();
+      var hay = ((e.name || "") + " " + (e.category || "") + " " + (e.town || "") + " " + (e.desc || "")).toLowerCase();
+      if (hay.indexOf(q) < 0) return false;
+    }
+    var cats = state.activeCats;
+    if (Object.keys(cats).length && !cats[e.category]) return false;
+    return true;
+  }
+
+  /* ---- heat: warm density glow under clusters ---- */
+  function heatFeatures() {
+    var items = (state.mode === "events" ? state.events : state.places)
+      .filter(function (e) { return state.mode === "events" ? visible(e) : visiblePlace(e); });
+    return { type: "FeatureCollection", features: items.map(function (e) {
+      return { type: "Feature", properties: {}, geometry: { type: "Point", coordinates: [e.lng, e.lat] } };
+    }) };
+  }
+  function ensureHeat() {
+    if (!map.isStyleLoaded()) return;
+    if (!map.getSource("density")) {
+      map.addSource("density", { type: "geojson", data: heatFeatures() });
+      map.addLayer({ id: "heat", type: "heatmap", source: "density",
+        paint: {
+          "heatmap-weight": 1,
+          "heatmap-intensity": ["interpolate", ["linear"], ["zoom"], 8, 1.1, 12, 0.5],
+          "heatmap-color": ["interpolate", ["linear"], ["heatmap-density"],
+            0, "rgba(0,0,0,0)", 0.2, "rgba(240,189,55,0.5)",
+            0.45, "rgba(245,175,45,0.7)", 0.7, "rgba(250,160,35,0.85)", 1, "rgba(255,190,70,0.95)"],
+          "heatmap-radius": ["interpolate", ["linear"], ["zoom"], 8, 30, 12, 44],
+          "heatmap-opacity": ["interpolate", ["linear"], ["zoom"], 9, 0.9, 13.5, 0]
+        } }, "veil");
+    } else map.getSource("density").setData(heatFeatures());
+  }
+  map.on("load", ensureHeat);
+
+  /* ---- markers ---- */
+  var tipEl = null;
+  function ensureTip() {
+    if (!tipEl) { tipEl = document.createElement("div"); tipEl.className = "mtip"; document.body.appendChild(tipEl); }
   }
   function showTip(e, wrap) {
     ensureTip();
-    tipEl.textContent = e.kind === "place" ? (e.name + " \u00B7 " + e.category) : e.title;
+    tipEl.textContent = nodeLabel(e);
     tipEl.style.display = "block";
     var r = wrap.getBoundingClientRect();
     tipEl.style.left = (r.left + r.width / 2) + "px";
     tipEl.style.top = (r.top - 8) + "px";
   }
   function hideTip() { if (tipEl) tipEl.style.display = "none"; }
-  function hotNode(id, on) {
-    var m = state.nodes[id];
-    if (m) { var el = m.getElement(); if (el) el.classList.toggle("hot", on); }
+
+  function addHalo(wrap, color) {
+    var halo = document.createElement("div");
+    halo.className = "halo";
+    halo.style.background = "radial-gradient(circle, " + hexA(color, 0.35) + " 0%, " + hexA(color, 0) + " 70%)";
+    wrap.appendChild(halo);
+  }
+  function spreadPos(e, i, n) {
+    if (n === 1) return { lng: e.lng, lat: e.lat };
+    var ang = (i / n) * Math.PI * 2, r = 0.0009;
+    return { lng: e.lng + Math.cos(ang) * r, lat: e.lat + Math.sin(ang) * r };
   }
 
   function addNodeMarker(p, born) {
     var e = p.e;
     var wrap = document.createElement("div");
-    wrap.className = "mk" + (e.kind === "event" && bucket(e) === "past" ? " past" : "") + (born ? " born" : "");
-    var _mnn = state.notes[e.id] || {};
-    var _rate = parseInt(_mnn.rating, 10);
-    if (!(_rate >= 1 && _rate <= 5)) _rate = 0;
+    wrap.className = "mk" + (born ? " born" : "") + (e.status === "closed" ? " closedm" : "");
     var c = nodeColor(e);
     if (e.approx) addHalo(wrap, c);
     if (e.kind === "place") {
-      if (_rate) {
-        var _ns = "http://www.w3.org/2000/svg";
-        var _svg = document.createElementNS(_ns, "svg");
-        _svg.setAttribute("viewBox", "0 0 46 46");
-        _svg.setAttribute("class", "rring");
-        var _cc = 2 * Math.PI * 20, _dl = 8;
-        var _ci = document.createElementNS(_ns, "circle");
-        _ci.setAttribute("cx", "23"); _ci.setAttribute("cy", "23"); _ci.setAttribute("r", "20");
-        _ci.setAttribute("fill", "none");
-        _ci.setAttribute("stroke", "rgba(255,255,255,0.95)");
-        _ci.setAttribute("stroke-width", "3");
-        _ci.setAttribute("stroke-linecap", "round");
-        _ci.setAttribute("stroke-dasharray", _dl + " " + (_cc / _rate - _dl).toFixed(2));
-        _svg.appendChild(_ci);
-        wrap.appendChild(_svg);
-      } else {
-        var ring = document.createElement("div");
-        ring.className = "pring";
-        wrap.appendChild(ring);
-      }
+      var ring = document.createElement("div");
+      ring.className = "pring";
+      ring.style.borderColor = hexA(c, 0.75);
+      wrap.appendChild(ring);
     }
     var dot = document.createElement("div");
     dot.className = "dot";
     dot.style.background = c;
     wrap.appendChild(dot);
     if (state.selected === e.id) wrap.classList.add("sel");
-    wrap.addEventListener("click", function (ev) { ev.stopPropagation(); hideTip(); openSheet(e.id); });
+    wrap.addEventListener("click", function (ev) { ev.stopPropagation(); hideTip(); openSheetFor(e); });
     wrap.addEventListener("mouseenter", function () { showTip(e, wrap); });
     wrap.addEventListener("mouseleave", hideTip);
-    var m = new maplibregl.Marker({ element: wrap, draggable: state.admin }).setLngLat([p.pos.lng, p.pos.lat]).addTo(map);
+    var m = new maplibregl.Marker({ element: wrap, draggable: state.admin })
+      .setLngLat([p.pos.lng, p.pos.lat]).addTo(map);
     if (state.admin) {
-      var dirtyFn = e.kind === "place" ? markDirtyPlace : markDirty;
-      m.on("dragstart", function () { pushUndo(); });
+      m.on("dragstart", pushUndo);
       m.on("dragend", function () {
         var ll = m.getLngLat();
-        e.lat = +ll.lat.toFixed(5);
-        e.lng = +ll.lng.toFixed(5);
-        e.approx = false;
-        dirtyFn();
-        if (e.kind === "place" && NOTES_API_URL) {
-          var _dn = state.notes[e.id] || {};
-          saveNoteToBackend(e.id, _dn.note || "", !!_dn.visited, e.lat, e.lng, _dn.rating);
-        }
+        e.lat = +ll.lat.toFixed(5); e.lng = +ll.lng.toFixed(5); e.approx = false;
+        (e.kind === "place" ? markDirtyPlace : markDirty)();
         renderAll();
       });
     }
@@ -651,14 +523,12 @@
   }
 
   function addCluster(cell) {
-    var slng = 0, slat = 0;
+    var slng = 0, slat = 0, n = cell.length;
     cell.forEach(function (p) { slng += p.pos.lng; slat += p.pos.lat; });
-    var n = cell.length;
     var el = document.createElement("div");
     el.className = "mk born";
     var bub = document.createElement("div");
-    bub.className = "bub";
-    bub.textContent = n;
+    bub.className = "bub"; bub.textContent = n;
     el.appendChild(bub);
     el.addEventListener("click", function (ev) {
       ev.stopPropagation();
@@ -669,14 +539,13 @@
   }
 
   function renderNodes() {
-    var prevIds = {};
-    Object.keys(state.nodes).forEach(function (id) { prevIds[id] = true; state.nodes[id].remove(); });
+    var had = state.prevIds || {};
+    Object.keys(state.nodes).forEach(function (id) { state.nodes[id].remove(); });
     state.nodes = {};
     state.clusters.forEach(function (m) { m.remove(); });
     state.clusters = [];
-    var items = (state.mode === "events" ? state.events : state.places).filter(function (e) {
-      return state.mode === "events" ? visible(e) : visiblePlace(e);
-    });
+    var items = (state.mode === "events" ? state.events : state.places)
+      .filter(function (e) { return state.mode === "events" ? visible(e) : visiblePlace(e); });
     var groups = {};
     items.forEach(function (e) {
       var k = e.lat.toFixed(5) + "," + e.lng.toFixed(5);
@@ -690,298 +559,276 @@
         pts.push({ e: e, pos: pos, x: px.x, y: px.y });
       });
     });
-    if (state.admin) {
-      pts.forEach(function (p) { addNodeMarker(p, !prevIds[p.e.id]); });
-      return;
-    }
-    var CELL = 64, grid = {}, order = [];
-    pts.forEach(function (p) {
-      var k = Math.floor(p.x / CELL) + ":" + Math.floor(p.y / CELL);
-      if (!grid[k]) { grid[k] = []; order.push(k); }
-      grid[k].push(p);
-    });
-    order.forEach(function (k) {
-      var cell = grid[k];
-      if (cell.length === 1) addNodeMarker(cell[0], !prevIds[cell[0].e.id]);
-      else addCluster(cell);
-    });
-  }
-
-  /* ---- heat indicators: a warm density glow under the clusters ----
-     Shows there is stuff in an area before you zoom in enough to see pins.
-     Fades out as you zoom in and the individual nodes take over. */
-  function heatFeatures() {
-    var items = (state.mode === "events" ? state.events : state.places).filter(function (e) {
-      return state.mode === "events" ? visible(e) : visiblePlace(e);
-    });
-    return {
-      type: "FeatureCollection",
-      features: items.map(function (e) {
-        return { type: "Feature", properties: {}, geometry: { type: "Point", coordinates: [e.lng, e.lat] } };
-      })
-    };
-  }
-  function ensureHeat() {
-    if (!map.isStyleLoaded()) return;
-    if (!map.getSource("density")) {
-      map.addSource("density", { type: "geojson", data: heatFeatures() });
-      map.addLayer({
-        id: "heat", type: "heatmap", source: "density",
-        paint: {
-          "heatmap-weight": 1,
-          "heatmap-intensity": ["interpolate", ["linear"], ["zoom"], 8, 1.1, 12, 0.5],
-          "heatmap-color": ["interpolate", ["linear"], ["heatmap-density"],
-            0, "rgba(0,0,0,0)",
-            0.2, "rgba(240,189,55,0.5)",
-            0.45, "rgba(245,175,45,0.7)",
-            0.7, "rgba(250,160,35,0.85)",
-            1, "rgba(255,190,70,0.95)"],
-          "heatmap-radius": ["interpolate", ["linear"], ["zoom"], 8, 30, 12, 44],
-          "heatmap-opacity": ["interpolate", ["linear"], ["zoom"], 9, 0.9, 13.5, 0]
-        }
+    if (state.admin) { pts.forEach(function (p) { addNodeMarker(p, !had[p.e.id]); }); }
+    else {
+      var CELL = 64, grid = {}, order = [];
+      pts.forEach(function (p) {
+        var k = Math.floor(p.x / CELL) + ":" + Math.floor(p.y / CELL);
+        if (!grid[k]) { grid[k] = []; order.push(k); }
+        grid[k].push(p);
       });
-    } else {
-      map.getSource("density").setData(heatFeatures());
+      order.forEach(function (k) {
+        var cell = grid[k];
+        if (cell.length === 1) addNodeMarker(cell[0], !had[cell[0].e.id]);
+        else addCluster(cell);
+      });
+    }
+    state.prevIds = {};
+    items.forEach(function (e) { state.prevIds[e.id] = true; });
+    if (state.selected) {
+      Object.keys(state.nodes).forEach(function (id) {
+        if (id !== state.selected) state.nodes[id].getElement().classList.add("dim");
+      });
     }
   }
-  map.on("load", ensureHeat);
 
   function renderAll() {
     renderNodes();
     ensureHeat();
-    if (state.selected && !state.nodes[state.selected]) goBack();
     refreshList();
+    buildLegend();
   }
 
-  /* ---- sidebar list: only what is in the map viewport ---- */
+  /* ================= legend: always visible, functional ================= */
+  function buildLegend() {
+    var bar = $("legendBar");
+    bar.innerHTML = "";
+    var anyFilter = Object.keys(state.activeCats).length > 0;
+    function chip(label, color, key) {
+      var b = document.createElement("button");
+      b.className = "lchip" + (anyFilter && !state.activeCats[key] ? " off" : "");
+      var dot = document.createElement("span");
+      dot.className = "dot"; dot.style.background = color;
+      var lab = document.createElement("span");
+      lab.textContent = label;
+      b.appendChild(dot); b.appendChild(lab);
+      b.title = "Filter: " + label;
+      b.addEventListener("click", function () {
+        if (state.activeCats[key]) delete state.activeCats[key];
+        else state.activeCats[key] = true;
+        renderAll();
+      });
+      bar.appendChild(b);
+    }
+    if (state.mode === "events") {
+      Object.keys(EVENT_COLORS).forEach(function (k) { chip(EVENT_LABELS[k], EVENT_COLORS[k], k); });
+    } else {
+      Object.keys(PLACE_COLORS).forEach(function (c) { chip(c, PLACE_COLORS[c], c); });
+    }
+    var all = document.createElement("button");
+    all.className = "lchip all";
+    all.textContent = anyFilter ? "Clear filter" : "All";
+    all.addEventListener("click", function () { state.activeCats = {}; renderAll(); });
+    bar.appendChild(all);
+  }
+
+  /* ================= bottom sheet ================= */
+  var sheetEl = $("sheet");
+  function setDetent(d) {
+    state.sheetDetent = d;
+    sheetEl.setAttribute("data-detent", d);
+    sheetEl.style.maxHeight = d === "peek" ? "" : d === "half" ? "46vh" : "82vh";
+  }
+
+  function chipHtml(label, color, extraCls) {
+    return '<span class="chip ' + (extraCls || "cat") + '">' +
+      (color ? '<span class="dot" style="background:' + color + '"></span>' : "") +
+      esc(label) + "</span>";
+  }
+  function actionRow(e) {
+    var h = '<div class="actions">';
+    if (e.link) h += '<a class="btn primary" href="' + esc(e.link) + '" target="_blank" rel="noopener">Website</a>';
+    h += '<a class="btn ' + (e.link ? "ghost" : "primary") + '" target="_blank" rel="noopener" ' +
+      'href="https://www.google.com/maps/search/?api=1&query=' + e.lat + "," + e.lng + '">Directions</a>';
+    return h + "</div>";
+  }
+
+  function renderSheet(e) {
+    var color = nodeColor(e);
+    var chips, key, body;
+    if (e.kind === "event") {
+      var b = eventBucket(e);
+      chips = chipHtml(EVENT_LABELS[b], EVENT_COLORS[b]) + chipHtml(e.town || "", null, "town");
+      key = esc(fmtDate(e.date)) + (e.time ? " · " + esc(e.time) : "") + " · " + esc(e.venue || "");
+      body = '<div class="peekonly"><div class="expandhint" data-expand>Tap for details <span>▾</span></div></div>' +
+        '<div class="more">' +
+        (e.address ? '<h4>Location</h4><div class="desc" style="margin:0">' + esc(e.address) + "</div>" : "") +
+        (e.desc ? '<h4>About</h4><p class="desc">' + esc(e.desc) + "</p>" : "") +
+        actionRow(e) +
+        '<div class="freshline"><span class="fdot" style="background:' + color + ';width:8px;height:8px;border-radius:50%"></span>' +
+        "<span>Source: " + esc(e.source || "Radar") + "</span></div>" +
+        "</div>";
+    } else {
+      var fr = freshness(e);
+      var nn = state.notes[e.id] || {};
+      var rt = parseInt(nn.rating, 10);
+      var rating = (rt >= 1 && rt <= 5) ? ' <span class="stars">' + "★".repeat(rt) + "☆".repeat(5 - rt) + "</span>" : "";
+      chips = chipHtml(e.category, color) + chipHtml(e.town || "", null, "town") +
+        '<span class="chip ' + fr.cls + '">' + esc(fr.label) + "</span>";
+      key = (e.hours ? esc(e.hours) : "Hours unknown") + rating;
+      var facts = "";
+      [["Address", e.address], ["Hours", e.hours], ["Price", e.price],
+       ["Setting", e.setting], ["Ownership", e.ownership],
+       ["Location", e.approx ? "Approximate — town level" : null]].forEach(function (f) {
+        if (f[1]) facts += '<div class="fact"><b>' + f[0] + "</b><span>" + esc(f[1]) + "</span></div>";
+      });
+      body = '<div class="peekonly"><div class="expandhint" data-expand>Tap for details <span>▾</span></div></div>' +
+        '<div class="more">' +
+        (e.desc ? '<h4>About</h4><p class="desc">' + esc(e.desc) + "</p>" : "") +
+        (facts ? '<h4>Details</h4><div class="factgrid">' + facts + "</div>" : "") +
+        actionRow(e);
+      if (nn.note) body += '<div class="jdnotes"><div class="lab">JD&rsquo;s notes</div><div class="body">' + esc(nn.note) + "</div></div>";
+      if (nn.visited) body += '<div class="freshline"><span class="fdot" style="background:#f0bd37;width:8px;height:8px;border-radius:50%"></span><span>JD&rsquo;s been here</span></div>';
+      body += '<div class="freshline"><span class="fdot" style="background:' + fr.dot + ';width:8px;height:8px;border-radius:50%"></span>' +
+        "<span>" + esc(fr.label) + (e.verified ? " · last checked " + esc(e.verified) : "") + "</span></div>" +
+        "</div>";
+    }
+    $("sheetTitle").textContent = nodeLabel(e);
+    $("sheetChips").innerHTML = chips;
+    $("sheetKey").innerHTML = key;
+    $("sheetBody").innerHTML = body;
+    var ex = $("sheetBody").querySelector("[data-expand]");
+    if (ex) ex.addEventListener("click", function () { setDetent("half"); });
+  }
+
+  function openSheetFor(e, push) {
+    state.selected = e.id;
+    renderSheet(e);
+    setDetent("peek");
+    sheetEl.classList.add("open");
+    renderNodes();
+    map.easeTo({ center: [e.lng, e.lat], duration: 450 });
+    if (push !== false) {
+      try { history.pushState({ sel: e.id }, "", "#" + e.kind + "=" + encodeURIComponent(e.id)); }
+      catch (err) {}
+    }
+  }
+  function closeSheet(push) {
+    if (!sheetEl.classList.contains("open") && !state.selected) return;
+    state.selected = null;
+    sheetEl.classList.remove("open");
+    renderNodes();
+    if (push !== false) {
+      try { history.pushState({}, "", location.pathname + location.search); } catch (err) {}
+    }
+  }
+
+  $("sheetX").addEventListener("click", function () { closeSheet(); });
+  map.on("click", function () { closeSheet(); });
+  (function () {
+    var grab = $("sheetGrab"), startY = 0, dy = 0, dragging = false, moved = false;
+    grab.addEventListener("pointerdown", function (ev) {
+      dragging = true; moved = false; startY = ev.clientY; dy = 0;
+      try { grab.setPointerCapture(ev.pointerId); } catch (e) {}
+    });
+    grab.addEventListener("pointermove", function (ev) {
+      if (!dragging) return;
+      dy = ev.clientY - startY;
+      if (Math.abs(dy) > 6) moved = true;
+    });
+    grab.addEventListener("pointerup", function () {
+      if (!dragging) return;
+      dragging = false;
+      if (!moved) {
+        setDetent(state.sheetDetent === "peek" ? "half" : state.sheetDetent === "half" ? "full" : "peek");
+      } else if (dy < -40) {
+        setDetent(state.sheetDetent === "peek" ? "half" : "full");
+      } else if (dy > 40) {
+        if (state.sheetDetent === "full") setDetent("half");
+        else if (state.sheetDetent === "half") setDetent("peek");
+        else closeSheet();
+      }
+    });
+  })();
+  window.addEventListener("popstate", function (ev) {
+    if (ev.state && ev.state.sel) {
+      var e = byId(ev.state.sel);
+      if (e) openSheetFor(e, false);
+    } else closeSheet(false);
+  });
+
+  /* ================= list panel (on demand) ================= */
   function nodeCard(e) {
     var d = document.createElement("div");
     d.className = "node";
-    d.setAttribute("data-id", e.id);
     var dot = document.createElement("span");
     dot.className = "ndot";
-    if (e.kind === "place") {
-      dot.classList.add("hatch");
-      dot.style.setProperty("--hc", PLACE_COLORS[e.category] || "#fff");
-    } else {
-      dot.style.background = SRC_COLORS[e.source] || "#fff";
-    }
+    dot.style.background = nodeColor(e);
     var main = document.createElement("div"); main.className = "nmain";
-    var t = document.createElement("div"); t.className = "ntitle";
-    t.textContent = e.kind === "place" ? e.name : e.title;
+    var t = document.createElement("div"); t.className = "ntitle"; t.textContent = nodeLabel(e);
     var s = document.createElement("div"); s.className = "nsub";
-    s.textContent = e.kind === "place" ? (e.category + " \u00B7 " + e.town) : (fmtDate(e.date) + " \u00B7 " + e.venue);
+    s.textContent = e.kind === "place" ? e.category + " · " + e.town : fmtDate(e.date) + " · " + (e.venue || e.town);
     main.appendChild(t); main.appendChild(s);
     d.appendChild(dot); d.appendChild(main);
-    d.addEventListener("click", function () { openSheet(e.id); });
-    d.addEventListener("mouseenter", function () { hotNode(e.id, true); });
-    d.addEventListener("mouseleave", function () { hotNode(e.id, false); });
+    d.addEventListener("click", function () { openSheetFor(e); });
     return d;
   }
   function refreshList() {
-    var cards = document.getElementById("cards");
-    if (!cards) return;
+    var cards = $("cards");
     cards.innerHTML = "";
-    var b = map.getBounds();
-    var list = [];
-    Object.keys(state.nodes).forEach(function (id) {
-      var ll = state.nodes[id].getLngLat();
-      if (b.contains([ll.lng, ll.lat])) { var e = byId(id); if (e) list.push(e); }
+    var b = map.getBounds(), list = [];
+    var items = state.mode === "events" ? state.events : state.places;
+    items.forEach(function (e) {
+      var ok = state.mode === "events" ? visible(e) : visiblePlace(e);
+      if (ok && b.contains([e.lng, e.lat])) list.push(e);
     });
     if (state.mode === "events") list.sort(function (a, z) { return (a.date || "0000").localeCompare(z.date || "0000"); });
     else list.sort(function (a, z) { return a.name.localeCompare(z.name); });
-    var n = 0;
-    list.forEach(function (e) { cards.appendChild(nodeCard(e)); n++; });
-    var hc = document.getElementById("inviewCount");
-    if (hc) hc.textContent = n ? n + " in view" : "";
-    document.getElementById("empty").classList.toggle("show", n === 0);
-    setSel(state.selected);
+    list.forEach(function (e) { cards.appendChild(nodeCard(e)); });
+    $("listTitle").textContent = list.length ? list.length + " in view" : "Nothing in view";
+    $("listToggleTxt").textContent = "List" + (list.length ? " (" + list.length + ")" : "");
+    $("empty").classList.toggle("show", list.length === 0 && (state.query || Object.keys(state.activeCats).length > 0));
   }
+  function setListOpen(open) {
+    state.listOpen = open;
+    $("listPanel").classList.toggle("open", open);
+    $("listToggle").classList.toggle("show", !open);
+    document.body.classList.toggle("listopen", open);
+  }
+  $("listToggle").addEventListener("click", function () { setListOpen(true); });
+  $("listClose").addEventListener("click", function () { setListOpen(false); });
+
+  /* ================= search + mode ================= */
+  var searchDeb = null;
+  $("search").addEventListener("input", function () {
+    clearTimeout(searchDeb);
+    searchDeb = setTimeout(function () {
+      state.query = $("search").value.trim();
+      renderAll();
+      if (state.query) setListOpen(true);
+    }, 220);
+  });
+  document.querySelectorAll("#modeSeg button").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      document.querySelectorAll("#modeSeg button").forEach(function (x) { x.classList.remove("on"); });
+      btn.classList.add("on");
+      state.mode = btn.getAttribute("data-mode");
+      state.activeCats = {};
+      state.query = ""; $("search").value = "";
+      closeSheet(false);
+      setListOpen(false);
+      $("search").placeholder = state.mode === "events" ? "Search events" : "Search places";
+      renderAll();
+    });
+  });
+
+  /* ================= map controls ================= */
+  $("homeBtn").addEventListener("click", function () {
+    closeSheet(false);
+    if (homeBounds) map.fitBounds(homeBounds, { padding: 90, maxZoom: 12, duration: 600 });
+  });
+  $("zinBtn").addEventListener("click", function () { map.zoomIn({ duration: 250 }); });
+  $("zoutBtn").addEventListener("click", function () { map.zoomOut({ duration: 250 }); });
   map.on("moveend", function () { hideTip(); renderNodes(); refreshList(); });
 
-  /* ---- sidebar: list <-> detail, collapse <-> expand ---- */
-  function setHeadTitle(t) {
-    document.getElementById("sheetHeadTitle").innerHTML = t;
-  }
-  function showDetail() {
-    document.getElementById("listView").style.display = "none";
-    document.getElementById("detailView").style.display = "";
-    document.getElementById("backBtn").style.display = "";
-    setHeadTitle("Details");
-    if (!document.body.classList.contains("panel-open")) expandPanel();
-  }
-  function goBack() {
-    state.selected = null;
-    setSel(null);
-    document.getElementById("detailView").style.display = "none";
-    document.getElementById("listView").style.display = "";
-    document.getElementById("backBtn").style.display = "none";
-    setHeadTitle('In view <span class="hvcount" id="inviewCount"></span>');
-    refreshList();
-  }
-  function collapsePanel() {
-    document.body.classList.remove("panel-open");
-  }
-  function expandPanel() {
-    document.body.classList.add("panel-open");
-  }
-  document.getElementById("collapseBtn").addEventListener("click", collapsePanel);
-  document.getElementById("expandTab").addEventListener("click", expandPanel);
-  document.getElementById("backBtn").addEventListener("click", goBack);
-
-  function setSel(id) {
-    Object.keys(state.nodes).forEach(function (k) {
-      var el = state.nodes[k].getElement();
-      if (el) el.classList.toggle("sel", k === id);
-    });
-    var cards = document.getElementById("cards");
-    if (cards) {
-      for (var i = 0; i < cards.children.length; i++) {
-        cards.children[i].classList.toggle("sel", cards.children[i].getAttribute("data-id") === id);
-      }
-    }
-  }
-  function flyToPin(e) {
-    var pw = window.innerWidth >= 900 ? Math.min(400, window.innerWidth * 0.30) : 0;
-    map.flyTo({ center: [e.lng, e.lat], zoom: Math.max(map.getZoom(), 13), offset: [pw / 2, 0], duration: 600 });
-  }
-
-  function openSheet(id) {
-    var e = byId(id);
-    if (!e) return;
-    state.selected = id;
-    setSel(id);
-    if (e.kind === "place") { openPlace(e); return; }
-    if (state.admin) { openEditor(e); return; }
-    document.getElementById("sheetEdit").style.display = "none";
-    ["sheetKicker", "sheetTitle", "sheetWhere", "sheetFacts", "sheetDesc", "sheetNotes", "sheetActions"].forEach(function (x) {
-      document.getElementById(x).style.display = "";
-    });
-    var b = bucket(e);
-    var kick = document.getElementById("sheetKicker");
-    kick.innerHTML = "";
-    function pill(txt, cls, color) {
-      var s = document.createElement("span");
-      s.className = "pill" + (cls ? " " + cls : "");
-      s.textContent = txt;
-      if (color) s.style.setProperty("--srcc", color);
-      kick.appendChild(s);
-    }
-    pill(b === "ongoing" ? "Ongoing" : fmtDate(e.date));
-    if (b === "past") pill("Past");
-    if (e.approx) pill("Approx. location");
-    pill(e.source, "src", SRC_COLORS[e.source] || "#fff");
-    document.getElementById("sheetTitle").textContent = e.title;
-    document.getElementById("sheetWhere").textContent = e.venue + " \u00B7 " + e.town;
-    document.getElementById("sheetDesc").textContent = e.desc || "";
-    var facts = document.getElementById("sheetFacts");
-    facts.innerHTML = "";
-    function fact(label, val) {
-      if (!val) return;
-      var d = document.createElement("div"); d.className = "fact";
-      var b2 = document.createElement("b"); b2.textContent = label;
-      var sp = document.createElement("span"); sp.textContent = val;
-      d.appendChild(b2); d.appendChild(sp); facts.appendChild(d);
-    }
-    fact("Time", e.time);
-    fact("Address", e.address);
-    var acts = document.getElementById("sheetActions");
-    acts.innerHTML = "";
-    if (e.link) {
-      var a = document.createElement("a");
-      a.className = "btn primary"; a.href = e.link; a.target = "_blank"; a.rel = "noopener";
-      a.textContent = "Event details";
-      acts.appendChild(a);
-    }
-    var d = document.createElement("a");
-    d.className = "btn" + (e.link ? "" : " primary");
-    d.href = "https://www.google.com/maps/search/?api=1&query=" + e.lat + "," + e.lng;
-    d.target = "_blank"; d.rel = "noopener";
-    d.textContent = "Directions";
-    acts.appendChild(d);
-    showDetail();
-    flyToPin(e);
-  }
-
-  /* ---- places panel: same sidebar, place-specific facts ---- */
-  function openPlace(e) {
-    state.selected = e.id;
-    setSel(e.id);
-    if (state.admin) { openEditor(e); return; }
-    document.getElementById("sheetEdit").style.display = "none";
-    ["sheetKicker", "sheetTitle", "sheetWhere", "sheetFacts", "sheetDesc", "sheetNotes", "sheetActions"].forEach(function (x) {
-      document.getElementById(x).style.display = "";
-    });
-    var kick = document.getElementById("sheetKicker");
-    kick.innerHTML = "";
-    function pill(txt, cls, color) {
-      var s = document.createElement("span");
-      s.className = "pill" + (cls ? " " + cls : "");
-      s.textContent = txt;
-      if (color) s.style.setProperty("--srcc", color);
-      kick.appendChild(s);
-    }
-    pill(e.category, "src", PLACE_COLORS[e.category] || "#fff");
-    if (e.approx) pill("Approx. location");
-    var _nn = state.notes[e.id];
-    if (_nn && _nn.visited) pill("JD's been here", "src", "#f0bd37");
-    var _rt = _nn && parseInt(_nn.rating, 10);
-    if (_rt >= 1 && _rt <= 5) pill("★".repeat(_rt) + "☆".repeat(5 - _rt), "src", "#f0bd37");
-    document.getElementById("sheetTitle").textContent = e.name;
-    document.getElementById("sheetWhere").textContent = e.town;
-    document.getElementById("sheetDesc").textContent = e.desc || "";
-    var _nb = document.getElementById("sheetNotes");
-    if (_nn && _nn.note) { _nb.style.display = ""; document.getElementById("sheetNotesText").textContent = _nn.note; }
-    else _nb.style.display = "none";
-    var facts = document.getElementById("sheetFacts");
-    facts.innerHTML = "";
-    function fact(label, val) {
-      if (!val) return;
-      var d = document.createElement("div"); d.className = "fact";
-      var b2 = document.createElement("b"); b2.textContent = label;
-      var sp = document.createElement("span"); sp.textContent = val;
-      d.appendChild(b2); d.appendChild(sp); facts.appendChild(d);
-    }
-    fact("Address", e.address);
-    var acts = document.getElementById("sheetActions");
-    acts.innerHTML = "";
-    if (e.link) {
-      var a = document.createElement("a");
-      a.className = "btn primary"; a.href = e.link; a.target = "_blank"; a.rel = "noopener";
-      a.textContent = "Website";
-      acts.appendChild(a);
-    }
-    var d = document.createElement("a");
-    d.className = "btn" + (e.link ? "" : " primary");
-    d.href = "https://www.google.com/maps/search/?api=1&query=" + e.lat + "," + e.lng;
-    d.target = "_blank"; d.rel = "noopener";
-    d.textContent = "Directions";
-    acts.appendChild(d);
-    showDetail();
-    flyToPin(e);
-  }
-
-  /* ---- admin mode: password gate, edit fields, draggable pins ---- */
-  function markDirty() {
-    state.dirty = true;
-    document.getElementById("dlBtn").textContent = "Save events \u25CF";
-  }
-  function markDirtyPlace() {
-    state.dirty = true;
-    document.getElementById("dlBtn2").textContent = "Save places \u25CF";
-  }
-
-  /* ---- robust editing: undo / redo / discard, with 5-minute admin grace ---- */
-  var undoStack = [], redoStack = [], pristineData = null, adminUnlockUntil = 0;
+  /* ================= admin: pin dragging ================= */
+  var undoStack = [], redoStack = [];
   function snapData() {
-    return {
-      events: JSON.parse(JSON.stringify(state.events)),
-      places: JSON.parse(JSON.stringify(state.places))
-    };
+    return { events: JSON.parse(JSON.stringify(state.events)),
+             places: JSON.parse(JSON.stringify(state.places)) };
   }
   function pushUndo() {
-    var s = snapData();
-    var top = undoStack[undoStack.length - 1];
+    var s = snapData(), top = undoStack[undoStack.length - 1];
     if (top && JSON.stringify(top) === JSON.stringify(s)) return;
     undoStack.push(s);
     if (undoStack.length > 50) undoStack.shift();
@@ -994,306 +841,122 @@
     state.events.forEach(function (e) { e.kind = "event"; });
     state.places.forEach(function (p) { p.kind = "place"; p.title = p.name; });
     state.dirty = true;
-    document.getElementById("dlBtn").textContent = "Save events \u25CF";
-    document.getElementById("dlBtn2").textContent = "Save places \u25CF";
     renderAll();
-    if (state.selected && state.admin) { var e = byId(state.selected); if (e) openEditor(e, true); }
-    updateUndoBtns();
   }
   function updateUndoBtns() {
-    document.getElementById("undoBtn").disabled = !undoStack.length;
-    document.getElementById("redoBtn").disabled = !redoStack.length;
+    $("undoBtn").disabled = !undoStack.length;
+    $("redoBtn").disabled = !redoStack.length;
   }
+  function markDirty() { state.dirty = true; $("dlBtn").textContent = "Save events ●"; }
+  function markDirtyPlace() { state.dirty = true; $("dlBtn2").textContent = "Save places ●"; }
   function setAdmin(on) {
     state.admin = on;
     state.dirty = false;
     document.body.classList.toggle("admin", on);
-    document.getElementById("admintools").style.display = on ? "" : "none";
-    document.getElementById("adminBtn").textContent = on ? "Admin \u25CF" : "Admin";
-    document.getElementById("dlBtn").textContent = "Save events";
-    document.getElementById("dlBtn2").textContent = "Save places";
+    $("dlBtn").textContent = "Save events";
+    $("dlBtn2").textContent = "Save places";
     if (on) pushUndo();
     updateUndoBtns();
-    goBack();
+    closeSheet(false);
     renderAll();
   }
-  /* admin lives on admin.html now -- the corner button is a plain link there */
-  document.getElementById("exitAdminBtn").addEventListener("click", function () { setAdmin(false); });
-  document.getElementById("undoBtn").addEventListener("click", function () {
+  function download(name, obj) {
+    var blob = new Blob([JSON.stringify(obj, null, 1)], { type: "application/json" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob); a.download = name;
+    document.body.appendChild(a); a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
+  }
+  function cleanEvent(e) {
+    return { id: e.id, title: e.title, date: e.date || null, time: e.time || null, venue: e.venue || null,
+      town: e.town || null, address: e.address || null, lat: e.lat, lng: e.lng, approx: !!e.approx,
+      desc: e.desc || "", link: e.link || null, source: e.source || "Radar" };
+  }
+  function cleanPlace(p) {
+    var o = { id: p.id, name: p.name, category: p.category, town: p.town || null,
+      address: p.address || null, lat: p.lat, lng: p.lng, approx: !!p.approx,
+      desc: p.desc || "", link: p.link || null, source: p.source || "Local knowledge" };
+    ["hours", "ownership", "setting", "price", "status", "verified", "reviews"].forEach(function (k) {
+      if (p[k] != null) o[k] = p[k];
+    });
+    return o;
+  }
+  $("exitAdminBtn").addEventListener("click", function () { setAdmin(false); });
+  $("undoBtn").addEventListener("click", function () {
     if (!undoStack.length) return;
     redoStack.push(snapData());
     restoreData(undoStack.pop());
     updateUndoBtns();
   });
-  document.getElementById("redoBtn").addEventListener("click", function () {
+  $("redoBtn").addEventListener("click", function () {
     if (!redoStack.length) return;
     undoStack.push(snapData());
     restoreData(redoStack.pop());
     updateUndoBtns();
   });
-  document.getElementById("discardBtn").addEventListener("click", function () {
-    if (!pristineData) return;
-    if (!confirm("Throw away all changes made in this admin session?")) return;
-    undoStack = []; redoStack = [];
-    restoreData(pristineData);
-    state.dirty = false;
-    document.getElementById("dlBtn").textContent = "Save events";
-    document.getElementById("dlBtn2").textContent = "Save places";
-    updateUndoBtns();
+  $("discardBtn").addEventListener("click", function () {
+    if (confirm("Throw away all changes made in this admin session?")) location.reload();
   });
-  document.getElementById("dlBtn").addEventListener("click", function () {
-    var events = state.events.map(function (e) {
-      return { id: e.id, title: e.title, date: e.date, time: e.time, venue: e.venue, town: e.town, address: e.address, lat: e.lat, lng: e.lng, approx: e.approx, desc: e.desc, score: e.score, link: e.link, source: e.source };
-    });
-    var blob = new Blob([JSON.stringify({ updated: todayStr(), events: events }, null, 1)], { type: "application/json" });
-    var a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "events.json";
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
-    state.dirty = false;
-    document.getElementById("dlBtn").textContent = "Save events";
+  $("dlBtn").addEventListener("click", function () {
+    download("events.json", { updated: new Date().toISOString().slice(0, 10),
+      events: state.events.map(cleanEvent) });
+    state.dirty = false; $("dlBtn").textContent = "Save events";
+    toast("events.json saved — send it to be pushed live");
   });
-  document.getElementById("dlBtn2").addEventListener("click", function () {
-    var places = state.places.map(function (p) {
-      return { id: p.id, name: p.name, category: p.category, town: p.town, address: p.address, lat: p.lat, lng: p.lng, approx: p.approx, desc: p.desc, link: p.link, source: p.source };
-    });
-    var blob = new Blob([JSON.stringify({ updated: todayStr(), places: places }, null, 1)], { type: "application/json" });
-    var a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "places.json";
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
-    state.dirty = false;
-    document.getElementById("dlBtn2").textContent = "Save places";
-  });
-  function openEditor(e, noFly) {
-    var dirtyFn = e.kind === "place" ? markDirtyPlace : markDirty;
-    ["sheetKicker", "sheetTitle", "sheetWhere", "sheetFacts", "sheetDesc", "sheetNotes", "sheetActions"].forEach(function (x) {
-      document.getElementById(x).style.display = "none";
-    });
-    var box = document.getElementById("sheetEdit");
-    box.style.display = "";
-    box.innerHTML = "";
-    var kick = document.createElement("div");
-    kick.className = "kicker"; kick.style.marginBottom = "12px";
-    var s = document.createElement("span");
-    s.className = "pill src"; s.style.setProperty("--srcc", "#f0bd37"); s.textContent = "Admin edit";
-    kick.appendChild(s);
-    if (e.approx) {
-      var pa = document.createElement("span"); pa.className = "pill"; pa.textContent = "Approx. location";
-      kick.appendChild(pa);
-    }
-    box.appendChild(kick);
-    function field(label, key, type, opts) {
-      var w = document.createElement("div"); w.className = "efield";
-      var l = document.createElement("label"); l.textContent = label; w.appendChild(l);
-      var inp;
-      if (type === "textarea") inp = document.createElement("textarea");
-      else if (type === "select") {
-        inp = document.createElement("select");
-        (opts || []).forEach(function (o) {
-          var op = document.createElement("option"); op.value = o; op.textContent = o;
-          inp.appendChild(op);
-        });
-      } else { inp = document.createElement("input"); inp.type = type || "text"; }
-      inp.value = e[key] == null ? "" : e[key];
-      inp.addEventListener("focus", function () { pushUndo(); });
-      inp.addEventListener("input", function () {
-        var v = inp.value;
-        if (type === "number") v = v === "" ? null : +v;
-        if (key === "date" && v === "") v = null;
-        e[key] = v;
-        dirtyFn();
-      });
-      w.appendChild(inp);
-      return w;
-    }
-    function efrow() {
-      var r = document.createElement("div"); r.className = "efrow";
-      for (var i = 0; i < arguments.length; i++) r.appendChild(arguments[i]);
-      return r;
-    }
-    if (e.kind === "place") {
-      box.appendChild(field("Name", "name", "text"));
-      box.appendChild(efrow(field("Category", "category", "select", Object.keys(PLACE_COLORS)), field("Town", "town", "text")));
-      box.appendChild(field("Address", "address", "text"));
-      box.appendChild(field("Description", "desc", "textarea"));
-      box.appendChild(field("Website", "link", "text"));
-      var _en = state.notes[e.id] || {};
-      var _rating = parseInt(_en.rating, 10);
-      if (!(_rating >= 1 && _rating <= 5)) _rating = 0;
-      var _rw = document.createElement("div"); _rw.className = "efield";
-      var _rl = document.createElement("label"); _rl.textContent = "Rating (1-5)"; _rw.appendChild(_rl);
-      var _rsw = document.createElement("div");
-      _rsw.style.cssText = "display:flex;gap:6px;font-size:24px;line-height:1;cursor:pointer;user-select:none;-webkit-user-select:none;";
-      var _rbtns = [];
-      function paintStars() { for (var _k = 0; _k < 5; _k++) { _rbtns[_k].textContent = _k < _rating ? "★" : "☆"; _rbtns[_k].style.color = _k < _rating ? "#f0bd37" : "var(--muted)"; } }
-      for (var _k = 0; _k < 5; _k++) {
-        (function (_sx) {
-          var _b = document.createElement("span");
-          _b.addEventListener("click", function () { _rating = (_rating === _sx + 1) ? 0 : _sx + 1; paintStars(); });
-          _rbtns.push(_b); _rsw.appendChild(_b);
-        })(_k);
-      }
-      paintStars();
-      _rw.appendChild(_rsw);
-      box.appendChild(_rw);
-      var _nw = document.createElement("div"); _nw.className = "efield";
-      var _nl = document.createElement("label"); _nl.textContent = "JD's notes (public)"; _nw.appendChild(_nl);
-      var _nta = document.createElement("textarea"); _nta.value = _en.note || ""; _nta.placeholder = "Your take..."; _nta.maxLength = 1500;
-      _nta.addEventListener("focus", function () { pushUndo(); });
-      _nw.appendChild(_nta);
-      box.appendChild(_nw);
-      var _vw = document.createElement("div"); _vw.className = "efield";
-      var _vl = document.createElement("label");
-      var _vcb = document.createElement("input"); _vcb.type = "checkbox"; _vcb.checked = !!_en.visited;
-      _vl.appendChild(_vcb); _vl.appendChild(document.createTextNode(" Been here"));
-      _vw.appendChild(_vl); box.appendChild(_vw);
-      var _srow = document.createElement("div"); _srow.style.cssText = "display:flex;gap:8px;margin-top:10px;";
-      var _sb = document.createElement("button"); _sb.className = "btn primary"; _sb.textContent = "Save"; _sb.style.flex = "1";
-      _sb.addEventListener("click", function () {
-        if (!saveNoteToBackend(e.id, _nta.value.trim(), _vcb.checked, e.lat, e.lng, _rating)) {
-          alert("Notes backend isn't connected yet.");
-          return;
-        }
-        _sb.textContent = "Saved"; _sb.disabled = true;
-        setTimeout(function () { _sb.textContent = "Save"; _sb.disabled = false; }, 2000);
-      });
-      _srow.appendChild(_sb);
-      var _rb = document.createElement("button"); _rb.className = "btn"; _rb.textContent = "Remove"; _rb.style.flex = "0 0 auto";
-      _rb.addEventListener("click", function () {
-        if (!NOTES_API_URL) { alert("Notes backend isn't connected yet."); return; }
-        if (!confirm("Remove your note and rating for this place?")) return;
-        deleteNoteBackend(e.id);
-        _nta.value = ""; _vcb.checked = false; _rating = 0; paintStars();
-      });
-      _srow.appendChild(_rb);
-      box.appendChild(_srow);
-      if (!NOTES_API_URL) {
-        var _nh = document.createElement("div");
-        _nh.style.cssText = "font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5;";
-        _nh.textContent = "Notes backend not connected yet -- deploy the Apps Script and paste its URL into NOTES_API_URL.";
-        box.appendChild(_nh);
-      }
-    } else {
-      box.appendChild(field("Title", "title", "text"));
-      box.appendChild(efrow(field("Date", "date", "date"), field("Time", "time", "text")));
-      box.appendChild(field("Venue", "venue", "text"));
-      box.appendChild(efrow(field("Town", "town", "text"), field("Address", "address", "text")));
-      box.appendChild(field("Description", "desc", "textarea"));
-      box.appendChild(field("Source", "source", "select", Object.keys(SRC_COLORS)));
-      box.appendChild(field("Link", "link", "text"));
-    }
-    var note = document.createElement("div");
-    note.style.cssText = "font-size:12px;color:var(--muted);margin-top:2px;line-height:1.5;";
-    note.textContent = "Pin: " + e.lat.toFixed(5) + ", " + e.lng.toFixed(5) + (e.approx ? " (approx)" : " (exact)") + ". Drag the pin on the map to move it.";
-    box.appendChild(note);
-    showDetail();
-    if (!noFly) flyToPin(e);
-  }
-
-  var searchT = null;
-  document.getElementById("search").addEventListener("input", function (ev) {
-    clearTimeout(searchT);
-    searchT = setTimeout(function () {
-      state.q = ev.target.value.trim().toLowerCase();
-      renderAll();
-    }, 180);
-  });
-  document.getElementById("legendToggle").addEventListener("click", function () {
-    document.getElementById("legend").classList.toggle("open");
+  $("dlBtn2").addEventListener("click", function () {
+    download("places.json", { places: state.places.map(cleanPlace) });
+    state.dirty = false; $("dlBtn2").textContent = "Save places";
+    toast("places.json saved — send it to be pushed live");
   });
 
-  /* ---- JD's notes: public layer stored in his Google Sheet via Apps Script ---- */
-  function applyNoteOverrides() {
-    state.places.forEach(function (p) {
-      var n = state.notes[p.id];
-      var hasLat = n && typeof n.lat === "number" && isFinite(n.lat);
-      var hasLng = n && typeof n.lng === "number" && isFinite(n.lng);
-      if (hasLat && hasLng) {
-        if (p._baseLat == null) { p._baseLat = p.lat; p._baseLng = p.lng; p._baseApprox = p.approx; }
-        p.lat = n.lat; p.lng = n.lng; p.approx = false;
-      } else if (p._baseLat != null) {
-        p.lat = p._baseLat; p.lng = p._baseLng; p.approx = p._baseApprox;
-        delete p._baseLat; delete p._baseLng; delete p._baseApprox;
-      }
-    });
-  }
+  /* ================= notes backend ================= */
+  var NOTES_API_URL = "https://script.google.com/a/macros/clarkson.edu/s/AKfycbwy6VmnhyBxmteJ9HQO6ZGljcqCmth6ToJ6GS_m-NZZZU3iIVG5RpS2TmsY1bUwQz-NAA/exec";
   function loadNotes() {
-    if (!NOTES_API_URL) return;
-    var cb = "__jdNotesCb" + Date.now();
-    window[cb] = function (data) {
-      try {
-        state.notes = (data && data.ok && data.notes) || {};
-        applyNoteOverrides();
-      } finally {
-        delete window[cb];
-        var s = document.getElementById(cb); if (s) s.remove();
-        renderAll();
-      }
-    };
-    var s = document.createElement("script");
-    s.id = cb;
-    s.onerror = function () { delete window[cb]; s.remove(); };
-    s.src = NOTES_API_URL + "?action=get&callback=" + encodeURIComponent(cb) + "&ts=" + Date.now();
-    document.head.appendChild(s);
-  }
-  function apiCall(params, cb) {
-    if (!NOTES_API_URL) return false;
-    var q = Object.keys(params).map(function (k) { return encodeURIComponent(k) + "=" + encodeURIComponent(params[k]); }).join("&");
-    var id = "__jdApi" + Date.now();
-    window[id] = function (data) {
-      try { if (cb) cb(data); } finally { delete window[id]; var s = document.getElementById(id); if (s) s.remove(); }
-    };
-    var s = document.createElement("script");
-    s.id = id;
-    s.onerror = function () { delete window[id]; s.remove(); if (cb) cb(null); };
-    s.src = NOTES_API_URL + "?callback=" + encodeURIComponent(id) + "&ts=" + Date.now() + "&" + q;
-    document.head.appendChild(s);
-    return true;
-  }
-  function saveNoteToBackend(placeId, note, visited, lat, lng, rating) {
-    var p = { action: "save", place_id: placeId, note: note || "", visited: visited ? "true" : "false" };
-    if (typeof lat === "number" && isFinite(lat)) p.lat = lat;
-    if (typeof lng === "number" && isFinite(lng)) p.lng = lng;
-    var _r = parseInt(rating, 10);
-    if (_r >= 1 && _r <= 5) p.rating = _r;
-    return apiCall(p, function () { loadNotes(); });
-  }
-  function deleteNoteBackend(placeId) {
-    return apiCall({ action: "delete", place_id: placeId }, function () { loadNotes(); });
+    fetch(NOTES_API_URL + "?action=list", { mode: "cors" }).then(function (r) { return r.json(); })
+      .then(function (j) {
+        (j.notes || []).forEach(function (n) { state.notes[n.place_id] = n; });
+        if (state.selected) { var e = byId(state.selected); if (e) renderSheet(e); }
+      }).catch(function () {});
   }
 
+  /* ================= boot ================= */
   Promise.all([
-    fetch("./events.json", { cache: "no-store" })
-      .then(function (r) { if (!r.ok) throw new Error("events.json " + r.status); return r.json(); }),
-    fetch("./places.json", { cache: "no-store" })
-      .then(function (r) { if (!r.ok) throw new Error("places.json " + r.status); return r.json(); })
-  ])
-    .then(function (res) {
-      var data = res[0], pdata = res[1];
-      state.events = (data.events || []).map(function (e) { e.kind = "event"; return e; });
-      state.places = (pdata.places || []).map(function (p) { p.kind = "place"; p.title = p.name; return p; });
-      pristineData = snapData();
-      document.getElementById("updated").textContent = "Updated " + (data.updated || "");
-      buildLegend();
-      buildModeToggle();
-      document.getElementById("search").placeholder = state.mode === "events" ? "Search events" : "Search places";
-      renderAll();
-      loadNotes();
-      if (window.innerWidth < 900) collapsePanel();
-      var bounds = new maplibregl.LngLatBounds();
-      state.events.forEach(function (e) { bounds.extend([e.lng, e.lat]); });
-      state.places.forEach(function (p) { bounds.extend([p.lng, p.lat]); });
-      if (!bounds.isEmpty()) { homeBounds = bounds; map.fitBounds(bounds, { padding: 90, maxZoom: 12 }); }
-    })
-    .catch(function (err) {
-      document.getElementById("empty").textContent = "Could not load data: " + err.message;
-      document.getElementById("empty").classList.add("show");
-    });
+    fetch("./events.json", { cache: "no-store" }).then(function (r) {
+      if (!r.ok) throw new Error("events.json " + r.status); return r.json(); }),
+    fetch("./places.json", { cache: "no-store" }).then(function (r) {
+      if (!r.ok) throw new Error("places.json " + r.status); return r.json(); })
+  ]).then(function (res) {
+    var data = res[0], pdata = res[1];
+    state.events = (data.events || []).map(function (e) { e.kind = "event"; return e; });
+    state.places = (pdata.places || []).map(function (p) { p.kind = "place"; p.title = p.name; return p; });
+    $("updated").textContent = "Updated " + (data.updated || "");
+    if (new URLSearchParams(location.search).get("admin") === "1") setAdmin(true);
+    renderAll();
+    loadNotes();
+    var bounds = new maplibregl.LngLatBounds();
+    state.events.forEach(function (e) { bounds.extend([e.lng, e.lat]); });
+    state.places.forEach(function (p) { bounds.extend([p.lng, p.lat]); });
+    if (!bounds.isEmpty()) {
+      homeBounds = bounds;
+      map.fitBounds(bounds, { padding: 90, maxZoom: 12, duration: 0 });
+    }
+    var m = location.hash.match(/^#(place|event)=(.+)$/);
+    if (m) {
+      var e = byId(decodeURIComponent(m[2]));
+      if (e) {
+        state.mode = e.kind === "place" ? "places" : "events";
+        document.querySelectorAll("#modeSeg button").forEach(function (x) {
+          x.classList.toggle("on", x.getAttribute("data-mode") === state.mode);
+        });
+        $("search").placeholder = state.mode === "events" ? "Search events" : "Search places";
+        renderAll();
+        openSheetFor(e, false);
+      }
+    }
+  }).catch(function (err) {
+    $("empty").textContent = "Could not load data: " + err.message;
+    $("empty").classList.add("show");
+  });
 })();
 </script>
 </body>
