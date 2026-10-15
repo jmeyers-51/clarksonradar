@@ -38,19 +38,17 @@
   .mk { cursor: pointer; display: inline-block; transition: opacity .18s ease; }
   .mk * { transition: none !important; animation: none !important; }
   body.fading .mk { opacity: 0; }
-  .pin { width: 26px; height: 33px; position: relative; }
-  .mk .pin i {
-    position: absolute; left: 1px; top: 1px; width: 24px; height: 24px;
+  /* dots, not pins: cleaner at density, glow reads better */
+  .mk .dot {
+    width: 18px; height: 18px; border-radius: 50%;
     background: var(--pc, #fff);
     border: 2.5px solid rgba(255,255,255,.95);
-    border-radius: 50% 50% 50% 6px;
-    transform: rotate(-45deg);
-    box-shadow: 0 3px 10px rgba(0,0,0,.55);
+    box-shadow: 0 2px 8px rgba(0,0,0,.55);
+    position: relative; z-index: 1;
   }
-  .mk .pin i::after {
-    content: ''; position: absolute; left: 50%; top: 50%;
-    width: 8px; height: 8px; margin: -4px 0 0 -4px;
-    background: #fff; border-radius: 50%;
+  .mk.sel .dot {
+    border-color: #e8b34b;
+    box-shadow: 0 0 0 3px rgba(232,179,75,.4), 0 2px 8px rgba(0,0,0,.55);
   }
   .mk .halo {
     position: absolute; inset: -22px; border-radius: 50%;
@@ -58,15 +56,15 @@
   }
   .mk.sel .halo { opacity: 1; background: radial-gradient(circle, rgba(255,255,255,.28) 0%, rgba(255,255,255,0) 65%); }
   .mk.closedm { opacity: .45; }
-  .mk.closedm .pin i { filter: grayscale(1); }
-  /* heat blob: warm amber radial, glued to the pin as its child */
+  .mk.closedm .dot { filter: grayscale(1); }
+  /* heat blob: warm amber radial, centered on the dot */
   .heat {
-    position: absolute; left: 50%; top: 100%; width: 120px; height: 120px;
+    position: absolute; left: 50%; top: 50%; width: 120px; height: 120px;
     transform: translate(-50%, -50%); pointer-events: none;
     background: radial-gradient(circle, rgba(255,171,64,.30) 0%, rgba(255,171,64,0) 68%);
   }
   .noheat .mk .heat { display: none; }
-  .mk .pin { position: relative; z-index: 1; }
+  .mk .dot { position: relative; z-index: 1; }
 
   /* ============ header ============ */
   header {
@@ -301,13 +299,25 @@
     #sheet.open { transform: translateX(0) translateY(0); }
     #sheet.dragging { transition: none; }
     /* progressive disclosure */
-    .sh-peek { display: flex; align-items: baseline; gap: 10px; }
+    .sh-peek { display: flex; align-items: center; gap: 10px; }
     .sh-peek .shtitle { margin: 0; padding: 0; font-size: 17px; white-space: nowrap;
       overflow: hidden; text-overflow: ellipsis; flex: 1; }
     .sh-peek .shstars { flex: none; font-size: 13px; }
+    .sh-peek .pill.mini { flex: none; font-size: 10px; padding: 3px 9px; }
+    .sh-peek .shchev { flex: none; color: #e8b34b; font-size: 22px; line-height: 1;
+      transform: rotate(-90deg); margin-right: 30px; }
     #sheet[data-snap="0"] .sh-glance, #sheet[data-snap="0"] .sh-full { display: none; }
     #sheet[data-snap="1"] .sh-full { display: none; }
     #sheet[data-snap="0"] #sheetbody { overflow: hidden; }
+    /* first-run hint */
+    #hint {
+      position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%);
+      z-index: 60; background: rgba(232,179,75,.95); color: #1a1408;
+      font: 600 13.5px Inter, sans-serif; padding: 12px 20px; border-radius: 999px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.45); white-space: nowrap;
+      opacity: 0; pointer-events: none; transition: opacity .4s ease;
+    }
+    #hint.show { opacity: 1; }
   }
 </style>
 </head>
@@ -350,6 +360,7 @@
 <div id="updated"></div>
 <div id="empty"></div>
 <div id="tip"></div>
+<div id="hint">Tap a dot to explore a place</div>
 <div id="admin"></div>
 <div class="modal" id="modal"><div class="mbox" id="mbox"></div></div>
 
@@ -530,11 +541,10 @@ function makePin(e) {
   var sz = Math.round(70 + (r / 5) * 90);
   heat.style.width = sz + "px"; heat.style.height = sz + "px";
   el.appendChild(heat);
-  var pin = document.createElement("div");
-  pin.className = "pin";
-  pin.style.setProperty("--pc", catColor(e));
-  pin.appendChild(document.createElement("i"));
-  el.appendChild(pin);
+  var dot = document.createElement("div");
+  dot.className = "dot";
+  dot.style.setProperty("--pc", catColor(e));
+  el.appendChild(dot);
   el.addEventListener("click", function (ev) {
     ev.stopPropagation();
     openSheet(e); // no camera movement. the pin is already where the user tapped.
@@ -555,7 +565,7 @@ function renderMarkers() {
 
   spreadPins(items);
   items.forEach(function (e) {
-    var m = new maplibregl.Marker({ element: makePin(e), anchor: "bottom", draggable: state.admin })
+    var m = new maplibregl.Marker({ element: makePin(e), anchor: "center", draggable: state.admin })
       .setLngLat([e._sx, e._sy]).addTo(map);
     if (state.admin) {
       m.on("dragstart", pushUndo);
@@ -670,10 +680,11 @@ function stars(n) {
 function renderSheetBody(e) {
   var body = $("sheetbody");
   var h = "";
-  // peek: name + stars only
+  // peek: name + stars + category, with an expand hint
   h += '<div class="sh-peek"><div class="shtitle">' + esc(e.title || e.name) + "</div>";
+  if (e.kind === "place" && e.category) h += '<span class="pill mini">' + esc(e.category) + "</span>";
   if (e.kind === "place" && e.rating != null) h += '<div class="shstars">' + stars(e.rating) + "</div>";
-  h += "</div>";
+  h += '<div class="shchev">&#8250;</div></div>';
   // glance: pills + key facts + directions
   h += '<div class="sh-glance"><div class="pills">';
   if (e.kind === "place") {
@@ -757,7 +768,42 @@ function closeSheet(silent) {
   renderMarkers();
   if (!silent) { try { history.replaceState({}, "", location.pathname + location.search); } catch (err) {} }
 }
-/* drag the grab handle / peek to expand */
+/* first-run hint: show once until the viewer taps a dot */
+(function () {
+  if (window.innerWidth > 720) return;
+  var seen = false;
+  try { seen = !!localStorage.getItem("radar-seen-hint"); } catch (e) {}
+  if (seen) return;
+  setTimeout(function () { $("hint").classList.add("show"); }, 1200);
+  function dismiss() {
+    $("hint").classList.remove("show");
+    try { localStorage.setItem("radar-seen-hint", "1"); } catch (e) {}
+    document.removeEventListener("touchstart", dismiss);
+  }
+  // dismiss on first map/dot tap, or after 8s
+  document.addEventListener("touchstart", dismiss, { passive: true });
+  setTimeout(dismiss, 9000);
+})();
+(function () {
+  var sh = $("sheet"), sx = 0, sy = 0, tracking = false;
+  sh.addEventListener("touchstart", function (e) {
+    if (!isMobileSheet() || sheetState !== 0) return;
+    tracking = true;
+    sx = e.touches[0].clientX; sy = e.touches[0].clientY;
+  }, { passive: true });
+  sh.addEventListener("touchend", function (e) {
+    if (!tracking) return;
+    tracking = false;
+    var dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy;
+    if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return; // not a horizontal swipe
+    var items = visibleItems();
+    if (items.length < 2) return;
+    var i = items.findIndex(function (x) { return x.id === state.selected; });
+    if (i < 0) return;
+    var n = dx < 0 ? (i + 1) % items.length : (i - 1 + items.length) % items.length;
+    openSheet(items[n]);
+  }, { passive: true });
+})();
 (function () {
   var sh = $("sheet");
   var startY = 0, startH = 0, dragging = false, moved = false;
