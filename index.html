@@ -23,6 +23,8 @@
   body { background: var(--bg); color: var(--txt);
     font-family: 'Inter', -apple-system, 'Segoe UI', Roboto, sans-serif; }
   #map { position: fixed; inset: 0; }
+  /* dark grayscale basemap; pins are DOM (not canvas) so their colors stay vivid */
+  .maplibregl-canvas { filter: grayscale(1) invert(0.93) brightness(1.04) contrast(0.95); }
 
   /* ============ top bar ============ */
   .topbar { position: fixed; top: 0; left: 0; right: 0; z-index: 40;
@@ -84,8 +86,12 @@
   .mapctl button:active { transform: scale(.9); }
   .mapctl button svg { width: 18px; height: 18px; }
 
-  /* ============ markers ============ */
-  .mk { cursor: pointer; position: relative; }
+  /* ============ markers ============
+     MapLibre positions the wrapper via transform, but our own `position: relative`
+     (needed to contain the pring/halo) ties with `.maplibregl-marker`'s absolute
+     positioning and wins on source order -- without inline-block the wrapper
+     becomes a full-width block and the pring/bubble stretch across the map. */
+  .mk { cursor: pointer; position: relative; display: inline-block; vertical-align: top; }
   .mk .dot { width: 22px; height: 22px; border-radius: 50%;
     border: 3px solid rgba(255,255,255,.92);
     box-shadow: 0 2px 10px rgba(0,0,0,.45);
@@ -393,21 +399,15 @@
     style: {
       version: 8,
       sources: {
-        esri: { type: "raster", tiles: ["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"], tileSize: 256, attribution: ESRI_ATTR, maxzoom: 19 },
-        labels: { type: "raster", tiles: ["https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"], tileSize: 256, maxzoom: 19 }
+        basemap: { type: "raster", tiles: ["https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"], tileSize: 256, maxzoom: 19, attribution: ESRI_ATTR }
       },
       layers: [
-        { id: "esri", type: "raster", source: "esri" },
-        { id: "labels", type: "raster", source: "labels" }
+        { id: "basemap", type: "raster", source: "basemap" }
       ]
     },
     center: [-75.0, 44.6], zoom: 9, attributionControl: { compact: true }
   });
   map.addControl(new maplibregl.AttributionControl({ compact: true }), "bottom-left");
-  map.on("load", function () {
-    map.addLayer({ id: "veil", type: "background",
-      paint: { "background-color": "#0d0e13", "background-opacity": 0.28 } }, "labels");
-  });
 
   function byId(id) {
     var all = state.events.concat(state.places);
@@ -456,7 +456,7 @@
             0.45, "rgba(245,175,45,0.7)", 0.7, "rgba(250,160,35,0.85)", 1, "rgba(255,190,70,0.95)"],
           "heatmap-radius": ["interpolate", ["linear"], ["zoom"], 8, 30, 12, 44],
           "heatmap-opacity": ["interpolate", ["linear"], ["zoom"], 9, 0.9, 13.5, 0]
-        } }, "veil");
+        } });
     } else map.getSource("density").setData(heatFeatures());
   }
   map.on("load", ensureHeat);
