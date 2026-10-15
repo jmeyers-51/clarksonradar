@@ -411,7 +411,10 @@
         body: JSON.stringify({ message: "Admin: update places (" + places.length + ")",
           content: content, sha: meta.sha, branch: BRANCH })
       });
-      if (!put.ok) throw new Error("write " + put.status);
+      if (!put.ok) {
+        if (put.status === 404) throw new Error("token can't write to the repo -- classic token needs the 'repo' box checked; fine-grained needs Contents read+write");
+        throw new Error("write " + put.status);
+      }
       dirty = false; $("dirtyDot").style.display = "none";
       try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
       toast("Published -- live in ~2 minutes");
