@@ -1,144 +1,108 @@
 {
+ "updated": "2026-10-15",
  "places": [
   {
-   "address": "192 Highland Rd, Massena, NY",
-   "approx": false,
-   "category": "Orchard",
-   "desc": "Boutique orchard with 20+ apple varieties, known for fresh cider and cider donuts in the fall.",
    "id": "kaneb-orchards",
-   "lat": 44.94797,
-   "link": "",
-   "lng": -74.85318,
    "name": "Kaneb Orchards",
-   "source": "Local knowledge",
+   "category": "Orchard",
    "town": "Massena",
-   "hours": null,
-   "ownership": null,
-   "setting": null,
-   "price": null,
+   "address": "192 Highland Rd, Massena, NY",
+   "lat": 44.94797,
+   "lng": -74.85318,
+   "approx": false,
+   "desc": "Boutique orchard with 20+ apple varieties, known for fresh cider and cider donuts in the fall.",
+   "link": null,
+   "source": "Local knowledge",
    "status": "open",
-   "verified": null,
-   "reviews": null
+   "verified": "2026-10-15"
   },
   {
-   "address": "176 Johnson Rd, Rensselaer Falls, NY",
-   "approx": false,
-   "category": "Orchard",
-   "desc": "U-pick apples, cider and pies; open Fri-Sun 10 AM-5 PM in season.",
    "id": "applewood-orchards",
-   "lat": 44.60388,
-   "link": "https://www.applewoodorchards.co/",
-   "lng": -75.31699,
    "name": "Applewood Orchards",
-   "source": "Local knowledge",
-   "town": "Rensselaer Falls",
-   "hours": null,
-   "ownership": null,
-   "setting": null,
-   "price": null,
-   "status": "open",
-   "verified": null,
-   "reviews": null
-  },
-  {
-   "address": "1538 CR-25, Canton, NY",
-   "approx": false,
    "category": "Orchard",
-   "desc": "U-pick farm specializing in heirloom and uncommon apple varieties; also at the Canton Farmers Market Fridays.",
+   "town": "Rensselaer Falls",
+   "address": "176 Johnson Rd, Rensselaer Falls, NY",
+   "lat": 44.60388,
+   "lng": -75.31699,
+   "approx": false,
+   "desc": "U-pick apples, cider and pies; open Fri-Sun 10 AM-5 PM in season.",
+   "link": "https://www.applewoodorchards.co/",
+   "source": "Local knowledge",
+   "status": "open",
+   "verified": "2026-10-15"
+  },
+  {
    "id": "canton-apples",
-   "lat": 44.55233,
-   "link": "",
-   "lng": -75.13452,
    "name": "Canton Apples",
-   "source": "Local knowledge",
+   "category": "Orchard",
    "town": "Canton",
-   "hours": null,
-   "ownership": null,
-   "setting": null,
-   "price": null,
-   "status": "open",
-   "verified": null,
-   "reviews": null
+   "address": "1538 CR-25, Canton, NY",
+   "lat": 44.55233,
+   "lng": -75.13452,
+   "approx": false,
+   "desc": "U-pick farm specializing in heirloom and uncommon apple varieties; also at the Canton Farmers Market Fridays.",
+   "link": null,
+   "source": "Local knowledge",
+   "status": "open"
   },
   {
-   "address": "3740 County Rd 14, Madrid, NY",
-   "approx": false,
-   "category": "Coffee",
-   "desc": "Small-town coffee shop and bakery with scratch-made pastries; open Wed-Sat mornings.",
    "id": "grasse-river-grind",
-   "lat": 44.74779,
-   "link": "https://grasserivergrind.com/",
-   "lng": -75.13252,
    "name": "Grasse River Grind",
-   "source": "Local knowledge",
+   "category": "Coffee",
    "town": "Madrid",
-   "hours": null,
-   "ownership": null,
-   "setting": null,
-   "price": null,
+   "address": "3740 County Rd 14, Madrid, NY",
+   "lat": 44.74779,
+   "lng": -75.13252,
+   "approx": false,
+   "desc": "Small-town coffee shop and bakery with scratch-made pastries; open Wed-Sat mornings.",
+   "link": "https://grasserivergrind.com/",
+   "source": "Local knowledge",
    "status": "open",
-   "verified": null,
-   "reviews": null
+   "verified": "2026-10-15"
   },
   {
-   "address": "20 Andrews St, Massena, NY",
-   "approx": false,
-   "category": "Coffee",
-   "desc": "Cozy downtown coffee house known for matcha lattes, espresso drinks and fresh pastries; open Tue-Sat.",
    "id": "esthers-coffee",
-   "lat": 44.93232,
-   "link": "https://www.estherscoffeehouse.com/",
-   "lng": -74.89381,
    "name": "Esther's Coffee House",
-   "source": "Local knowledge",
+   "category": "Coffee",
    "town": "Massena",
-   "hours": null,
-   "ownership": null,
-   "setting": null,
-   "price": null,
+   "address": "20 Andrews St, Massena, NY",
+   "lat": 44.93232,
+   "lng": -74.89381,
+   "approx": false,
+   "desc": "Cozy downtown coffee house known for matcha lattes, espresso drinks and fresh pastries; open Tue-Sat.",
+   "link": "https://www.estherscoffeehouse.com/",
+   "source": "Local knowledge",
    "status": "open",
-   "verified": null,
-   "reviews": null
+   "verified": "2026-10-15"
   },
   {
-   "address": "53 Willow St, Massena, NY",
-   "approx": false,
-   "category": "Coffee",
-   "desc": "Family-run cafe with scratch-made soups, sandwiches and a bakery case; breakfast and lunch Mon-Fri.",
    "id": "fourth-coast-cafe",
-   "lat": 44.9374,
-   "link": "",
-   "lng": -74.88216,
    "name": "Fourth Coast Cafe",
-   "source": "Local knowledge",
+   "category": "Coffee",
    "town": "Massena",
-   "hours": null,
-   "ownership": null,
-   "setting": null,
-   "price": null,
-   "status": "open",
-   "verified": null,
-   "reviews": null
+   "address": "53 Willow St, Massena, NY",
+   "lat": 44.9374,
+   "lng": -74.88216,
+   "approx": false,
+   "desc": "Family-run cafe with scratch-made soups, sandwiches and a bakery case; breakfast and lunch Mon-Fri.",
+   "link": null,
+   "source": "Local knowledge",
+   "status": "open"
   },
   {
-   "address": "11 Maple St, Potsdam, NY",
-   "approx": false,
-   "category": "Coffee",
-   "desc": "Community coffeehouse on Maple Street; hosts the weekly GOOD Cup gathering.",
    "id": "jernabi-coffeehouse",
-   "lat": 44.66798,
-   "link": "",
-   "lng": -74.98847,
    "name": "Jernabi Coffeehouse",
-   "source": "Local knowledge",
+   "category": "Coffee",
    "town": "Potsdam",
-   "hours": null,
-   "ownership": null,
-   "setting": null,
-   "price": null,
+   "address": "11 Maple St, Potsdam, NY",
+   "lat": 44.66798,
+   "lng": -74.98847,
+   "approx": false,
+   "desc": "Community coffeehouse on Maple Street; hosts the weekly GOOD Cup gathering.",
+   "link": null,
+   "source": "Local knowledge",
    "status": "open",
-   "verified": null,
-   "reviews": null
+   "verified": "2026-10-15"
   },
   {
    "id": "higley-flow",
@@ -150,15 +114,9 @@
    "lng": -74.90986,
    "approx": true,
    "desc": "Trails along the Raquette River; the classic student escape for hiking and paddling.",
-   "link": "",
+   "link": null,
    "source": "Local knowledge",
-   "hours": null,
-   "ownership": null,
-   "setting": null,
-   "price": null,
-   "status": "open",
-   "verified": null,
-   "reviews": null
+   "status": "open"
   },
   {
    "id": "ives-park",
@@ -170,15 +128,10 @@
    "lng": -74.98561,
    "approx": false,
    "desc": "Downtown green on the Raquette River; hosts the Light the Night tree lighting.",
-   "link": "",
+   "link": null,
    "source": "Local knowledge",
-   "hours": null,
-   "ownership": null,
-   "setting": null,
-   "price": null,
    "status": "open",
-   "verified": null,
-   "reviews": null
+   "verified": "2026-10-15"
   },
   {
    "id": "stone-valley",
@@ -190,15 +143,10 @@
    "lng": -74.93884,
    "approx": false,
    "desc": "Gorge trails along the Raquette River with rapids views.",
-   "link": "",
+   "link": null,
    "source": "Local knowledge",
-   "hours": null,
-   "ownership": null,
-   "setting": null,
-   "price": null,
    "status": "open",
-   "verified": null,
-   "reviews": null
+   "verified": "2026-10-15"
   },
   {
    "id": "potsdam-library",
@@ -210,15 +158,10 @@
    "lng": -74.98263,
    "approx": false,
    "desc": "Quiet off-campus study spot downtown.",
-   "link": "",
+   "link": null,
    "source": "Local knowledge",
-   "hours": null,
-   "ownership": null,
-   "setting": null,
-   "price": null,
    "status": "open",
-   "verified": null,
-   "reviews": null
+   "verified": "2026-10-15"
   },
   {
    "id": "roxy-theater",
@@ -230,15 +173,10 @@
    "lng": -74.98566,
    "approx": false,
    "desc": "Downtown movie theater.",
-   "link": "",
+   "link": null,
    "source": "Local knowledge",
-   "hours": null,
-   "ownership": null,
-   "setting": null,
-   "price": null,
    "status": "open",
-   "verified": null,
-   "reviews": null
+   "verified": "2026-10-15"
   },
   {
    "id": "maxfields",
@@ -252,13 +190,8 @@
    "desc": "Historic sandstone bar and grill on the river with live music.",
    "link": "http://www.maxfieldsofpotsdam.com/",
    "source": "Local knowledge",
-   "hours": null,
-   "ownership": null,
-   "setting": null,
-   "price": null,
    "status": "open",
-   "verified": null,
-   "reviews": null
+   "verified": "2026-10-15"
   },
   {
    "id": "cactus-grill",
@@ -272,13 +205,8 @@
    "desc": "Mesquite-grilled Mexican in an 1800s building; known for margaritas and queso.",
    "link": "https://cactusgrillcantina.gbiz.shop/",
    "source": "Local knowledge",
-   "hours": null,
-   "ownership": null,
-   "setting": null,
-   "price": null,
    "status": "open",
-   "verified": null,
-   "reviews": null
+   "verified": "2026-10-15"
   },
   {
    "id": "postwood-park",
@@ -290,15 +218,10 @@
    "lng": -74.96341,
    "approx": false,
    "desc": "Lifeguarded beach and park on the Raquette River; dogs allowed. Called the best beach in the North Country.",
-   "link": "",
+   "link": null,
    "source": "Facebook local groups",
-   "hours": null,
-   "ownership": null,
-   "setting": null,
-   "price": null,
    "status": "open",
-   "verified": null,
-   "reviews": null
+   "verified": "2026-10-15"
   },
   {
    "id": "56-auto-drivein",
@@ -310,15 +233,10 @@
    "lng": -74.9398,
    "approx": false,
    "desc": "Drive-in theater with double features under the stars; budget-friendly night out.",
-   "link": "",
+   "link": null,
    "source": "Facebook local groups",
-   "hours": null,
-   "ownership": null,
-   "setting": null,
-   "price": null,
    "status": "open",
-   "verified": null,
-   "reviews": null
+   "verified": "2026-10-15"
   },
   {
    "id": "township-7-brewing",
@@ -332,13 +250,7 @@
    "desc": "Small craft brewery; dog-friendly with live music.",
    "link": "http://township7brewing.com/",
    "source": "Facebook local groups",
-   "hours": null,
-   "ownership": null,
-   "setting": null,
-   "price": null,
-   "status": "open",
-   "verified": null,
-   "reviews": null
+   "status": "open"
   },
   {
    "id": "lampson-falls",
@@ -350,15 +262,10 @@
    "lng": -75.06372,
    "approx": false,
    "desc": "Waterfall hike recommended by locals in multiple threads.",
-   "link": "",
+   "link": null,
    "source": "Facebook local groups",
-   "hours": null,
-   "ownership": null,
-   "setting": null,
-   "price": null,
    "status": "open",
-   "verified": null,
-   "reviews": null
+   "verified": "2026-10-15"
   },
   {
    "id": "hoof-and-horn",
@@ -370,15 +277,10 @@
    "lng": -74.98661,
    "approx": false,
    "desc": "Butcher shop and eatery; known for the butter chicken burrito.",
-   "link": "",
+   "link": null,
    "source": "Facebook local groups",
-   "hours": null,
-   "ownership": null,
-   "setting": null,
-   "price": null,
    "status": "open",
-   "verified": null,
-   "reviews": null
+   "verified": "2026-10-15"
   },
   {
    "id": "silver-leaf-diner",
@@ -390,15 +292,9 @@
    "lng": -75.35514,
    "approx": false,
    "desc": "Family-run roadside diner; known for breakfast, homemade toast, pies and donuts.",
-   "link": "",
+   "link": null,
    "source": "Facebook local groups",
-   "hours": null,
-   "ownership": null,
-   "setting": null,
-   "price": null,
-   "status": "open",
-   "verified": null,
-   "reviews": null
+   "status": "open"
   },
   {
    "id": "billys-ice-cream",
@@ -410,15 +306,10 @@
    "lng": -74.97261,
    "approx": true,
    "desc": "Seasonal walk-up ice cream stand; soft serve and hard ice cream. Reopens in May.",
-   "link": "",
+   "link": null,
    "source": "Facebook local groups",
-   "hours": null,
-   "ownership": null,
-   "setting": null,
-   "price": null,
    "status": "open",
-   "verified": null,
-   "reviews": null
+   "verified": "2026-10-15"
   },
   {
    "id": "phillips-diner",
@@ -432,13 +323,8 @@
    "desc": "Family-owned diner, 4.5 stars; an Ogdensburg institution.",
    "link": "http://www.phillipsdiner.com/",
    "source": "Local research",
-   "hours": null,
-   "ownership": null,
-   "setting": null,
-   "price": null,
    "status": "open",
-   "verified": null,
-   "reviews": null
+   "verified": "2026-10-15"
   },
   {
    "id": "wimpys-inn",
@@ -452,13 +338,8 @@
    "desc": "Retro burger joint, 5.0 stars; secret Wimpy sauce.",
    "link": "https://www.wimpysinn.com/about-us",
    "source": "Local research",
-   "hours": null,
-   "ownership": null,
-   "setting": null,
-   "price": null,
    "status": "open",
-   "verified": null,
-   "reviews": null
+   "verified": "2026-10-15"
   },
   {
    "id": "freight-house",
@@ -472,13 +353,7 @@
    "desc": "Historic train-themed restaurant; prime rib and Reuben.",
    "link": "https://m.facebook.com/thefreighthouserestaurant/",
    "source": "Local research",
-   "hours": null,
-   "ownership": null,
-   "setting": null,
-   "price": null,
-   "status": "open",
-   "verified": null,
-   "reviews": null
+   "status": "open"
   },
   {
    "id": "tiki-at-the-docks",
@@ -492,13 +367,7 @@
    "desc": "The only bar in Ogdensburg on the St. Lawrence River.",
    "link": "http://atthedocks.com/",
    "source": "Local research",
-   "hours": null,
-   "ownership": null,
-   "setting": null,
-   "price": null,
-   "status": "open",
-   "verified": null,
-   "reviews": null
+   "status": "open"
   },
   {
    "id": "busters-restaurant",
@@ -512,13 +381,8 @@
    "desc": "Sports bar famous for its 20-foot salad bar.",
    "link": "https://busterssportsbarny.com/",
    "source": "Local research",
-   "hours": null,
-   "ownership": null,
-   "setting": null,
-   "price": null,
    "status": "open",
-   "verified": null,
-   "reviews": null
+   "verified": "2026-10-15"
   },
   {
    "id": "nadines-ice-cream",
@@ -532,13 +396,7 @@
    "desc": "4.8-star ice cream shop; hard and soft serve, flurries.",
    "link": "https://www.facebook.com/NadinesIceCream/",
    "source": "Local research",
-   "hours": null,
-   "ownership": null,
-   "setting": null,
-   "price": null,
-   "status": "open",
-   "verified": null,
-   "reviews": null
+   "status": "open"
   },
   {
    "id": "snackline-sweets",
@@ -550,15 +408,9 @@
    "lng": -75.48884,
    "approx": false,
    "desc": "Downtown ice cream, dirty sodas, carnival snacks.",
-   "link": "",
+   "link": null,
    "source": "Local research",
-   "hours": null,
-   "ownership": null,
-   "setting": null,
-   "price": null,
-   "status": "open",
-   "verified": null,
-   "reviews": null
+   "status": "open"
   },
   {
    "id": "sandwich-warehouse",
@@ -572,13 +424,7 @@
    "desc": "4.9-star sandwich shop; huge portions, homemade soup.",
    "link": "https://www.facebook.com/Sandwich-Warehouse-321650111347537/",
    "source": "Local research",
-   "hours": null,
-   "ownership": null,
-   "setting": null,
-   "price": null,
-   "status": "open",
-   "verified": null,
-   "reviews": null
+   "status": "open"
   },
   {
    "id": "ogdensburg-command-performances",
@@ -592,13 +438,7 @@
    "desc": "Performing arts theater; the town's live-show venue.",
    "link": "https://ilovetheatre.org/",
    "source": "Local research",
-   "hours": null,
-   "ownership": null,
-   "setting": null,
-   "price": null,
-   "status": "open",
-   "verified": null,
-   "reviews": null
+   "status": "open"
   },
   {
    "id": "maple-city-trail",
@@ -612,13 +452,7 @@
    "desc": "2+ mile trail along the Oswegatchie River.",
    "link": "https://www.stlctrails.com/trails/trail/maple-city-trail",
    "source": "Local research",
-   "hours": null,
-   "ownership": null,
-   "setting": null,
-   "price": null,
-   "status": "open",
-   "verified": null,
-   "reviews": null
+   "status": "open"
   },
   {
    "id": "morissette-park",
@@ -630,15 +464,9 @@
    "lng": -75.49356,
    "approx": false,
    "desc": "Riverfront park; hosts the city's Fall Festival.",
-   "link": "",
+   "link": null,
    "source": "Local research",
-   "hours": null,
-   "ownership": null,
-   "setting": null,
-   "price": null,
-   "status": "open",
-   "verified": null,
-   "reviews": null
+   "status": "open"
   },
   {
    "id": "ogdensburg-public-library",
@@ -652,13 +480,7 @@
    "desc": "Public library with an active events lineup.",
    "link": "https://ogdensburgpubliclibrary.org/",
    "source": "Local research",
-   "hours": null,
-   "ownership": null,
-   "setting": null,
-   "price": null,
-   "status": "open",
-   "verified": null,
-   "reviews": null
+   "status": "open"
   },
   {
    "id": "coles-creek-state-park",
@@ -672,13 +494,7 @@
    "desc": "State park; sandy St. Lawrence beach, marina, 230+ campsites.",
    "link": "https://parks.ny.gov/parks/colescreek/details.aspx",
    "source": "Local research",
-   "hours": null,
-   "ownership": null,
-   "setting": null,
-   "price": null,
-   "status": "open",
-   "verified": null,
-   "reviews": null
+   "status": "open"
   },
   {
    "id": "main-street-perc",
@@ -692,13 +508,7 @@
    "desc": "Family bakery-cafe; Green Mountain coffee, homemade baked goods.",
    "link": "http://www.facebook.com/mainstreetperc",
    "source": "Local research",
-   "hours": null,
-   "ownership": null,
-   "setting": null,
-   "price": null,
-   "status": "open",
-   "verified": null,
-   "reviews": null
+   "status": "open"
   },
   {
    "id": "artworks-creperie",
@@ -712,13 +522,7 @@
    "desc": "Creperie and French bistro on Main Street.",
    "link": "http://www.acbistro.com/",
    "source": "Local research",
-   "hours": null,
-   "ownership": null,
-   "setting": null,
-   "price": null,
-   "status": "open",
-   "verified": null,
-   "reviews": null
+   "status": "open"
   },
   {
    "id": "lake-st-lawrence-arts",
@@ -732,13 +536,7 @@
    "desc": "Co-op art gallery; rotating exhibits and workshops.",
    "link": "https://lakestlawrencearts.com/",
    "source": "Local research",
-   "hours": null,
-   "ownership": null,
-   "setting": null,
-   "price": null,
-   "status": "open",
-   "verified": null,
-   "reviews": null
+   "status": "open"
   },
   {
    "id": "jcs-river-run",
@@ -752,13 +550,7 @@
    "desc": "Riverside bar and grill; live weekend music.",
    "link": "https://jcsriverrunbarandgrill.godaddysites.com/",
    "source": "Local research",
-   "hours": null,
-   "ownership": null,
-   "setting": null,
-   "price": null,
-   "status": "open",
-   "verified": null,
-   "reviews": null
+   "status": "open"
   },
   {
    "id": "g2-brickhouse",
@@ -772,14 +564,7 @@
    "desc": "Takeout comfort food; pulled pork nachos.",
    "link": "https://www.facebook.com/G2brickhouse/",
    "source": "Local research",
-   "hours": null,
-   "ownership": null,
-   "setting": null,
-   "price": null,
-   "status": "open",
-   "verified": null,
-   "reviews": null
+   "status": "open"
   }
- ],
- "updated": "2026-10-13"
+ ]
 }
