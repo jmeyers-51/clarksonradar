@@ -123,18 +123,12 @@
   .chip:hover { border-color: rgba(232,179,75,.5); }
 
   /* ============ list panel ============ */
-  #listbtn {
-    position: fixed; left: 12px; bottom: 14px; z-index: 20;
-    background: rgba(13,14,19,.9); border: 1px solid var(--line); color: var(--txt);
-    font: 600 13px Inter, sans-serif; padding: 11px 18px; border-radius: 999px;
-    cursor: pointer; box-shadow: var(--shadow); backdrop-filter: blur(12px);
-  }
-  #listbtn:hover { border-color: rgba(232,179,75,.5); }
+  #listbtn { display: none; }
   #listpanel {
     position: fixed; left: 12px; top: 120px; bottom: 70px; width: 340px; max-width: 86vw; z-index: 25;
     background: rgba(17,20,27,.96); border: 1px solid var(--line); border-radius: 16px;
     box-shadow: var(--shadow); backdrop-filter: blur(16px);
-    display: none; flex-direction: column; overflow: hidden;
+    display: flex; flex-direction: column; overflow: hidden;
   }
   #listpanel.open { display: flex; }
   #listpanel .lp-head {
@@ -413,7 +407,7 @@ var map = new maplibregl.Map({
 var homeCam = null; // {center, zoom} captured after first framing
 
 function jumpHome() {
-  if (homeCam) { try { map.jumpTo(homeCam); } catch (err) {} }
+  if (homeCam) { try { map.flyTo({ center: homeCam.center, zoom: homeCam.zoom, duration: 1400 }); } catch (err) {} }
 }
 
 /* ================= data ================= */
@@ -506,8 +500,13 @@ function clearMarkers() {
 function makePin(e) {
   var el = document.createElement("div");
   el.className = "mk" + (isClosed(e) ? " closedm" : "") + (state.selected === e.id ? " sel" : "");
+  // heat glow scales with rating: unrated = faint whisper, 5 stars = full blaze
   var heat = document.createElement("div");
   heat.className = "heat";
+  var r = (e.rating == null ? 0 : e.rating);
+  heat.style.opacity = String(0.12 + (r / 5) * 0.88);
+  var sz = Math.round(70 + (r / 5) * 90);
+  heat.style.width = sz + "px"; heat.style.height = sz + "px";
   el.appendChild(heat);
   var pin = document.createElement("div");
   pin.className = "pin";
@@ -680,8 +679,10 @@ function openSheet(e) {
   state.selected = e.id;
   renderSheetBody(e);
   $("sheet").classList.add("open");
-  // refresh selection highlight without moving anything
   renderMarkers();
+  // smooth zoom into the place
+  try { map.flyTo({ center: [e.lng, e.lat], zoom: Math.max(map.getZoom(), 14), duration: 1400 }); }
+  catch (err) {}
   try { history.replaceState({ sel: e.id }, "", "#" + e.kind + "=" + encodeURIComponent(e.id)); }
   catch (err) {}
 }
@@ -722,7 +723,17 @@ document.querySelectorAll("#modeSeg button").forEach(function (b) {
     fadeRender();
   });
 });
-$("gearBtn").addEventListener("click", function () { setAdmin(true); });
+$("gearBtn").addEventListener("click", function () {
+  if (state.admin) { setAdmin(false); return; }
+  var t = ghToken();
+  if (!t) {
+    var tok = prompt("Paste your GitHub personal access token (saved in this browser only):");
+    if (!tok || !tok.trim()) return;
+    localStorage.setItem("radar-gh-token", tok.trim());
+  }
+  setAdmin(true);
+  tip("Admin mode on -- 10 min idle timeout");
+});
 
 /* Heat visibility follows zoom. Display-only; markers are untouched. */
 map.on("moveend", function () {
@@ -790,18 +801,31 @@ function updateUndoBtns() {
   $("undoBtn").disabled = !undoStack.length;
   $("redoBtn").disabled = !redoStack.length;
 }
-function markDirtyEvents() { $("dlBtn").textContent = "Save events \u25cf"; }
-function markDirtyPlaces() { $("dlBtn2").textContent = "Save places \u25cf"; }
+function markDirtyEvents() { var b = $("pubBtn"); if (b) b.textContent = "Publish \u25cf"; }
+function markDirtyPlaces() { var b = $("pubBtn"); if (b) b.textContent = "Publish \u25cf"; }
 
 function setAdmin(on) {
   state.admin = on;
   document.body.classList.toggle("admin", on);
-  $("dlBtn").textContent = "Save events";
-  $("dlBtn2").textContent = "Save places";
-  if (on) pushUndo();
+  if (on) { touchAdminSession(); pushUndo(); }
   updateUndoBtns();
   closeSheet();
+  renderMarkers();
 }
+/* Admin session: stays alive 10 minutes from last activity (sliding window). */
+var ADMIN_TIMEOUT = 10 * 60 * 1000;
+function adminSessionValid() {
+  return Date.now() < parseInt(sessionStorage.getItem("radar-admin-until") || "0", 10);
+}
+function touchAdminSession() {
+  if (state.admin) sessionStorage.setItem("radar-admin-until", String(Date.now() + ADMIN_TIMEOUT));
+}
+setInterval(function () {
+  if (state.admin && !adminSessionValid()) { setAdmin(false); tip("Admin mode timed out after 10 idle minutes"); }
+}, 30000);
+["click", "keydown"].forEach(function (ev) {
+  document.addEventListener(ev, function () { touchAdminSession(); }, { passive: true });
+});
 
 function download(name, obj) {
   var blob = new Blob([JSON.stringify(obj, null, 1)], { type: "application/json" });
@@ -856,6 +880,9 @@ function adminEdit(e) {
   h += fld("Description", "desc", e.desc, true);
   h += fld("Link", "link", e.link);
   h += fld("Note (shown on card)", "note", e.note, true);
+  if (!isEv) {
+    h += '<label>Rating (drives heat glow)</label><div id="f_stars" style="font-size:26px;cursor:pointer;letter-spacing:4px"></div>';
+  }
   h += '<div class="row" style="display:flex;gap:8px;margin-top:14px;">' +
     '<button class="sbtn go" id="f_save">Save</button>' +
     '<button class="sbtn" id="f_cancel">Cancel</button></div>';
@@ -867,6 +894,21 @@ function adminEdit(e) {
   $("modal").classList.add("open");
 
   function val(k) { var el = $("f_" + k); return el ? el.value.trim() : ""; }
+  var editRating = (e.rating == null ? 0 : e.rating);
+  function drawEditStars() {
+    var el = $("f_stars"); if (!el) return;
+    el.innerHTML = [1, 2, 3, 4, 5].map(function (i) {
+      return '<span data-i="' + i + '" style="color:' + (i <= editRating ? "#e8b34b" : "#3a3f52") + '">&#9733;</span>';
+    }).join("");
+    el.querySelectorAll("span").forEach(function (sp) {
+      sp.addEventListener("click", function () {
+        var i = parseInt(sp.dataset.i, 10);
+        editRating = (i === editRating) ? 0 : i; // tap same star to clear
+        drawEditStars();
+      });
+    });
+  }
+  drawEditStars();
   $("f_save").addEventListener("click", function () {
     pushUndo();
     if (isEv) {
@@ -874,6 +916,7 @@ function adminEdit(e) {
       markDirtyEvents();
     } else {
       e.name = val("title"); e.category = val("category"); e.hours = val("hours");
+      e.rating = editRating || null;
       markDirtyPlaces();
     }
     e.town = val("town"); e.desc = val("desc"); e.link = val("link") || null; e.note = val("note");
@@ -899,21 +942,21 @@ $("modal").addEventListener("click", function (ev) {
 });
 
 /* admin toolbar wiring */
+function ghToken() { return (localStorage.getItem("radar-gh-token") || "").trim(); }
 function buildAdminBar() {
   $("admin").innerHTML =
     '<div class="abar"><h2>Radar Admin</h2>' +
     '<div class="atabs">' +
     '<button class="sbtn" id="undoBtn">Undo</button>' +
     '<button class="sbtn" id="redoBtn">Redo</button>' +
-    '<button class="sbtn go" id="dlBtn">Save events</button>' +
-    '<button class="sbtn go" id="dlBtn2">Save places</button>' +
+    '<button class="sbtn go" id="pubBtn">Publish</button>' +
     '<button class="sbtn danger" id="discardBtn">Discard</button>' +
     '<button class="sbtn" id="exitAdminBtn">Exit</button>' +
     "</div></div>" +
-    '<div class="cards"><div class="card"><h3>Pin positions</h3>' +
-    '<div class="meta">Drag any pin on the map to move it. Use Undo if you make a mistake. ' +
-    "Download the JSON files when you're done and send them to be pushed live.</div></div>" +
-    '<div class="card"><h3>Full staging</h3><div class="meta">Review queues, geocoding, and bulk publishing live in ' +
+    '<div class="cards"><div class="card"><h3>Quick edits</h3>' +
+    '<div class="meta">Tap any pin or list item to edit it inline. Drag pins to move them. ' +
+    "Hit Publish when you're done -- it goes live in ~2 minutes. No files to download.</div></div>" +
+    '<div class="card"><h3>Full admin</h3><div class="meta">Deeper work lives in ' +
     '<a href="admin.html" style="color:var(--acc)">admin.html</a>.</div></div></div>';
 
   $("exitAdminBtn").addEventListener("click", function () { setAdmin(false); });
@@ -932,19 +975,30 @@ function buildAdminBar() {
   $("discardBtn").addEventListener("click", function () {
     if (confirm("Throw away all changes made in this admin session?")) location.reload();
   });
-  $("dlBtn").addEventListener("click", function () {
-    download("events.json", {
-      updated: new Date().toISOString().slice(0, 10),
-      events: state.events.map(cleanEvent)
+  $("pubBtn").addEventListener("click", publishPlaces);
+}
+async function publishPlaces() {
+  var t = ghToken();
+  if (!t) { tip("No GitHub token saved -- add one in admin.html settings first"); return; }
+  var btn = $("pubBtn"); btn.disabled = true; btn.textContent = "Publishing...";
+  try {
+    var get = await fetch("https://api.github.com/repos/jmeyers-51/clarksonradar/contents/places.json?ref=main", {
+      headers: { Authorization: "Bearer " + t, Accept: "application/vnd.github+json" } });
+    if (!get.ok) throw new Error("read failed: " + get.status);
+    var meta = await get.json();
+    var body = { updated: new Date().toISOString().slice(0, 10), places: state.places.map(cleanPlace) };
+    var content = btoa(unescape(encodeURIComponent(JSON.stringify(body, null, 1))));
+    var put = await fetch("https://api.github.com/repos/jmeyers-51/clarksonradar/contents/places.json", {
+      method: "PUT",
+      headers: { Authorization: "Bearer " + t, Accept: "application/vnd.github+json",
+                 "Content-Type": "application/json" },
+      body: JSON.stringify({ message: "Quick edit: update places (" + state.places.length + ")",
+                             content: content, sha: meta.sha, branch: "main" })
     });
-    $("dlBtn").textContent = "Save events";
-    tip("events.json saved -- send it to be pushed live");
-  });
-  $("dlBtn2").addEventListener("click", function () {
-    download("places.json", { places: state.places.map(cleanPlace) });
-    $("dlBtn2").textContent = "Save places";
-    tip("places.json saved -- send it to be pushed live");
-  });
+    if (!put.ok) throw new Error("write failed: " + put.status);
+    tip("Published -- live in ~2 minutes");
+  } catch (e) { tip("Publish failed: " + e.message); }
+  btn.disabled = false; btn.textContent = "Publish";
 }
 buildAdminBar();
 </script>

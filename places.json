@@ -14,7 +14,8 @@
    "link": null,
    "source": "Local knowledge",
    "status": "open",
-   "verified": "2026-10-15"
+   "verified": "2026-10-15",
+   "rating": null
   },
   {
    "id": "applewood-orchards",
@@ -29,7 +30,8 @@
    "link": "https://www.applewoodorchards.co/",
    "source": "Local knowledge",
    "status": "open",
-   "verified": "2026-10-15"
+   "verified": "2026-10-15",
+   "rating": null
   },
   {
    "id": "grasse-river-grind",
@@ -44,7 +46,8 @@
    "link": "https://grasserivergrind.com/",
    "source": "Local knowledge",
    "status": "open",
-   "verified": "2026-10-15"
+   "verified": "2026-10-15",
+   "rating": null
   },
   {
    "id": "esthers-coffee",
@@ -59,7 +62,8 @@
    "link": "https://www.estherscoffeehouse.com/",
    "source": "Local knowledge",
    "status": "open",
-   "verified": "2026-10-15"
+   "verified": "2026-10-15",
+   "rating": null
   },
   {
    "id": "jernabi-coffeehouse",
@@ -74,7 +78,8 @@
    "link": null,
    "source": "Local knowledge",
    "status": "open",
-   "verified": "2026-10-15"
+   "verified": "2026-10-15",
+   "rating": null
   },
   {
    "id": "ives-park",
@@ -89,7 +94,8 @@
    "link": null,
    "source": "Local knowledge",
    "status": "open",
-   "verified": "2026-10-15"
+   "verified": "2026-10-15",
+   "rating": null
   },
   {
    "id": "stone-valley",
@@ -104,7 +110,8 @@
    "link": null,
    "source": "Local knowledge",
    "status": "open",
-   "verified": "2026-10-15"
+   "verified": "2026-10-15",
+   "rating": null
   },
   {
    "id": "potsdam-library",
@@ -119,7 +126,8 @@
    "link": null,
    "source": "Local knowledge",
    "status": "open",
-   "verified": "2026-10-15"
+   "verified": "2026-10-15",
+   "rating": null
   },
   {
    "id": "roxy-theater",
@@ -134,7 +142,8 @@
    "link": null,
    "source": "Local knowledge",
    "status": "open",
-   "verified": "2026-10-15"
+   "verified": "2026-10-15",
+   "rating": null
   },
   {
    "id": "maxfields",
@@ -149,7 +158,8 @@
    "link": "http://www.maxfieldsofpotsdam.com/",
    "source": "Local knowledge",
    "status": "open",
-   "verified": "2026-10-15"
+   "verified": "2026-10-15",
+   "rating": null
   },
   {
    "id": "cactus-grill",
@@ -164,7 +174,8 @@
    "link": "https://cactusgrillcantina.gbiz.shop/",
    "source": "Local knowledge",
    "status": "open",
-   "verified": "2026-10-15"
+   "verified": "2026-10-15",
+   "rating": null
   },
   {
    "id": "postwood-park",
@@ -179,7 +190,8 @@
    "link": null,
    "source": "Facebook local groups",
    "status": "open",
-   "verified": "2026-10-15"
+   "verified": "2026-10-15",
+   "rating": null
   },
   {
    "id": "56-auto-drivein",
@@ -194,7 +206,8 @@
    "link": null,
    "source": "Facebook local groups",
    "status": "open",
-   "verified": "2026-10-15"
+   "verified": "2026-10-15",
+   "rating": null
   },
   {
    "id": "lampson-falls",
@@ -209,7 +222,8 @@
    "link": null,
    "source": "Facebook local groups",
    "status": "open",
-   "verified": "2026-10-15"
+   "verified": "2026-10-15",
+   "rating": null
   },
   {
    "id": "hoof-and-horn",
@@ -224,7 +238,8 @@
    "link": null,
    "source": "Facebook local groups",
    "status": "open",
-   "verified": "2026-10-15"
+   "verified": "2026-10-15",
+   "rating": null
   },
   {
    "id": "billys-ice-cream",
@@ -239,7 +254,8 @@
    "link": null,
    "source": "Facebook local groups",
    "status": "open",
-   "verified": "2026-10-15"
+   "verified": "2026-10-15",
+   "rating": null
   },
   {
    "id": "phillips-diner",
@@ -254,7 +270,8 @@
    "link": "http://www.phillipsdiner.com/",
    "source": "Local research",
    "status": "open",
-   "verified": "2026-10-15"
+   "verified": "2026-10-15",
+   "rating": null
   },
   {
    "id": "wimpys-inn",
@@ -269,7 +286,8 @@
    "link": "https://www.wimpysinn.com/about-us",
    "source": "Local research",
    "status": "open",
-   "verified": "2026-10-15"
+   "verified": "2026-10-15",
+   "rating": null
   },
   {
    "id": "busters-restaurant",
@@ -284,7 +302,8 @@
    "link": "https://busterssportsbarny.com/",
    "source": "Local research",
    "status": "open",
-   "verified": "2026-10-15"
+   "verified": "2026-10-15",
+   "rating": null
   },
   {
    "id": "pl-fall-island",
@@ -299,7 +318,8 @@
    "link": null,
    "source": "Direct knowledge",
    "status": "open",
-   "verified": "2026-10-15"
+   "verified": "2026-10-15",
+   "rating": null
   },
   {
    "id": "pl-lehman-park",
@@ -314,7 +334,8 @@
    "link": null,
    "source": "Direct knowledge",
    "status": "open",
-   "verified": "2026-10-15"
+   "verified": "2026-10-15",
+   "rating": null
   },
   {
    "id": "pl-suny-potsdam",
@@ -329,7 +350,8 @@
    "link": null,
    "source": "Direct knowledge",
    "status": "open",
-   "verified": "2026-10-15"
+   "verified": "2026-10-15",
+   "rating": null
   },
   {
    "id": "pl-stables-windy-point",
@@ -344,7 +366,8 @@
    "link": null,
    "source": "Direct knowledge",
    "status": "open",
-   "verified": "2026-10-15"
+   "verified": "2026-10-15",
+   "rating": null
   },
   {
    "id": "pl-shindigz-river",
@@ -359,7 +382,8 @@
    "link": null,
    "source": "Direct knowledge",
    "status": "open",
-   "verified": "2026-10-15"
+   "verified": "2026-10-15",
+   "rating": null
   },
   {
    "id": "pl-suny-canton",
@@ -374,7 +398,8 @@
    "link": null,
    "source": "Direct knowledge",
    "status": "open",
-   "verified": "2026-10-15"
+   "verified": "2026-10-15",
+   "rating": null
   },
   {
    "id": "pl-clarkson-university",
@@ -389,7 +414,8 @@
    "link": null,
    "source": "Direct knowledge",
    "status": "open",
-   "verified": "2026-10-15"
+   "verified": "2026-10-15",
+   "rating": null
   },
   {
    "id": "pl-waddington-beach",
@@ -404,7 +430,8 @@
    "link": null,
    "source": "Direct knowledge",
    "status": "open",
-   "verified": "2026-10-15"
+   "verified": "2026-10-15",
+   "rating": null
   },
   {
    "id": "pl-azure-mountain",
@@ -419,7 +446,8 @@
    "link": null,
    "source": "Direct knowledge",
    "status": "open",
-   "verified": "2026-10-15"
+   "verified": "2026-10-15",
+   "rating": null
   },
   {
    "id": "pl-titus-mountain",
@@ -434,7 +462,8 @@
    "link": null,
    "source": "Direct knowledge",
    "status": "open",
-   "verified": "2026-10-15"
+   "verified": "2026-10-15",
+   "rating": null
   },
   {
    "id": "pl-rapid-view",
@@ -449,7 +478,8 @@
    "link": null,
    "source": "Direct knowledge",
    "status": "open",
-   "verified": "2026-10-15"
+   "verified": "2026-10-15",
+   "rating": null
   }
  ]
 }
