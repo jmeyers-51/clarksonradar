@@ -435,6 +435,21 @@
    "source": "Direct knowledge",
    "status": "open",
    "verified": "2026-10-15"
+  },
+  {
+   "id": "pl-rapid-view",
+   "name": "Rapid View Venue",
+   "category": "Venues",
+   "town": "Chase Mills",
+   "address": "107 County Rd 36, Chase Mills, NY",
+   "lat": 44.8489,
+   "lng": -75.0808,
+   "approx": true,
+   "desc": "Family-run wedding venue overlooking the Grasse River rapids.",
+   "link": null,
+   "source": "Direct knowledge",
+   "status": "open",
+   "verified": "2026-10-15"
   }
  ]
 }

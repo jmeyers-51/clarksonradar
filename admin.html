@@ -1,903 +1,309 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<meta name="color-scheme" content="dark" />
-<title>North Country Radar — Admin</title>
-<link rel="icon" href="data:," />
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@700;800&display=swap" rel="stylesheet" />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Radar Admin</title>
+<link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
 <style>
-  :root {
-    --ink: #f2f5f4; --muted: #9aa7a3; --line: rgba(255,255,255,0.10);
-    --bg: #0b0e10; --panel: #101416; --panel2: #151b1e;
-    --accent: #e8e4da; --blue: #5b8def; --green: #4fe08f; --gold: #ffb35c; --red: #ff9d9d;
-    --radius: 14px;
-    --ease: cubic-bezier(.32,.72,.24,1);
-  }
+  :root { color-scheme: dark; }
   * { box-sizing: border-box; }
-  html, body { margin: 0; min-height: 100%; }
-  body { font-family: "Inter", -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--ink); -webkit-font-smoothing: antialiased; }
-  a { color: var(--blue); }
-
-  #loginView { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
-  .logincard { width: min(400px, 100%); background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 32px 28px; }
-  .logincard h1 { font-family: 'Sora', sans-serif; font-size: 22px; margin: 0 0 6px; letter-spacing: -0.3px; }
-  .logincard p { color: var(--muted); font-size: 13.5px; margin: 0 0 20px; line-height: 1.6; }
-  .field { margin-bottom: 14px; }
-  .field label { display: block; font-size: 11px; font-weight: 700; letter-spacing: 0.7px; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
-  .field input, .field select, .field textarea {
-    width: 100%; background: rgba(255,255,255,0.06); border: 1px solid var(--line);
-    border-radius: 10px; color: var(--ink); padding: 10px 12px; font: inherit; font-size: 14px; outline: none;
-  }
-  .field input:focus, .field select:focus, .field textarea:focus { border-color: rgba(255,255,255,0.3); }
-  .field textarea { min-height: 76px; resize: vertical; }
-  .field .hint { font-size: 12px; color: var(--muted); margin-top: 5px; line-height: 1.5; }
-  .btn { font: inherit; font-size: 14px; font-weight: 600; border: 1px solid var(--line); background: rgba(255,255,255,0.07);
-    color: var(--ink); border-radius: 10px; padding: 10px 16px; cursor: pointer; transition: all 160ms var(--ease); }
-  .btn:hover { background: rgba(255,255,255,0.12); }
-  .btn:active { transform: scale(.97); }
-  .btn.primary { background: var(--accent); color: #101414; border-color: transparent; }
-  .btn.primary:hover { background: #fff; }
-  .btn.danger { border-color: rgba(255,157,157,0.5); color: var(--red); }
-  .btn.small { font-size: 12.5px; padding: 7px 11px; }
-  .btn:disabled { opacity: 0.4; cursor: default; }
-  .loginerr { color: var(--red); font-size: 13px; min-height: 20px; margin-top: 10px; }
-
-  #app { display: none; }
-  header.top { position: sticky; top: 0; z-index: 20; background: rgba(11,14,16,0.92); backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--line); padding: 14px 22px; }
-  .topinner { max-width: 1060px; margin: 0 auto; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
-  .brand { font-family: 'Sora', sans-serif; font-weight: 800; font-size: 17px; letter-spacing: -0.2px; }
-  .brand small { display: block; font-family: 'Inter', sans-serif; font-weight: 500; font-size: 11.5px; color: var(--muted); letter-spacing: 0.4px; }
-  nav.tabs { display: flex; gap: 4px; margin-left: 12px; flex-wrap: wrap; }
-  nav.tabs button { font: inherit; font-size: 13.5px; font-weight: 600; background: none; border: none; color: var(--muted);
-    padding: 9px 13px; border-radius: 10px; cursor: pointer; transition: all 160ms var(--ease); }
-  nav.tabs button:hover { color: var(--ink); background: rgba(255,255,255,0.05); }
-  nav.tabs button.on { color: var(--ink); background: rgba(255,255,255,0.09); }
-  nav.tabs .tbadge { display: inline-block; min-width: 20px; text-align: center; font-size: 11px; font-weight: 700;
-    background: var(--blue); color: #0b0e10; border-radius: 999px; padding: 1px 6px; margin-left: 6px; }
-  nav.tabs .tbadge.warn { background: var(--gold); }
-  .topright { margin-left: auto; display: flex; gap: 8px; align-items: center; }
-  .dirtydot { font-size: 12px; color: var(--gold); font-weight: 600; display: none; }
-  main { max-width: 1060px; margin: 0 auto; padding: 26px 22px 80px; }
-  section.tab { display: none; }
-  section.tab.on { display: block; animation: fadein 200ms var(--ease); }
-  @keyframes fadein { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-  .hero { font-family: 'Sora', sans-serif; margin: 0 0 4px; font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
-  .herosub { color: var(--muted); font-size: 13.5px; margin: 0 0 22px; line-height: 1.6; }
-
-  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 26px; }
-  .stat { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; }
-  .stat .n { font-size: 30px; font-weight: 800; letter-spacing: -0.5px; }
-  .stat .l { font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px; margin-top: 4px; }
-  .stat.blue .n { color: var(--blue); } .stat.green .n { color: var(--green); }
-  .stat.gold .n { color: var(--gold); } .stat.red .n { color: var(--red); }
-  .quickrow { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 26px; }
-  .panelbox { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; }
-  .panelbox h3 { margin: 0 0 10px; font-size: 15px; font-family: 'Sora', sans-serif; }
-  .panelbox p { color: var(--muted); font-size: 13.5px; line-height: 1.65; margin: 0 0 12px; }
-  .panelbox ol, .panelbox ul { color: var(--muted); font-size: 13.5px; line-height: 1.7; margin: 0 0 12px; padding-left: 20px; }
-
-  /* attention items */
-  .attn { display: flex; gap: 14px; align-items: center; padding: 14px 16px; border-radius: 12px;
-    background: var(--panel2); border: 1px solid var(--line); margin-bottom: 10px; }
-  .attn .adot { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0; }
-  .attn .abody { flex: 1; min-width: 0; }
-  .attn .at { font-weight: 700; font-size: 14.5px; }
-  .attn .as { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
-  .attn .btn { flex-shrink: 0; }
-  .attnok { text-align: center; color: var(--muted); padding: 26px; font-size: 14px;
-    background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); }
-
-  .revpacket { border: 1px solid var(--line); border-radius: var(--radius); margin-bottom: 14px;
-    background: var(--panel); overflow: hidden; border-top: 3px solid var(--kc, #fff); }
-  .revpacket.kev { --kc: var(--blue); } .revpacket.kpl { --kc: var(--green); }
-  .rev-body { padding: 16px 18px 18px; }
-  .rev-top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
-  .rev-kind { font-size: 11px; font-weight: 800; letter-spacing: 0.9px; color: var(--kc); }
-  .rev-date { font-size: 13px; font-weight: 600; }
-  .rev-dist { margin-left: auto; font-size: 12.5px; color: var(--muted); font-weight: 600; }
-  .rev-hero { font-family: 'Sora', sans-serif; font-size: 22px; font-weight: 800; line-height: 1.25; letter-spacing: -0.4px; margin: 0 0 14px; }
-  .rev-zone { margin-bottom: 12px; }
-  .rev-zlab { font-size: 10.5px; font-weight: 800; letter-spacing: 0.9px; color: var(--muted); margin-bottom: 5px; }
-  .rev-where { font-size: 14.5px; font-weight: 600; }
-  .rev-geo { font-size: 12.5px; color: var(--muted); margin-top: 3px; }
-  .rev-fact { font-size: 13.5px; margin: 5px 0; line-height: 1.6; }
-  .rev-fact b { color: var(--muted); font-weight: 700; text-transform: uppercase; font-size: 10.5px; letter-spacing: 0.5px; margin-right: 8px; }
-  .rev-rec { font-size: 13.5px; padding: 10px 13px; border-radius: 10px; margin-bottom: 14px; line-height: 1.6; }
-  .rev-rec.ok { background: rgba(79,224,143,0.08); border: 1px solid rgba(79,224,143,0.3); }
-  .rev-rec.no { background: rgba(255,255,255,0.04); border: 1px solid var(--line); color: var(--muted); }
-  .rev-actions { display: flex; gap: 10px; }
-  .revempty { color: var(--muted); font-size: 14px; text-align: center; padding: 36px 16px; line-height: 1.7;
-    background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); }
-
-  .toolbar { display: flex; gap: 10px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
-  .toolbar .spacer { flex: 1; }
-  .toolbar input[type="search"] { background: rgba(255,255,255,0.06); border: 1px solid var(--line);
-    border-radius: 10px; color: var(--ink); padding: 9px 12px; font: inherit; font-size: 13.5px; max-width: 240px; }
-  .tbl { width: 100%; border-collapse: collapse; background: var(--panel); border: 1px solid var(--line);
-    border-radius: var(--radius); overflow: hidden; font-size: 13.5px; }
-  .tbl th { text-align: left; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.7px; color: var(--muted);
-    padding: 12px 14px; border-bottom: 1px solid var(--line); font-weight: 700; }
-  .tbl td { padding: 11px 14px; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: middle; }
-  .tbl tr:last-child td { border-bottom: none; }
-  .tbl tr:hover td { background: rgba(255,255,255,0.02); }
-  .pill { display: inline-block; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px;
-    background: rgba(255,255,255,0.08); white-space: nowrap; }
-  .pill.ok { background: rgba(79,224,143,0.15); color: var(--green); }
-  .pill.warn { background: rgba(255,179,92,0.15); color: var(--gold); }
-  .pill.bad { background: rgba(255,157,157,0.15); color: var(--red); }
-  .pill.info { background: rgba(91,141,239,0.15); color: var(--blue); }
-  .rowacts { white-space: nowrap; text-align: right; }
-  .rowacts .btn { margin-left: 6px; }
-  .approxflag { color: var(--gold); font-size: 11.5px; font-weight: 600; }
-
-  #modalWrap { display: none; position: fixed; inset: 0; z-index: 50; background: rgba(0,0,0,0.6);
-    align-items: flex-start; justify-content: center; padding: 40px 16px; overflow-y: auto; }
-  #modalWrap.open { display: flex; }
-  .modal { width: min(640px, 100%); background: var(--panel2); border: 1px solid var(--line); border-radius: 18px; padding: 26px;
-    animation: fadein 200ms var(--ease); }
-  .modal h2 { font-family: 'Sora', sans-serif; margin: 0 0 4px; font-size: 19px; letter-spacing: -0.2px; }
-  .modal .msub { color: var(--muted); font-size: 13px; margin: 0 0 18px; }
-  .fsec { font-size: 11px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--blue);
-    margin: 20px 0 10px; padding-top: 16px; border-top: 1px solid var(--line); }
-  .fsec:first-of-type { border-top: none; padding-top: 0; margin-top: 0; }
-  .frow { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .frow .full { grid-column: 1 / -1; }
-  .checkrow { display: flex; align-items: center; gap: 9px; font-size: 14px; margin: 6px 0 14px; }
-  .checkrow input { width: 17px; height: 17px; }
-  .mfoot { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; }
-  .geohelp { font-size: 12px; color: var(--muted); margin-top: 6px; line-height: 1.5; }
-
-  .pubcard { display: flex; gap: 16px; align-items: center; background: var(--panel); border: 1px solid var(--line);
-    border-radius: var(--radius); padding: 18px 20px; margin-bottom: 12px; }
-  .pubcard .pi { flex: 1; }
-  .pubcard .pn { font-weight: 700; font-size: 15px; font-family: monospace; }
-  .pubcard .pd { color: var(--muted); font-size: 13px; margin-top: 4px; line-height: 1.55; }
-  .pubcard .pdirty { color: var(--gold); font-size: 12px; font-weight: 700; margin-top: 4px; }
-
-  @media (max-width: 700px) {
-    .frow { grid-template-columns: 1fr; }
-    .tbl th:nth-child(4), .tbl td:nth-child(4) { display: none; }
-    main { padding: 20px 14px 70px; }
-  }
+  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+         background: #14161c; color: #e8eaf0; }
+  header { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: 10px;
+           padding: 12px 16px; background: #1a1d26; border-bottom: 1px solid #2a2e3c; }
+  header h1 { font-size: 17px; margin: 0; flex: 1; }
+  #dirtyDot { width: 9px; height: 9px; border-radius: 50%; background: #e8b34b; display: none; }
+  .btn { border: 1px solid #3a3f52; background: #232836; color: #e8eaf0; border-radius: 10px;
+         padding: 10px 16px; font-size: 14px; cursor: pointer; }
+  .btn.primary { background: #e8b34b; border-color: #e8b34b; color: #1a1a1a; font-weight: 700; }
+  .btn.small { padding: 6px 10px; font-size: 12.5px; border-radius: 8px; }
+  .btn.danger { border-color: #7a3a3a; color: #f0a0a0; }
+  .btn:disabled { opacity: .45; cursor: default; }
+  main { max-width: 720px; margin: 0 auto; padding: 16px; padding-bottom: 90px; }
+  #search { width: 100%; padding: 12px 14px; font-size: 15px; border-radius: 12px;
+            border: 1px solid #2a2e3c; background: #1a1d26; color: #e8eaf0; margin-bottom: 12px; }
+  .card { background: #1c1f2a; border: 1px solid #2a2e3c; border-radius: 14px;
+          padding: 14px; margin-bottom: 10px; }
+  .card .top { display: flex; align-items: baseline; gap: 8px; }
+  .card .name { font-weight: 700; font-size: 15px; flex: 1; }
+  .card .meta { color: #9aa0b5; font-size: 12.5px; margin-top: 4px; }
+  .card .actions { display: flex; gap: 8px; margin-top: 10px; }
+  .chip { display: inline-block; font-size: 11px; padding: 3px 9px; border-radius: 20px;
+          background: #2a2e3c; color: #c9cede; }
+  .chip.verified { background: rgba(95,169,104,.18); color: #8fd49a; }
+  .chip.unverified { background: rgba(232,179,75,.12); color: #e8b34b; }
+  .chip.approx { background: rgba(106,155,232,.15); color: #9dc0f0; }
+  /* modal */
+  #modal { position: fixed; inset: 0; z-index: 50; display: none;
+           background: rgba(0,0,0,.6); align-items: flex-end; justify-content: center; }
+  #modal.open { display: flex; }
+  #sheet { background: #1c1f2a; width: 100%; max-width: 720px; max-height: 92vh; overflow-y: auto;
+           border-radius: 18px 18px 0 0; padding: 18px 18px 30px; }
+  #sheet h2 { margin: 0 0 14px; font-size: 17px; }
+  label { display: block; font-size: 12.5px; color: #9aa0b5; margin: 12px 0 5px; }
+  input[type=text], input[type=number], select, textarea {
+    width: 100%; padding: 11px 12px; font-size: 15px; border-radius: 10px;
+    border: 1px solid #2a2e3c; background: #14161c; color: #e8eaf0; }
+  textarea { min-height: 70px; resize: vertical; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  #pickMap { height: 240px; border-radius: 12px; margin-top: 6px; border: 1px solid #2a2e3c; }
+  .hint { font-size: 12px; color: #9aa0b5; margin-top: 5px; }
+  .sheetbtns { display: flex; gap: 10px; margin-top: 18px; }
+  .sheetbtns .btn { flex: 1; padding: 13px; font-size: 15px; }
+  /* toast */
+  #toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(80px);
+           background: #232836; border: 1px solid #3a3f52; color: #e8eaf0; padding: 12px 20px;
+           border-radius: 12px; font-size: 14px; z-index: 100; transition: transform .25s; max-width: 90vw; }
+  #toast.show { transform: translateX(-50%) translateY(0); }
+  /* settings */
+  #settings { display: none; }
+  #settings.open { display: block; }
+  .kbd { font-family: monospace; background: #14161c; padding: 2px 7px; border-radius: 6px; font-size: 12.5px; }
+  @media (min-width: 700px) { #modal { align-items: center; } #sheet { border-radius: 18px; } }
 </style>
 </head>
 <body>
-
-<div id="loginView">
-  <div class="logincard">
-    <h1>Radar admin</h1>
-    <p>Staging room, event and place managers, quality control, and publishing for the North Country Radar. Nothing here is public.</p>
-    <div class="field">
-      <label for="pw">Password</label>
-      <input type="password" id="pw" autocomplete="current-password" placeholder="Admin password" />
+<header>
+  <h1>Radar Admin</h1>
+  <span id="dirtyDot" title="Unsaved changes"></span>
+  <button class="btn" id="settingsBtn" title="Settings">&#9881;</button>
+  <button class="btn primary" id="publishBtn">Publish</button>
+</header>
+<main>
+  <div id="settings" class="card">
+    <h2 style="margin:0 0 8px;font-size:16px">Settings</h2>
+    <p class="hint">Publishing writes straight to GitHub. Paste a personal access token once -- it stays in this browser, never in the code.</p>
+    <label>GitHub personal access token (classic, <span class="kbd">repo</span> scope)</label>
+    <input type="text" id="tokenInput" placeholder="ghp_..." autocomplete="off">
+    <div class="sheetbtns">
+      <button class="btn" id="saveTokenBtn">Save token</button>
+      <button class="btn" id="testTokenBtn">Test</button>
     </div>
-    <button class="btn primary" id="loginBtn" style="width:100%">Unlock</button>
-    <div class="loginerr" id="loginErr"></div>
+    <p class="hint">Create one at github.com &rarr; Settings &rarr; Developer settings &rarr; Personal access tokens &rarr; Tokens (classic) &rarr; Generate new &rarr; check <span class="kbd">repo</span>.</p>
   </div>
-</div>
+  <input id="search" type="text" placeholder="Search places" autocomplete="off">
+  <button class="btn primary" id="addBtn" style="width:100%;margin-bottom:14px">+ Add place</button>
+  <div id="list"></div>
+</main>
 
-<div id="app">
-  <header class="top">
-    <div class="topinner">
-      <div class="brand">Radar admin<small>North Country Radar · staging &amp; publishing</small></div>
-      <nav class="tabs" id="tabs">
-        <button data-tab="overview" class="on">Overview</button>
-        <button data-tab="review">Review <span class="tbadge" id="tabBadge" style="display:none"></span></button>
-        <button data-tab="events">Events</button>
-        <button data-tab="places">Places</button>
-        <button data-tab="quality">Quality <span class="tbadge warn" id="qBadge" style="display:none"></span></button>
-        <button data-tab="publish">Publish</button>
-      </nav>
-      <div class="topright">
-        <span class="dirtydot" id="dirtyDot">● unsaved changes</span>
-        <button class="btn small" id="viewLiveBtn" title="Open the public radar">View live site</button>
-        <button class="btn small" id="lockBtn" title="Lock the admin">Lock</button>
-      </div>
-    </div>
-  </header>
-  <main>
-    <section class="tab on" id="tab-overview">
-      <h2 class="hero">Overview</h2>
-      <p class="herosub">The radar at a glance. Raw scraped items land in <b>Review</b> — nothing goes public until you approve it.</p>
-      <div id="attnBox"></div>
-      <div class="stats" id="statCards"></div>
-      <div class="quickrow">
-        <button class="btn primary" data-goto="review">Open review queue</button>
-        <button class="btn" data-goto="quality">Quality check</button>
-        <button class="btn" data-goto="events" id="qAddEvent">Add event</button>
-        <button class="btn" data-goto="places" id="qAddPlace">Add place</button>
-      </div>
-      <div class="panelbox">
-        <h3>How publishing works</h3>
-        <ol>
-          <li>Make changes anywhere — Review approvals, Events, Places, Quality.</li>
-          <li>Open the <b>Publish</b> tab and download the changed files.</li>
-          <li>Send the downloaded files to Muse — they get pushed live to the radar.</li>
-        </ol>
-        <p style="margin:0">The public page never shows the staging queue. Approved items appear on the map only after a push.</p>
-      </div>
-    </section>
+<div id="modal"><div id="sheet">
+  <h2 id="sheetTitle">Edit place</h2>
+  <input type="hidden" id="fId">
+  <label>Name</label><input type="text" id="fName">
+  <div class="row2">
+    <div><label>Category</label><select id="fCat"></select></div>
+    <div><label>Town</label><input type="text" id="fTown"></div>
+  </div>
+  <label>Address</label><input type="text" id="fAddr">
+  <label>Pin location -- tap the map</label>
+  <div id="pickMap"></div>
+  <div class="row2">
+    <div><label>Latitude</label><input type="number" id="fLat" step="0.000001"></div>
+    <div><label>Longitude</label><input type="number" id="fLng" step="0.000001"></div>
+  </div>
+  <label><input type="checkbox" id="fApprox" style="width:auto"> Approximate location</label>
+  <label>Notes</label><textarea id="fDesc"></textarea>
+  <div class="sheetbtns">
+    <button class="btn" id="cancelBtn">Cancel</button>
+    <button class="btn primary" id="saveBtn">Save</button>
+  </div>
+</div></div>
+<div id="toast"></div>
 
-    <section class="tab" id="tab-review">
-      <h2 class="hero">Review queue</h2>
-      <p class="herosub" id="revSub">Raw scrape — closest to Potsdam first. Approving moves the item into Events or Places.</p>
-      <div id="revCards"></div>
-    </section>
-
-    <section class="tab" id="tab-events">
-      <h2 class="hero">Events</h2>
-      <p class="herosub" id="evSub"></p>
-      <div class="toolbar">
-        <button class="btn primary" id="addEventBtn">+ Add event</button>
-        <span class="spacer"></span>
-        <input type="search" id="evSearch" placeholder="Search events" />
-      </div>
-      <table class="tbl"><thead><tr>
-        <th>Date</th><th>Title</th><th>Location</th><th>When</th><th></th>
-      </tr></thead><tbody id="evRows"></tbody></table>
-    </section>
-
-    <section class="tab" id="tab-places">
-      <h2 class="hero">Places</h2>
-      <p class="herosub" id="plSub"></p>
-      <div class="toolbar">
-        <button class="btn primary" id="addPlaceBtn">+ Add place</button>
-        <span class="spacer"></span>
-        <input type="search" id="plSearch" placeholder="Search places" />
-      </div>
-      <table class="tbl"><thead><tr>
-        <th>Name</th><th>Category</th><th>Town</th><th>Freshness</th><th></th>
-      </tr></thead><tbody id="plRows"></tbody></table>
-    </section>
-
-    <section class="tab" id="tab-quality">
-      <h2 class="hero">Quality control</h2>
-      <p class="herosub">Keep the radar trustworthy: verify places are still open and accurate, retire dead events, mark closures. Everything here is one click.</p>
-      <div id="qBox"></div>
-    </section>
-
-    <section class="tab" id="tab-publish">
-      <h2 class="hero">Publish</h2>
-      <p class="herosub">Download the changed files, then send them to Muse to push live. Only download what changed.</p>
-      <div id="pubCards"></div>
-      <div class="panelbox">
-        <h3>After downloading</h3>
-        <p>Attach the files in chat (or drop them in <span style="font-family:monospace">~/workspace/radar-v2/</span>) and say "push the radar". The live site refreshes within a couple of minutes.</p>
-      </div>
-    </section>
-  </main>
-</div>
-
-<div id="modalWrap"><div class="modal" id="modalBox"></div></div>
-
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script>
 (function () {
   "use strict";
-  var CATEGORIES = ["Coffee", "Orchard", "Outdoors", "Study", "Entertainment", "Food"];
-  var STATUSES = ["open", "seasonal", "closed"];
-  var OWNERSHIPS = ["independent", "local-chain", "regional"];
-  var SETTINGS = ["indoors", "outdoors", "both"];
-  var PRICES = ["free", "$", "$$", "$$$"];
-  var store = { events: [], places: [], staging: [] };
-  var dirty = { events: false, places: false, staging: false };
-  var evQ = "", plQ = "";
+  var REPO = "jmeyers-51/clarksonradar", BRANCH = "main";
+  var CATS = ["Food", "Coffee", "Outdoors", "Orchard", "Entertainment", "Study", "Venues", "Campus"];
+  var PALETTE = { Food: "#e2a63b", Coffee: "#c08252", Outdoors: "#5fa968", Orchard: "#db6e5c",
+                  Entertainment: "#a281e8", Study: "#6a9be8", Venues: "#e08bb0", Campus: "#7fc4c4" };
+  var places = [], dirty = false, query = "";
+  var SAVE_KEY = "radar-admin-v2";
 
   function $(id) { return document.getElementById(id); }
-  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
-  function todayStr() { var d = new Date(); return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0"); }
-  function fmtDate(ds) {
-    if (!ds) return "";
-    var p = String(ds).split("-"); if (p.length < 3) return ds;
-    var dt = new Date(+p[0], +p[1]-1, +p[2]);
-    return dt.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) {
+    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  function today() { var d = new Date(); return d.getFullYear() + "-" +
+    String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+  function toast(msg) { var t = $("toast"); t.textContent = msg; t.classList.add("show");
+    clearTimeout(t._h); t._h = setTimeout(function () { t.classList.remove("show"); }, 3200); }
+
+  /* ---------- persistence (local safety net) ---------- */
+  function persist() {
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify({ savedAt: Date.now(), dirty: dirty, places: places })); } catch (e) {}
   }
-  function fmtMonth(ds) {
-    if (!ds) return "";
-    var p = String(ds).split("-"); if (p.length < 3) return ds;
-    var dt = new Date(+p[0], +p[1]-1, 1);
-    return dt.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+  function restore() {
+    try {
+      var d = JSON.parse(localStorage.getItem(SAVE_KEY) || "null");
+      if (d && d.dirty && Date.now() - d.savedAt < 7 * 864e5) return d.places;
+    } catch (e) {}
+    return null;
   }
-  function isPast(dateStr) { return dateStr && dateStr < todayStr(); }
-  function daysSince(ds) {
-    if (!ds) return Infinity;
-    return (Date.now() - new Date(ds + "T12:00:00").getTime()) / 86400000;
-  }
-  function freshness(p) {
-    if (p.status === "closed") return { label: "Closed", cls: "bad" };
-    if (p.status === "seasonal") return { label: "Seasonal", cls: "warn" };
-    if (!p.verified) return { label: "Unverified", cls: "warn" };
-    if (daysSince(p.verified) > 180) return { label: "Stale · " + fmtMonth(p.verified), cls: "warn" };
-    return { label: "Verified " + fmtMonth(p.verified), cls: "ok" };
-  }
-  function freshPill(p) {
-    var f = freshness(p);
-    return "<span class='pill " + f.cls + "'>" + esc(f.label) + "</span>";
-  }
-  function eventWhen(e) {
-    if (!e.date) return { label: "No date", cls: "warn" };
-    if (isPast(e.date)) return { label: "Past", cls: "bad" };
-    var d = Math.round((new Date(e.date + "T12:00:00") - new Date(todayStr() + "T12:00:00")) / 86400000);
-    if (d <= 0) return { label: "Today", cls: "bad" };
-    if (d <= 7) return { label: "This week", cls: "warn" };
-    return { label: "Upcoming", cls: "info" };
+  function markDirty() { dirty = true; $("dirtyDot").style.display = ""; persist(); }
+
+  /* ---------- list ---------- */
+  function render() {
+    var list = $("list"); list.innerHTML = "";
+    var q = query.trim().toLowerCase();
+    var shown = places.filter(function (p) {
+      return !q || (p.name + " " + (p.town || "") + " " + (p.category || "")).toLowerCase().indexOf(q) >= 0;
+    });
+    $("addBtn").textContent = "+ Add place (" + places.length + " total)";
+    shown.forEach(function (p) {
+      var d = document.createElement("div"); d.className = "card";
+      var chips = '<span class="chip" style="border-left:3px solid ' + (PALETTE[p.category] || "#888") + '">' +
+        esc(p.category || "?") + "</span> ";
+      chips += p.verified ? '<span class="chip verified">verified ' + esc(p.verified) + "</span>"
+                          : '<span class="chip unverified">unverified</span>';
+      if (p.approx) chips += ' <span class="chip approx">approx</span>';
+      d.innerHTML = '<div class="top"><div class="name">' + esc(p.name) + "</div></div>" +
+        '<div class="meta">' + esc(p.town || "") + (p.address ? " &middot; " + esc(p.address) : "") + "</div>" +
+        '<div style="margin-top:7px">' + chips + "</div>" +
+        (p.desc ? '<div class="meta" style="margin-top:6px">' + esc(p.desc) + "</div>" : "") +
+        '<div class="actions">' +
+          '<button class="btn small" data-a="edit">Edit</button>' +
+          (p.verified ? "" : '<button class="btn small" data-a="verify">Mark verified</button>') +
+          '<button class="btn small danger" data-a="del">Delete</button>' +
+        "</div>";
+      d.querySelectorAll("button").forEach(function (b) {
+        b.addEventListener("click", function () {
+          var a = b.dataset.a;
+          if (a === "edit") openEditor(p.id);
+          else if (a === "verify") { p.verified = today(); markDirty(); render(); toast("Verified " + p.name); }
+          else if (a === "del") {
+            if (confirm("Delete " + p.name + "?")) {
+              places = places.filter(function (x) { return x.id !== p.id; });
+              markDirty(); render(); toast("Deleted " + p.name);
+            }
+          }
+        });
+      });
+      list.appendChild(d);
+    });
+    if (!shown.length) list.innerHTML = '<div class="card"><div class="meta">No places match.</div></div>';
   }
 
-  /* ---------- login ---------- */
-  function unlock() {
-    $("loginView").style.display = "none";
-    $("app").style.display = "block";
-    loadAll();
+  /* ---------- editor ---------- */
+  var pickMap = null, pickMarker = null;
+  function openEditor(id) {
+    var p = places.find(function (x) { return x.id === id; });
+    var isNew = !p;
+    if (isNew) p = { id: "pl-" + Date.now().toString(36), category: "Outdoors", verified: null,
+                     approx: false, status: "open", source: "Direct knowledge" };
+    $("sheetTitle").textContent = isNew ? "Add place" : "Edit place";
+    $("fId").value = p.id;
+    $("fName").value = p.name || "";
+    $("fCat").innerHTML = CATS.map(function (c) {
+      return '<option' + (c === p.category ? " selected" : "") + ">" + c + "</option>"; }).join("");
+    $("fTown").value = p.town || "";
+    $("fAddr").value = p.address || "";
+    $("fLat").value = p.lat != null ? p.lat : "";
+    $("fLng").value = p.lng != null ? p.lng : "";
+    $("fApprox").checked = !!p.approx;
+    $("fDesc").value = p.desc || "";
+    $("modal").classList.add("open");
+    setTimeout(function () {
+      if (!pickMap) {
+        pickMap = new maplibregl.Map({ container: "pickMap",
+          style: "https://tiles.basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
+          center: [-74.98, 44.66], zoom: 10 });
+        pickMap.on("click", function (e) {
+          $("fLat").value = e.lngLat.lat.toFixed(6);
+          $("fLng").value = e.lngLat.lng.toFixed(6);
+          setPickMarker(e.lngLat.lat, e.lngLat.lng);
+        });
+      } else { pickMap.resize(); }
+      if (p.lat != null && p.lng != null) {
+        pickMap.jumpTo({ center: [p.lng, p.lat], zoom: 13 });
+        setPickMarker(p.lat, p.lng);
+      } else if (pickMarker) { pickMarker.remove(); pickMarker = null; }
+    }, 60);
   }
-  function tryLogin() {
-    var v = $("pw").value;
-    if (v === "admin") { try { sessionStorage.setItem("radar_admin", "1"); } catch (e) {}
-      $("loginErr").textContent = ""; unlock(); }
-    else { $("loginErr").textContent = "Wrong password."; }
+  function setPickMarker(lat, lng) {
+    if (pickMarker) pickMarker.remove();
+    pickMarker = new maplibregl.Marker({ color: "#e8b34b" }).setLngLat([lng, lat]).addTo(pickMap);
   }
-  $("loginBtn").addEventListener("click", tryLogin);
-  $("pw").addEventListener("keydown", function (e) { if (e.key === "Enter") tryLogin(); });
-  $("lockBtn").addEventListener("click", function () {
-    try { sessionStorage.removeItem("radar_admin"); } catch (e) {}
-    location.reload();
+  function closeEditor() { $("modal").classList.remove("open"); }
+  $("cancelBtn").addEventListener("click", closeEditor);
+  $("modal").addEventListener("click", function (e) { if (e.target === $("modal")) closeEditor(); });
+  $("saveBtn").addEventListener("click", function () {
+    var id = $("fId").value;
+    var lat = parseFloat($("fLat").value), lng = parseFloat($("fLng").value);
+    if (!$("fName").value.trim()) { toast("Name is required"); return; }
+    if (isNaN(lat) || isNaN(lng)) { toast("Tap the map to set the pin"); return; }
+    var p = places.find(function (x) { return x.id === id; });
+    var rec = { id: id, name: $("fName").value.trim(), category: $("fCat").value,
+      town: $("fTown").value.trim(), address: $("fAddr").value.trim(),
+      lat: lat, lng: lng, approx: $("fApprox").checked, desc: $("fDesc").value.trim(),
+      link: (p && p.link) || null, source: "Direct knowledge",
+      status: (p && p.status) || "open", verified: (p && p.verified) || null };
+    if (p) places[places.indexOf(p)] = rec; else { rec.verified = today(); places.push(rec); }
+    markDirty(); render(); closeEditor();
+    toast("Saved " + rec.name);
   });
-  $("viewLiveBtn").addEventListener("click", function () { window.open("./index.html", "_blank"); });
-  var authed = false;
-  try { authed = sessionStorage.getItem("radar_admin") === "1"; } catch (e) {}
-  if (authed) unlock();
+  $("addBtn").addEventListener("click", function () { openEditor(null); });
+  $("search").addEventListener("input", function (e) { query = e.target.value; render(); });
 
-  /* ---------- tabs ---------- */
-  function goTab(name) {
-    document.querySelectorAll("#tabs button").forEach(function (b) { b.classList.toggle("on", b.dataset.tab === name); });
-    document.querySelectorAll("section.tab").forEach(function (s) { s.classList.toggle("on", s.id === "tab-" + name); });
-    if (name === "overview") renderOverview();
-    if (name === "review") renderReview();
-    if (name === "events") renderEvents();
-    if (name === "places") renderPlaces();
-    if (name === "quality") renderQuality();
-    if (name === "publish") renderPublish();
-    window.scrollTo(0, 0);
-  }
-  document.querySelectorAll("#tabs button").forEach(function (b) { b.addEventListener("click", function () { goTab(b.dataset.tab); }); });
-  document.querySelectorAll("[data-goto]").forEach(function (b) { b.addEventListener("click", function () { goTab(b.dataset.goto); }); });
-
-  /* ---------- data ---------- */
-  function loadAll() {
-    Promise.all([
-      fetch("./events.json", { cache: "no-store" }).then(function (r) { if (!r.ok) throw new Error("events.json " + r.status); return r.json(); }),
-      fetch("./places.json", { cache: "no-store" }).then(function (r) { if (!r.ok) throw new Error("places.json " + r.status); return r.json(); }),
-      fetch("./staging.json", { cache: "no-store" }).then(function (r) { if (!r.ok) return { items: [] }; return r.json(); })
-    ]).then(function (res) {
-      store.events = res[0].events || [];
-      store.places = res[1].places || [];
-      store.staging = (res[2].items || []).map(function (x) { if (!x.status) x.status = "pending"; return x; });
-      // restore any unsent work saved in this browser
-      var sv = loadAutosave();
-      if (sv) {
-        if (sv.dirty.events && sv.events) { store.events = sv.events; dirty.events = true; }
-        if (sv.dirty.places && sv.places) { store.places = sv.places; dirty.places = true; }
-        if (sv.dirty.staging && sv.staging) { store.staging = sv.staging; dirty.staging = true; }
-      }
-      updateDirty(); updateBadges(); goTab("overview");
-      if (sv) restoreBanner(sv.savedAt);
-    }).catch(function (err) {
-      document.querySelector("main").innerHTML = "<div class='panelbox'><h3>Could not load data</h3><p>" + esc(err.message) + "</p></div>";
-    });
-  }
-  function markDirty(which) { dirty[which] = true; updateDirty(); autosave(); }
-  /* Autosave: every change is written to this browser's local storage,
-     so unsent work survives reloads, new tabs, and crashes. The save is
-     cleared for a file once you download it. */
-  var AUTOSAVE_KEY = "radar-admin-autosave-v1";
-  function autosave() {
+  /* ---------- publish straight to GitHub ---------- */
+  function token() { return (localStorage.getItem("radar-gh-token") || "").trim(); }
+  $("settingsBtn").addEventListener("click", function () { $("settings").classList.toggle("open"); });
+  $("saveTokenBtn").addEventListener("click", function () {
+    localStorage.setItem("radar-gh-token", $("tokenInput").value.trim());
+    toast("Token saved in this browser");
+  });
+  $("testTokenBtn").addEventListener("click", async function () {
+    var t = $("tokenInput").value.trim() || token();
+    if (!t) { toast("Paste a token first"); return; }
     try {
-      localStorage.setItem(AUTOSAVE_KEY, JSON.stringify({
-        savedAt: Date.now(),
-        dirty: { events: dirty.events, places: dirty.places, staging: dirty.staging },
-        events: dirty.events ? store.events : null,
-        places: dirty.places ? store.places : null,
-        staging: dirty.staging ? store.staging : null
-      }));
-    } catch (err) {}
-  }
-  function loadAutosave() {
+      var r = await fetch("https://api.github.com/repos/" + REPO, {
+        headers: { Authorization: "Bearer " + t, Accept: "application/vnd.github+json" } });
+      toast(r.ok ? "Token works -- repo reachable" : "Token failed: " + r.status);
+    } catch (e) { toast("Network error: " + e.message); }
+  });
+  if (token()) $("tokenInput").value = token();
+
+  $("publishBtn").addEventListener("click", async function () {
+    var t = token();
+    if (!t) { $("settings").classList.add("open"); toast("Paste your GitHub token first (Settings)"); return; }
+    if (!dirty && !confirm("No unsaved changes. Publish anyway?")) return;
+    var btn = $("publishBtn"); btn.disabled = true; btn.textContent = "Publishing...";
     try {
-      var raw = localStorage.getItem(AUTOSAVE_KEY);
-      if (!raw) return null;
-      var d = JSON.parse(raw);
-      if (!d || Date.now() - d.savedAt > 7 * 864e5) return null;
-      if (!d.dirty || (!d.dirty.events && !d.dirty.places && !d.dirty.staging)) return null;
-      return d;
-    } catch (err) { return null; }
-  }
-  function clearAutosave() {
-    try { localStorage.removeItem(AUTOSAVE_KEY); } catch (err) {}
-  }
-  function restoreBanner(when) {
-    var b = document.createElement("div");
-    b.id = "restoreBanner";
-    b.style.cssText = "background:rgba(232,179,75,.1);border:1px solid rgba(232,179,75,.4);border-radius:12px;padding:12px 16px;margin-bottom:14px;font-size:13.5px;display:flex;gap:12px;align-items:center;justify-content:space-between;";
-    var dt = new Date(when).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
-    b.innerHTML = "<span><b>Unsent work restored</b> from " + esc(dt) +
-      " -- your edits from the last session are back. Download from the Publish tab to make them live.</span>";
-    var x = document.createElement("button");
-    x.className = "btn small danger"; x.textContent = "Discard";
-    x.addEventListener("click", function () {
-      if (!confirm("Discard all restored unsent work and reload fresh data?")) return;
-      clearAutosave(); location.reload();
-    });
-    b.appendChild(x);
-    var main = document.querySelector("main");
-    if (main) main.insertBefore(b, main.firstChild);
-  }
-  function updateDirty() {
-    $("dirtyDot").style.display = (dirty.events || dirty.places || dirty.staging) ? "" : "none";
-  }
-  function pendingCount() { return store.staging.filter(function (x) { return x.status !== "approved" && x.status !== "rejected"; }).length; }
-  function pastEvents() { return store.events.filter(function (e) { return isPast(e.date); }); }
-  function stalePlaces() {
-    return store.places.filter(function (p) {
-      return p.status !== "closed" && (!p.verified || daysSince(p.verified) > 180);
-    });
-  }
-  function closedPlaces() { return store.places.filter(function (p) { return p.status === "closed"; }); }
-  function qualityCount() { return pendingCount() + pastEvents().length + stalePlaces().length; }
-  function updateBadges() {
-    var n = pendingCount(), b = $("tabBadge");
-    b.style.display = n ? "" : "none"; b.textContent = n;
-    var q = stalePlaces().length + pastEvents().length, qb = $("qBadge");
-    qb.style.display = q ? "" : "none"; qb.textContent = q;
-  }
-
-  /* ---------- overview ---------- */
-  function attnItem(color, title, sub, btnLabel, go) {
-    var d = document.createElement("div");
-    d.className = "attn";
-    d.innerHTML = '<span class="adot" style="background:' + color + '"></span>' +
-      '<div class="abody"><div class="at">' + esc(title) + '</div><div class="as">' + esc(sub) + "</div></div>";
-    if (btnLabel) {
-      var b = document.createElement("button");
-      b.className = "btn small"; b.textContent = btnLabel;
-      b.addEventListener("click", function () { goTab(go); });
-      d.appendChild(b);
-    }
-    return d;
-  }
-  function renderOverview() {
-    var box = $("attnBox");
-    box.innerHTML = "";
-    var items = [];
-    var pend = pendingCount();
-    if (pend) items.push(attnItem("#5b8def", pend + " item" + (pend > 1 ? "s" : "") + " awaiting review",
-      "Raw scrape is waiting for your call.", "Review", "review"));
-    var past = pastEvents();
-    if (past.length) items.push(attnItem("#ff9d9d", past.length + " past event" + (past.length > 1 ? "s" : "") + " still live",
-      "Past-dated events should be removed.", "Clean up", "quality"));
-    var stale = stalePlaces();
-    if (stale.length) items.push(attnItem("#ffb35c", stale.length + " place" + (stale.length > 1 ? "s" : "") + " need" + (stale.length > 1 ? "" : "s") + " verification",
-      "Unverified or not checked in 6+ months.", "Verify", "quality"));
-    if (!items.length) {
-      box.innerHTML = '<div class="attnok">All clear — nothing needs your attention.</div>';
-    } else {
-      var h = document.createElement("h3");
-      h.style.cssText = "margin:0 0 12px;font-size:15px;font-family:'Sora',sans-serif";
-      h.textContent = "Needs attention";
-      box.appendChild(h);
-      items.forEach(function (it) { box.appendChild(it); });
-    }
-    var appr = store.staging.filter(function (x) { return x.status === "approved"; }).length;
-    var rej = store.staging.filter(function (x) { return x.status === "rejected"; }).length;
-    $("statCards").innerHTML =
-      statCard("blue", store.events.length, "events live") +
-      statCard("green", store.places.length, "places live") +
-      statCard("gold", pend, "awaiting review") +
-      statCard("", appr + rej, "triaged");
-    updateBadges();
-  }
-  function statCard(cls, n, l) {
-    return "<div class='stat " + cls + "'><div class='n'>" + n + "</div><div class='l'>" + l + "</div></div>";
-  }
-
-  /* ---------- review queue ---------- */
-  function stagingById(id) { for (var i = 0; i < store.staging.length; i++) if (store.staging[i].id === id) return store.staging[i]; return null; }
-  function renderReview() {
-    var box = $("revCards"); box.innerHTML = "";
-    var pend = store.staging.filter(function (x) { return x.status !== "approved" && x.status !== "rejected"; });
-    pend.sort(function (a, b) { return (a.dist_mi == null ? 9999 : a.dist_mi) - (b.dist_mi == null ? 9999 : b.dist_mi); });
-    var appr = store.staging.filter(function (x) { return x.status === "approved"; }).length;
-    var rej = store.staging.filter(function (x) { return x.status === "rejected"; }).length;
-    $("revSub").textContent = "Raw scrape — closest to Potsdam first. Approving moves the item into Events or Places." + (appr || rej ? " (" + appr + " approved, " + rej + " rejected)" : "");
-    if (!pend.length) { box.innerHTML = "<div class='revempty'>Queue is clear. The next scrape lands raw items here for your call.</div>"; return; }
-    pend.forEach(function (it) { box.appendChild(packetCard(it)); });
-    updateBadges();
-  }
-  function factRow(label, val) {
-    if (!val) return null;
-    var d = document.createElement("div"); d.className = "rev-fact";
-    var b = document.createElement("b"); b.textContent = label; d.appendChild(b);
-    var s = document.createElement("span"); s.textContent = val; d.appendChild(s);
-    return d;
-  }
-  function packetCard(it) {
-    var card = document.createElement("div");
-    card.className = "revpacket " + (it.kind === "place" ? "kpl" : "kev");
-    var body = document.createElement("div"); body.className = "rev-body"; card.appendChild(body);
-    var top = document.createElement("div"); top.className = "rev-top";
-    var k = document.createElement("span"); k.className = "rev-kind"; k.textContent = it.kind === "place" ? "PLACE" : "EVENT"; top.appendChild(k);
-    if (it.date) { var dt = document.createElement("span"); dt.className = "rev-date"; dt.textContent = fmtDate(it.date) + (it.time ? " · " + it.time : ""); top.appendChild(dt); }
-    if (it.dist_mi != null) { var ds = document.createElement("span"); ds.className = "rev-dist"; ds.textContent = (+it.dist_mi).toFixed(1) + " mi from Potsdam"; top.appendChild(ds); }
-    body.appendChild(top);
-    var h = document.createElement("div"); h.className = "rev-hero"; h.textContent = it.title; body.appendChild(h);
-    var zl = document.createElement("div"); zl.className = "rev-zone";
-    var zlab = document.createElement("div"); zlab.className = "rev-zlab"; zlab.textContent = "LOCATION"; zl.appendChild(zlab);
-    var where = [it.venue, it.town].filter(Boolean).join(" · ") || it.address || "Location TBD";
-    var w = document.createElement("div"); w.className = "rev-where"; w.textContent = where; zl.appendChild(w);
-    if (it.geo_note) { var g = document.createElement("div"); g.className = "rev-geo"; g.textContent = it.geo_note + (it.approx ? " (approx.)" : ""); zl.appendChild(g); }
-    body.appendChild(zl);
-    var zi = document.createElement("div"); zi.className = "rev-zone";
-    var zlab2 = document.createElement("div"); zlab2.className = "rev-zlab"; zlab2.textContent = "INFO"; zi.appendChild(zlab2);
-    [factRow("Source", it.source + (it.source_detail ? " · " + it.source_detail : "")),
-     factRow("Why", it.why),
-     it.kind === "place" && it.category ? factRow("Category", it.category) : null
-    ].forEach(function (f) { if (f) zi.appendChild(f); });
-    if (it.link) {
-      var d = document.createElement("div"); d.className = "rev-fact";
-      var b = document.createElement("b"); b.textContent = "Link"; d.appendChild(b);
-      var a = document.createElement("a"); a.href = it.link; a.target = "_blank"; a.rel = "noopener"; a.textContent = it.link; d.appendChild(a);
-      zi.appendChild(d);
-    }
-    body.appendChild(zi);
-    var rec = document.createElement("div");
-    rec.className = "rev-rec " + (it.recommendation === "skip" ? "no" : "ok");
-    var rb = document.createElement("b"); rb.textContent = it.recommendation === "skip" ? "Recommend: skip" : "Recommend: approve";
-    rec.appendChild(rb); rec.appendChild(document.createTextNode(it.rec_reason ? " — " + it.rec_reason : ""));
-    body.appendChild(rec);
-    var acts = document.createElement("div"); acts.className = "rev-actions";
-    var ab = document.createElement("button"); ab.className = "btn primary"; ab.textContent = it.kind === "place" ? "Approve → places" : "Approve → events";
-    ab.addEventListener("click", function () { approveStaging(it.id); });
-    var rj = document.createElement("button"); rj.className = "btn"; rj.textContent = "Reject";
-    rj.addEventListener("click", function () { rejectStaging(it.id); });
-    acts.appendChild(ab); acts.appendChild(rj); body.appendChild(acts);
-    return card;
-  }
-  function approveStaging(id) {
-    var it = stagingById(id);
-    if (!it || it.status === "approved") return;
-    if (it.kind === "place") {
-      store.places.push({ id: "plc-" + String(it.id).replace(/^stg-/, ""), name: it.title,
-        category: it.category || "Entertainment", town: it.town || null, address: it.address || null,
-        lat: it.lat, lng: it.lng, approx: !!it.approx, desc: it.why || "", link: it.link || null, source: it.source || "Facebook",
-        status: "open", verified: todayStr() });
-      markDirty("places");
-    } else {
-      store.events.push({ id: "evt-" + String(it.id).replace(/^stg-/, ""), title: it.title,
-        date: it.date || null, time: it.time || null, venue: it.venue || null, town: it.town || null, address: it.address || null,
-        lat: it.lat, lng: it.lng, approx: !!it.approx, desc: it.why || "", link: it.link || null, source: it.source || "Facebook" });
-      markDirty("events");
-    }
-    it.status = "approved"; markDirty("staging");
-    renderReview();
-  }
-  function rejectStaging(id) {
-    var it = stagingById(id);
-    if (!it || it.status === "rejected") return;
-    it.status = "rejected"; markDirty("staging");
-    renderReview();
-  }
-
-  /* ---------- events / places tables ---------- */
-  function renderEvents() {
-    var rows = store.events.slice().sort(function (a, b) { return String(a.date || "").localeCompare(String(b.date || "")); });
-    if (evQ) rows = rows.filter(function (e) { return (e.title + " " + (e.venue || "") + " " + (e.town || "")).toLowerCase().indexOf(evQ) > -1; });
-    $("evSub").textContent = store.events.length + " live events. Past-dated events are removed by the weekly sweep.";
-    $("evRows").innerHTML = rows.map(function (e) {
-      var w = eventWhen(e);
-      return "<tr><td style='white-space:nowrap'>" + esc(fmtDate(e.date)) + "</td>" +
-        "<td><b>" + esc(e.title) + "</b>" + (e.approx ? " <span class='approxflag'>approx</span>" : "") + "</td>" +
-        "<td>" + esc([e.venue, e.town].filter(Boolean).join(" · ") || "—") + "</td>" +
-        "<td><span class='pill " + w.cls + "'>" + esc(w.label) + "</span></td>" +
-        "<td class='rowacts'><button class='btn small' data-ev-edit='" + esc(e.id) + "'>Edit</button>" +
-        "<button class='btn small danger' data-ev-del='" + esc(e.id) + "'>Delete</button></td></tr>";
-    }).join("") || "<tr><td colspan='5' style='color:var(--muted)'>No events.</td></tr>";
-    bindRowActions("ev");
-  }
-  function renderPlaces() {
-    var rows = store.places.slice().sort(function (a, b) { return String(a.name).localeCompare(String(b.name)); });
-    if (plQ) rows = rows.filter(function (p) { return (p.name + " " + (p.town || "") + " " + (p.category || "")).toLowerCase().indexOf(plQ) > -1; });
-    $("plSub").textContent = store.places.length + " live places. Local-knowledge only — no everyday utility listings.";
-    $("plRows").innerHTML = rows.map(function (p) {
-      return "<tr><td><b>" + esc(p.name) + "</b>" + (p.approx ? " <span class='approxflag'>approx</span>" : "") + "</td>" +
-        "<td>" + esc(p.category || "—") + "</td>" +
-        "<td>" + esc(p.town || "—") + "</td>" +
-        "<td>" + freshPill(p) + "</td>" +
-        "<td class='rowacts'><button class='btn small' data-pl-edit='" + esc(p.id) + "'>Edit</button>" +
-        "<button class='btn small danger' data-pl-del='" + esc(p.id) + "'>Delete</button></td></tr>";
-    }).join("") || "<tr><td colspan='5' style='color:var(--muted)'>No places.</td></tr>";
-    bindRowActions("pl");
-  }
-  function bindRowActions(kind) {
-    document.querySelectorAll("[data-" + kind + "-edit]").forEach(function (b) {
-      b.addEventListener("click", function () { openEditor(kind, b.getAttribute("data-" + kind + "-edit")); });
-    });
-    document.querySelectorAll("[data-" + kind + "-del]").forEach(function (b) {
-      b.addEventListener("click", function () {
-        var id = b.getAttribute("data-" + kind + "-del");
-        var arr = kind === "ev" ? store.events : store.places;
-        var it = arr.filter(function (x) { return x.id === id; })[0];
-        if (!it) return;
-        if (!confirm("Delete \"" + (it.title || it.name) + "\"?")) return;
-        arr.splice(arr.indexOf(it), 1);
-        markDirty(kind === "ev" ? "events" : "places");
-        if (kind === "ev") renderEvents(); else renderPlaces();
-        renderOverview();
+      var get = await fetch("https://api.github.com/repos/" + REPO + "/contents/places.json?ref=" + BRANCH, {
+        headers: { Authorization: "Bearer " + t, Accept: "application/vnd.github+json" } });
+      if (!get.ok) throw new Error("read failed: " + get.status);
+      var meta = await get.json();
+      var body = { updated: today(), places: places };
+      var content = btoa(unescape(encodeURIComponent(JSON.stringify(body, null, 1))));
+      var put = await fetch("https://api.github.com/repos/" + REPO + "/contents/places.json", {
+        method: "PUT",
+        headers: { Authorization: "Bearer " + t, Accept: "application/vnd.github+json",
+                   "Content-Type": "application/json" },
+        body: JSON.stringify({ message: "Admin: update places (" + places.length + ")",
+                               content: content, sha: meta.sha, branch: BRANCH })
       });
-    });
-  }
-  $("evSearch").addEventListener("input", function (e) { evQ = e.target.value.toLowerCase(); renderEvents(); });
-  $("plSearch").addEventListener("input", function (e) { plQ = e.target.value.toLowerCase(); renderPlaces(); });
-  $("addEventBtn").addEventListener("click", function () { openEditor("ev", null); });
-  $("addPlaceBtn").addEventListener("click", function () { openEditor("pl", null); });
-  $("qAddEvent").addEventListener("click", function () { setTimeout(function () { openEditor("ev", null); }, 50); });
-  $("qAddPlace").addEventListener("click", function () { setTimeout(function () { openEditor("pl", null); }, 50); });
+      if (!put.ok) { var err = await put.json().catch(function(){return{};});
+        throw new Error("write failed: " + put.status + " " + (err.message || "")); }
+      dirty = false; $("dirtyDot").style.display = "none"; persist();
+      try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
+      toast("Published -- live in ~2 minutes");
+    } catch (e) {
+      toast("Publish failed: " + e.message);
+    }
+    btn.disabled = false; btn.textContent = "Publish";
+  });
 
-  /* ---------- quality control ---------- */
-  function renderQuality() {
-    var box = $("qBox");
-    box.innerHTML = "";
-    var past = pastEvents();
-    var stale = stalePlaces();
-    var closed = closedPlaces();
-    if (!past.length && !stale.length && !closed.length) {
-      box.innerHTML = '<div class="attnok">Everything is verified and current. Nice.</div>';
-      return;
-    }
-    if (past.length) {
-      box.appendChild(qSection("Past events — remove these",
-        "These already happened. The weekly sweep drops them, or clear them now.",
-        past.map(function (e) {
-          return qRow("#ff9d9d", e.title, fmtDate(e.date) + " · " + (e.venue || e.town || ""),
-            "Remove", function () {
-              store.events.splice(store.events.indexOf(e), 1);
-              markDirty("events"); renderQuality(); renderOverview(); updateBadges();
-            });
-        }),
-        past.length > 1 ? { label: "Remove all " + past.length, fn: function () {
-          if (!confirm("Remove all " + past.length + " past events?")) return;
-          past.forEach(function (e) { store.events.splice(store.events.indexOf(e), 1); });
-          markDirty("events"); renderQuality(); renderOverview(); updateBadges();
-        } } : null));
-    }
-    if (stale.length) {
-      box.appendChild(qSection("Places needing verification",
-        "Unverified, or not checked in 6+ months. One click stamps today as the check date.",
-        stale.map(function (p) {
-          var why = !p.verified ? "Never verified" : "Last checked " + fmtMonth(p.verified);
-          return qRow("#ffb35c", p.name, p.category + " · " + (p.town || "") + " — " + why,
-            "Mark verified", function () {
-              p.verified = todayStr();
-              if (p.status === "closed") p.status = "open";
-              markDirty("places"); renderQuality(); renderOverview(); updateBadges();
-            }, function () { openEditor("pl", p.id); });
-        })));
-    }
-    if (closed.length) {
-      box.appendChild(qSection("Marked closed",
-        "These show greyed-out on the map with a closure notice. Reopen or delete them.",
-        closed.map(function (p) {
-          return qRow("#6b6c78", p.name, (p.town || "") + " — marked closed",
-            "Reopen", function () {
-              p.status = "open"; p.verified = todayStr();
-              markDirty("places"); renderQuality(); renderOverview(); updateBadges();
-            }, function () {
-              if (!confirm("Delete \"" + p.name + "\"?")) return;
-              store.places.splice(store.places.indexOf(p), 1);
-              markDirty("places"); renderQuality(); renderOverview(); updateBadges();
-            }, "Delete");
-        })));
-    }
-  }
-  function qSection(title, sub, rows, bulk) {
-    var d = document.createElement("div");
-    d.className = "panelbox";
-    var h = document.createElement("h3"); h.textContent = title; d.appendChild(h);
-    var p = document.createElement("p"); p.textContent = sub; d.appendChild(p);
-    rows.forEach(function (r) { d.appendChild(r); });
-    if (bulk) {
-      var b = document.createElement("button");
-      b.className = "btn small danger"; b.textContent = bulk.label;
-      b.addEventListener("click", bulk.fn);
-      d.appendChild(b);
-    }
-    return d;
-  }
-  function qRow(color, title, sub, btnLabel, onBtn, onAlt, altLabel) {
-    var d = document.createElement("div");
-    d.className = "attn";
-    d.innerHTML = '<span class="adot" style="background:' + color + '"></span>' +
-      '<div class="abody"><div class="at">' + esc(title) + '</div><div class="as">' + esc(sub) + "</div></div>";
-    if (onAlt) {
-      var a = document.createElement("button");
-      a.className = "btn small"; a.textContent = altLabel || "Edit";
-      a.addEventListener("click", onAlt);
-      d.appendChild(a);
-    }
-    var b = document.createElement("button");
-    b.className = "btn small primary"; b.textContent = btnLabel;
-    b.addEventListener("click", onBtn);
-    d.appendChild(b);
-    return d;
-  }
-
-  /* ---------- editor modal (grouped) ---------- */
-  function openEditor(kind, id) {
-    var isEv = kind === "ev";
-    var arr = isEv ? store.events : store.places;
-    var it = id ? arr.filter(function (x) { return x.id === id; })[0] : null;
-    var v = it || {};
-    var box = $("modalBox");
-    var h = "<h2>" + (it ? "Edit " : "Add ") + (isEv ? "event" : "place") + "</h2>" +
-      "<p class='msub'>" + (it ? "Changes stay local until you publish." : "Fill in the basics, geocode the address, save.") + "</p>";
-
-    h += "<div class='fsec'>Basics</div><div class='frow'>" +
-      fld("title", isEv ? "Title" : "Name", v.title || v.name || "", true) +
-      (isEv ? fld("date", "Date", v.date || "", false, "date") + fld("time", "Time (e.g. 6–8 PM)", v.time || "") +
-              fld("venue", "Venue", v.venue || "") + fld("town", "Town", v.town || "")
-            : fld("category", "Category", null, false, "select", CATEGORIES, v.category) + fld("town", "Town", v.town || "")) +
-      fld("desc", "Description", v.desc || "", false, "textarea", null, true) +
-      "</div>";
-
-    h += "<div class='fsec'>Location</div><div class='frow'>" +
-      fld("address", "Street address", v.address || "", false, "text", null, true) +
-      fld("lat", "Latitude", v.lat != null ? v.lat : "") +
-      fld("lng", "Longitude", v.lng != null ? v.lng : "") +
-      "<div class='full'><button class='btn small' id='geoBtn' type='button'>Geocode address</button>" +
-      "<div class='geohelp' id='geoMsg'>Uses the address + town against OpenStreetMap. Check the pin looks right — tick approx if it's town-level.</div></div>" +
-      "</div>" +
-      "<label class='checkrow'><input type='checkbox' id='f_approx' " + (v.approx ? "checked" : "") + " /> Approximate location (town-level pin)</label>";
-
-    if (!isEv) {
-      h += "<div class='fsec'>Details</div><div class='frow'>" +
-        fld("hours", "Hours (e.g. Tue–Sun 8am–8pm)", v.hours || "") +
-        fld("price", "Price", null, false, "select", ["", "free", "$", "$$", "$$$"], v.price || "") +
-        fld("setting", "Setting", null, false, "select", ["", "indoors", "outdoors", "both"], v.setting || "") +
-        fld("ownership", "Ownership", null, false, "select", ["", "independent", "local-chain", "regional"], v.ownership || "") +
-        fld("link", "Website link", v.link || "", false, "text", null, true) +
-        fld("source", "Source", v.source || "Local knowledge") +
-        "</div>";
-      h += "<div class='fsec'>Quality</div><div class='frow'>" +
-        fld("status", "Status", null, false, "select", STATUSES, v.status || "open") +
-        fld("verified", "Last verified", v.verified || "", false, "date") +
-        "</div><div class='geohelp'>Status drives the map: <b>closed</b> greys the pin with a closure notice, <b>seasonal</b> flags it amber. Stamp <b>verified</b> with today's date when you've confirmed it's still accurate.</div>";
-    } else {
-      h += "<div class='fsec'>Details</div><div class='frow'>" +
-        fld("link", "Event link", v.link || "", false, "text", null, true) +
-        fld("source", "Source", v.source || "Facebook") +
-        "</div>";
-    }
-
-    h += "<div class='mfoot'><button class='btn' id='mCancel'>Cancel</button><button class='btn primary' id='mSave'>Save</button></div>";
-    box.innerHTML = h;
-    $("modalWrap").classList.add("open");
-    $("mCancel").addEventListener("click", closeModal);
-    $("modalWrap").addEventListener("click", function (e) { if (e.target === $("modalWrap")) closeModal(); });
-    $("geoBtn").addEventListener("click", function () {
-      var addr = ($("f_address") ? $("f_address").value : "") + ", " + ($("f_town") ? $("f_town").value : "") + ", NY";
-      $("geoMsg").textContent = "Geocoding…";
-      fetch("https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=us&viewbox=-76.5,45.2,-73.5,43.9&bounded=1&q=" + encodeURIComponent(addr),
-        { headers: { "Accept": "application/json" } })
-        .then(function (r) { return r.json(); })
-        .then(function (j) {
-          if (j && j.length) {
-            $("f_lat").value = (+j[0].lat).toFixed(5);
-            $("f_lng").value = (+j[0].lon).toFixed(5);
-            $("geoMsg").textContent = "Found: " + j[0].display_name.split(",").slice(0, 3).join(",");
-          } else $("geoMsg").textContent = "No match — try a simpler address or town name.";
-        })
-        .catch(function () { $("geoMsg").textContent = "Geocode failed — enter coordinates manually."; });
-    });
-    $("mSave").addEventListener("click", function () {
-      var get = function (n) { var f = $("f_" + n); return f ? f.value.trim() : ""; };
-      var lat = parseFloat(get("lat")), lng = parseFloat(get("lng"));
-      if (!get("title") || !(lat >= -90 && lat <= 90) || !(lng >= -180 && lng <= 180)) {
-        alert("A name/title and valid coordinates are required."); return;
-      }
-      var rec = it || { id: (isEv ? "evt-" : "plc-") + Date.now().toString(36) };
-      if (isEv) {
-        rec.title = get("title"); rec.date = get("date") || null; rec.time = get("time") || null;
-        rec.venue = get("venue") || null; rec.town = get("town") || null;
-      } else {
-        rec.name = get("title"); rec.category = get("category") || "Entertainment"; rec.town = get("town") || null;
-        rec.hours = get("hours") || null; rec.price = get("price") || null;
-        rec.setting = get("setting") || null; rec.ownership = get("ownership") || null;
-        rec.status = get("status") || "open"; rec.verified = get("verified") || null;
-      }
-      rec.address = get("address") || null; rec.lat = +lat.toFixed(5); rec.lng = +lng.toFixed(5);
-      rec.approx = $("f_approx").checked; rec.source = get("source") || (isEv ? "Facebook" : "Local knowledge");
-      rec.link = get("link") || null; rec.desc = get("desc") || "";
-      if (!it) arr.push(rec);
-      markDirty(isEv ? "events" : "places");
-      closeModal();
-      if (isEv) renderEvents(); else renderPlaces();
-      renderOverview(); updateBadges();
-      if (document.querySelector("#tab-quality.on")) renderQuality();
-    });
-  }
-  function fld(name, label, val, full, type, options, sel) {
-    type = type || "text";
-    var inner;
-    if (type === "select") {
-      inner = "<select id='f_" + name + "'>" + options.map(function (o) {
-        var ov = o === "" ? "" : o;
-        return "<option value=\"" + esc(ov) + "\"" + (o === sel || ov === sel ? " selected" : "") + ">" + (o === "" ? "—" : esc(o)) + "</option>";
-      }).join("") + "</select>";
-    } else if (type === "textarea") {
-      inner = "<textarea id='f_" + name + "'>" + esc(val || "") + "</textarea>";
-    } else {
-      inner = "<input id='f_" + name + "' type='" + type + "' value=\"" + esc(val || "").replace(/"/g, "&quot;") + "\" />";
-    }
-    var hint = name === "verified" ? "<div class='hint'>Stamp today when you've confirmed the listing is still accurate.</div>" : "";
-    return "<div class='field" + (full ? " full" : "") + "'><label>" + label + "</label>" + inner + hint + "</div>";
-  }
-  function closeModal() { $("modalWrap").classList.remove("open"); }
-
-  /* ---------- publish ---------- */
-  function download(name, obj) {
-    var blob = new Blob([JSON.stringify(obj, null, 1)], { type: "application/json" });
-    var a = document.createElement("a");
-    a.href = URL.createObjectURL(blob); a.download = name;
-    document.body.appendChild(a); a.click();
-    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
-  }
-  function cleanEvents() {
-    return store.events.map(function (e) {
-      return { id: e.id, title: e.title, date: e.date || null, time: e.time || null, venue: e.venue || null,
-        town: e.town || null, address: e.address || null, lat: e.lat, lng: e.lng, approx: !!e.approx,
-        desc: e.desc || "", link: e.link || null, source: e.source || "Facebook" };
-    });
-  }
-  function cleanPlaces() {
-    return store.places.map(function (p) {
-      var o = { id: p.id, name: p.name, category: p.category || "Entertainment", town: p.town || null,
-        address: p.address || null, lat: p.lat, lng: p.lng, approx: !!p.approx,
-        desc: p.desc || "", link: p.link || null, source: p.source || "Local knowledge" };
-      ["hours", "ownership", "setting", "price", "status", "verified"].forEach(function (k) {
-        if (p[k] != null && p[k] !== "") o[k] = p[k];
-      });
-      return o;
-    });
-  }
-  function renderPublish() {
-    var cards = [
-      { key: "events", file: "events.json", desc: store.events.length + " dated events. Weekly sweep drops past-dated ones automatically." },
-      { key: "places", file: "places.json", desc: store.places.length + " durable local-knowledge places." },
-      { key: "staging", file: "staging.json", desc: pendingCount() + " raw items awaiting review. Only visible in this admin." }
-    ];
-    $("pubCards").innerHTML = "";
-    cards.forEach(function (c) {
-      var d = document.createElement("div"); d.className = "pubcard";
-      var pi = document.createElement("div"); pi.className = "pi";
-      var pn = document.createElement("div"); pn.className = "pn"; pn.textContent = c.file; pi.appendChild(pn);
-      var pd = document.createElement("div"); pd.className = "pd"; pd.textContent = c.desc; pi.appendChild(pd);
-      if (dirty[c.key]) { var dg = document.createElement("div"); dg.className = "pdirty"; dg.textContent = "● has unsaved changes"; pi.appendChild(dg); }
-      d.appendChild(pi);
-      var b = document.createElement("button"); b.className = "btn" + (dirty[c.key] ? " primary" : ""); b.textContent = "Download";
-      b.addEventListener("click", function () {
-        if (c.key === "events") download("events.json", { updated: todayStr(), events: cleanEvents() });
-        else if (c.key === "places") download("places.json", { updated: todayStr(), places: cleanPlaces() });
-        else download("staging.json", { updated: todayStr(), items: store.staging });
-        // downloaded = safe to forget the autosave for this file
-        dirty[c.key] = false;
-        updateDirty(); renderOverview();
-        if (!dirty.events && !dirty.places && !dirty.staging) clearAutosave();
-        else autosave();
-      });
-      d.appendChild(b);
-      $("pubCards").appendChild(d);
-    });
-  }
+  /* ---------- boot ---------- */
+  fetch("./places.json", { cache: "no-store" }).then(function (r) { return r.json(); })
+    .then(function (d) {
+      places = d.places || [];
+      var sv = restore();
+      if (sv) { places = sv; dirty = true; $("dirtyDot").style.display = "";
+        toast("Restored unsaved work from this browser"); }
+      render();
+    })
+    .catch(function (e) { $("list").innerHTML = '<div class="card">Could not load places.json</div>'; });
 })();
 </script>
 </body>
