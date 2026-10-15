@@ -123,6 +123,7 @@
   <h1>Radar Admin</h1>
   <span id="dirtyDot" title="Unsaved changes"></span>
   <div class="spacer"></div>
+  <button class="btn" id="copyBtn" title="Copy places JSON to clipboard">Copy data</button>
   <button class="btn primary" id="publishBtn">Publish</button>
 </div>
 <div id="layout">
@@ -177,12 +178,23 @@
   function markDirty() { dirty = true; $("dirtyDot").style.display = ""; persist(); refreshMapPins(); }
 
   if (!token()) $("gate").classList.add("open");
-  $("gateSave").addEventListener("click", function () {
+  $("gateSave").addEventListener("click", async function () {
     var t = $("gateToken").value.trim();
     if (!t) { toast("Paste a token first"); return; }
-    localStorage.setItem("radar-gh-token", t);
-    $("gate").classList.remove("open");
-    toast("Token saved -- you're in");
+    // validate before accepting
+    $("gateSave").disabled = true; $("gateSave").textContent = "Checking...";
+    try {
+      var r = await fetch("https://api.github.com/repos/" + REPO, {
+        headers: { Authorization: "Bearer " + t, Accept: "application/vnd.github+json" } });
+      if (r.status === 401) { toast("Token rejected (401) -- check it has 'repo' scope and isn't expired"); }
+      else if (!r.ok) { toast("Token check failed: " + r.status); }
+      else {
+        localStorage.setItem("radar-gh-token", t);
+        $("gate").classList.remove("open");
+        toast("Token works -- you're in");
+      }
+    } catch (e) { toast("Network error -- try again"); }
+    $("gateSave").disabled = false; $("gateSave").textContent = "Save & continue";
   });
 
   /* ---------- big map ---------- */
@@ -361,6 +373,20 @@
   }
 
   /* ---------- publish ---------- */
+  $("copyBtn").addEventListener("click", function () {
+    var json = JSON.stringify({ updated: today(), places: places }, null, 1);
+    function done() { toast("Copied -- paste it to me and I'll push it"); }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(json).then(done, function () { fallbackCopy(json); done(); });
+    } else { fallbackCopy(json); done(); }
+  });
+  function fallbackCopy(text) {
+    var ta = document.createElement("textarea");
+    ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand("copy"); } catch (e) {}
+    ta.remove();
+  }
   $("publishBtn").addEventListener("click", async function () {
     var t = token();
     if (!t) { $("gate").classList.add("open"); return; }
