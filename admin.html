@@ -123,6 +123,7 @@
   <h1>Radar Admin</h1>
   <span id="dirtyDot" title="Unsaved changes"></span>
   <div class="spacer"></div>
+  <button class="btn" id="tokenBtn" title="Replace GitHub token">Token</button>
   <button class="btn" id="copyBtn" title="Copy places JSON to clipboard">Copy data</button>
   <button class="btn primary" id="publishBtn">Publish</button>
 </div>
@@ -372,7 +373,10 @@
     toast("Saved");
   }
 
-  /* ---------- publish ---------- */
+  $("tokenBtn").addEventListener("click", function () {
+    $("gateToken").value = "";
+    $("gate").classList.add("open");
+  });
   $("copyBtn").addEventListener("click", function () {
     var json = JSON.stringify({ updated: today(), places: places }, null, 1);
     function done() { toast("Copied -- paste it to me and I'll push it"); }
