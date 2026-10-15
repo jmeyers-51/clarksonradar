@@ -28,12 +28,15 @@
   .maplibregl-ctrl-attrib { font-size: 10px; }
   .maplibregl-ctrl-attrib a { color: #7c8595; }
 
-  /* ============ markers: NEVER animated ============
-     First-principles rule: no transition, no animation on .mk or
-     anything inside it. Markers are created once per data change
-     and never touched on map movement. They cannot move on their own. */
-  .mk { cursor: pointer; display: inline-block; }
-  .mk, .mk * { transition: none !important; animation: none !important; }
+  /* ============ markers: NEVER moved, only faded ============
+     First-principles rule: markers are created once per data change and
+     never touched on map movement -- they cannot drift, fly, or glide.
+     The ONLY permitted visual change is an opacity fade when the data
+     set itself changes (mode/filter/search), so toggles feel smooth
+     instead of jerky. No transform, no position animation, ever. */
+  .mk { cursor: pointer; display: inline-block; transition: opacity .18s ease; }
+  .mk * { transition: none !important; animation: none !important; }
+  body.fading .mk { opacity: 0; }
   .pin { width: 26px; height: 33px; position: relative; }
   .mk .pin i {
     position: absolute; left: 1px; top: 1px; width: 24px; height: 24px;
@@ -63,14 +66,6 @@
   }
   .noheat .mk .heat { display: none; }
   .mk .pin { position: relative; z-index: 1; }
-  /* cluster bubble */
-  .bub {
-    min-width: 34px; height: 34px; padding: 0 8px;
-    display: inline-flex; align-items: center; justify-content: center;
-    background: #2a3040; color: #fff; font: 700 14px Inter, sans-serif;
-    border: 2.5px solid rgba(255,255,255,.9); border-radius: 999px;
-    box-shadow: 0 3px 10px rgba(0,0,0,.55);
-  }
 
   /* ============ header ============ */
   header {
@@ -281,11 +276,21 @@
   .modal .mbox h3 { margin: 0 0 12px; font: 700 17px Inter, sans-serif; }
 
   @media (max-width: 720px) {
+    header { flex-wrap: wrap; gap: 8px; top: 10px; left: 10px; right: 10px; }
+    .brand { order: 1; padding: 7px 12px; }
+    .brand h1 { font-size: 14px; }
     .brand p { display: none; }
-    #search { max-width: none; }
-    header { flex-wrap: wrap; }
-    #chips { top: 118px; }
-    #listpanel { top: 170px; }
+    .modeseg { order: 2; margin-left: auto; }
+    .modeseg button { padding: 7px 12px; font-size: 12px; }
+    #gearBtn { order: 3; width: 40px; height: 40px; }
+    #search { order: 4; flex: 1 1 100%; max-width: none; height: 42px; }
+    #chips { top: 158px; left: 10px; right: 10px; }
+    .chip { font-size: 12px; padding: 6px 11px; }
+    #listpanel { top: 210px; left: 10px; width: calc(100vw - 20px); }
+    #listbtn { left: 10px; bottom: 46px; }
+    #mapctl { right: 10px; bottom: 12px; }
+    #sheet { width: calc(100vw - 16px); max-height: 70vh; }
+    #updated { display: none; }
   }
 </style>
 </head>
@@ -341,9 +346,6 @@ var PALETTE = {
 };
 var EVENT_COLOR = "#e8b34b";
 var CATS = ["Food", "Coffee", "Outdoors", "Orchard", "Entertainment", "Study"];
-/* geographic clustering radius in degrees (~2.2km lat). Static: computed once
-   per render, never on map movement. */
-var CLUSTER_R = 0.02;
 
 /* ================= state ================= */
 var state = {
@@ -469,42 +471,31 @@ function visibleItems() {
   });
 }
 
-/* Static geographic clustering. Runs only when data/filters change.
-   Returns [{lng, lat, items:[...]}]. Single-item groups are plain pins. */
-function cluster(items) {
-  var groups = [];
+/* Every pin is shown individually -- no clusters, no counts to decode.
+   Pins sharing identical coordinates get a tiny deterministic spread. */
+function spreadPins(items) {
+  var groups = {};
   items.forEach(function (e) {
-    var placed = false;
-    for (var i = 0; i < groups.length; i++) {
-      var g = groups[i];
-      if (Math.abs(g.lng - e.lng) < CLUSTER_R && Math.abs(g.lat - e.lat) < CLUSTER_R) {
-        g.items.push(e);
-        var n = g.items.length;
-        g.lng = g.items.reduce(function (s, x) { return s + x.lng; }, 0) / n;
-        g.lat = g.items.reduce(function (s, x) { return s + x.lat; }, 0) / n;
-        placed = true; break;
-      }
-    }
-    if (!placed) groups.push({ lng: e.lng, lat: e.lat, items: [e] });
+    var k = e.lat.toFixed(5) + "," + e.lng.toFixed(5);
+    (groups[k] = groups[k] || []).push(e);
   });
-  // tiny deterministic spread so identical-coordinate pins don't perfectly overlap
-  groups.forEach(function (g) {
-    g.items.forEach(function (e, i) {
-      if (g.items.length > 1 && i > 0) {
-        var a = (i / g.items.length) * Math.PI * 2;
+  Object.keys(groups).forEach(function (k) {
+    groups[k].forEach(function (e, i) {
+      if (groups[k].length > 1) {
+        var a = (i / groups[k].length) * Math.PI * 2;
         e._sx = e.lng + Math.cos(a) * 0.0012;
         e._sy = e.lat + Math.sin(a) * 0.0012;
       } else { e._sx = e.lng; e._sy = e.lat; }
     });
   });
-  return groups;
 }
 
 /* ================= markers =================
    Built exactly once per render() call. render() is called only on:
    data load, mode switch, chip toggle, search input, admin edits.
    It is NEVER called on map movement. Markers therefore cannot move
-   on their own -- MapLibre keeps them glued to their coordinates. */
+   on their own -- MapLibre keeps them glued to their coordinates.
+   Every pin is shown individually; no clusters, no counts to decode. */
 function clearMarkers() {
   state.markers.forEach(function (m) { m.remove(); });
   state.markers = [];
@@ -539,37 +530,21 @@ function renderMarkers() {
 
   document.body.classList.toggle("noheat", !state.heatOn || map.getZoom() >= 13);
 
-  cluster(items).forEach(function (g) {
-    if (g.items.length === 1) {
-      var e = g.items[0];
-      var m = new maplibregl.Marker({ element: makePin(e), anchor: "bottom", draggable: state.admin })
-        .setLngLat([e._sx, e._sy]).addTo(map);
-      if (state.admin) {
-        m.on("dragstart", pushUndo);
-        m.on("dragend", function () {
-          var ll = m.getLngLat();
-          e.lat = +ll.lat.toFixed(5); e.lng = +ll.lng.toFixed(5);
-          e.approx = false;
-          markDirtyPlaces();
-          render();
-        });
-      }
-      state.markers.push(m);
-    } else {
-      var el = document.createElement("div");
-      el.className = "mk";
-      var b = document.createElement("div");
-      b.className = "bub"; b.textContent = g.items.length;
-      el.appendChild(b);
-      el.addEventListener("click", function (ev) {
-        ev.stopPropagation();
-        // instant zoom into the cluster. not animated.
-        try { map.jumpTo({ center: [g.lng, g.lat], zoom: Math.min(map.getZoom() + 2.5, 17) }); } catch (err) {}
+  spreadPins(items);
+  items.forEach(function (e) {
+    var m = new maplibregl.Marker({ element: makePin(e), anchor: "bottom", draggable: state.admin })
+      .setLngLat([e._sx, e._sy]).addTo(map);
+    if (state.admin) {
+      m.on("dragstart", pushUndo);
+      m.on("dragend", function () {
+        var ll = m.getLngLat();
+        e.lat = +ll.lat.toFixed(5); e.lng = +ll.lng.toFixed(5);
+        e.approx = false;
+        markDirtyPlaces();
+        render();
       });
-      var cm = new maplibregl.Marker({ element: el, anchor: "center" })
-        .setLngLat([g.lng, g.lat]).addTo(map);
-      state.markers.push(cm);
     }
+    state.markers.push(m);
   });
 }
 
@@ -581,6 +556,21 @@ function render() {
     var e = findById(state.selected);
     if (e) renderSheetBody(e);
   }
+}
+
+/* Smooth data-set switch: fade pins out, swap, fade in.
+   Used for mode / chip / search changes so toggles feel polished.
+   Positional motion is still impossible -- only opacity changes. */
+function fadeRender() {
+  document.body.classList.add("fading");
+  setTimeout(function () {
+    render();
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        document.body.classList.remove("fading");
+      });
+    });
+  }, 190);
 }
 
 function findById(id) {
@@ -599,7 +589,7 @@ function renderChips() {
     b.innerHTML = '<span class="dot" style="--pc:' + PALETTE[c] + ';background:' + PALETTE[c] + '"></span>' + esc(c);
     b.addEventListener("click", function () {
       state.cats[c] = !state.cats[c];
-      render();
+      fadeRender();
     });
     box.appendChild(b);
   });
@@ -607,7 +597,7 @@ function renderChips() {
   all.className = "chip"; all.textContent = "All";
   all.addEventListener("click", function () {
     CATS.forEach(function (c) { state.cats[c] = true; });
-    render();
+    fadeRender();
   });
   box.appendChild(all);
 }
@@ -716,7 +706,8 @@ map.on("click", function () { if (state.selected) closeSheet(); });
 
 $("search").addEventListener("input", function (ev) {
   state.query = ev.target.value;
-  render();
+  clearTimeout(state._sq);
+  state._sq = setTimeout(fadeRender, 220);
 });
 document.querySelectorAll("#modeSeg button").forEach(function (b) {
   b.addEventListener("click", function () {
@@ -726,7 +717,7 @@ document.querySelectorAll("#modeSeg button").forEach(function (b) {
     state.selected = null;
     $("sheet").classList.remove("open");
     $("search").placeholder = state.mode === "events" ? "Search events" : "Search places";
-    render();
+    fadeRender();
   });
 });
 $("gearBtn").addEventListener("click", function () { setAdmin(true); });
