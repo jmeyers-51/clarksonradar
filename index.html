@@ -551,7 +551,7 @@
     el.appendChild(bub);
     el.addEventListener("click", function (ev) {
       ev.stopPropagation();
-      map.easeTo({ center: [slng / n, slat / n], zoom: Math.min(map.getZoom() + 2.5, 17), duration: 450 });
+      try { map.jumpTo({ center: [slng / n, slat / n], zoom: Math.min(map.getZoom() + 2.5, 17) }); } catch (err) {}
     });
     var m = new maplibregl.Marker({ element: el }).setLngLat([slng / n, slat / n]).addTo(map);
     state.clusters.push(m);
@@ -710,15 +710,14 @@
     if (ex) ex.addEventListener("click", function () { setDetent("half"); });
   }
 
-  function openSheetFor(e, push, instant) {
+  function openSheetFor(e, push) {
     state.selected = e.id;
     renderSheet(e);
     setDetent("peek");
     sheetEl.classList.add("open");
     renderNodes();
-    /* pin clicks glide to the place; initial deep-link loads jump -- no flight on load */
-    if (instant) { try { map.jumpTo({ center: [e.lng, e.lat] }); } catch (err) {} }
-    else map.easeTo({ center: [e.lng, e.lat], duration: 450 });
+    /* no camera animation anywhere -- jump straight to the place */
+    try { map.jumpTo({ center: [e.lng, e.lat] }); } catch (err) {}
     if (push !== false) {
       try { history.pushState({ sel: e.id }, "", "#" + e.kind + "=" + encodeURIComponent(e.id)); }
       catch (err) {}
@@ -836,10 +835,18 @@
   /* ================= map controls ================= */
   $("homeBtn").addEventListener("click", function () {
     closeSheet(false);
-    if (homeBounds) map.fitBounds(homeBounds, { padding: 90, maxZoom: 12, duration: 600 });
+    if (homeBounds) {
+      try {
+        var cam = map.cameraForBounds(homeBounds, { padding: 90, maxZoom: 12 });
+        if (cam) map.jumpTo(cam);
+        else map.fitBounds(homeBounds, { padding: 90, maxZoom: 12, duration: 0 });
+      } catch (err) {
+        map.fitBounds(homeBounds, { padding: 90, maxZoom: 12, duration: 0 });
+      }
+    }
   });
-  $("zinBtn").addEventListener("click", function () { map.zoomIn({ duration: 250 }); });
-  $("zoutBtn").addEventListener("click", function () { map.zoomOut({ duration: 250 }); });
+  $("zinBtn").addEventListener("click", function () { try { map.jumpTo({ zoom: map.getZoom() + 1 }); } catch (err) {} });
+  $("zoutBtn").addEventListener("click", function () { try { map.jumpTo({ zoom: map.getZoom() - 1 }); } catch (err) {} });
   map.on("moveend", function () { hideTip(); renderNodes(); refreshList(); updateHeat(); });
 
   /* ================= admin: pin dragging ================= */
@@ -979,7 +986,7 @@
         });
         $("search").placeholder = state.mode === "events" ? "Search events" : "Search places";
         renderAll();
-        openSheetFor(e, false, true);
+        openSheetFor(e, false);
       }
     }
   }).catch(function (err) {
