@@ -300,6 +300,14 @@
       transition: transform .28s cubic-bezier(.32,.72,.28,1), height .22s ease; }
     #sheet.open { transform: translateX(0) translateY(0); }
     #sheet.dragging { transition: none; }
+    /* progressive disclosure */
+    .sh-peek { display: flex; align-items: baseline; gap: 10px; }
+    .sh-peek .shtitle { margin: 0; padding: 0; font-size: 17px; white-space: nowrap;
+      overflow: hidden; text-overflow: ellipsis; flex: 1; }
+    .sh-peek .shstars { flex: none; font-size: 13px; }
+    #sheet[data-snap="0"] .sh-glance, #sheet[data-snap="0"] .sh-full { display: none; }
+    #sheet[data-snap="1"] .sh-full { display: none; }
+    #sheet[data-snap="0"] #sheetbody { overflow: hidden; }
   }
 </style>
 </head>
@@ -662,8 +670,12 @@ function stars(n) {
 function renderSheetBody(e) {
   var body = $("sheetbody");
   var h = "";
-  h += '<div class="shtitle">' + esc(e.title || e.name) + "</div>";
-  h += '<div class="pills">';
+  // peek: name + stars only
+  h += '<div class="sh-peek"><div class="shtitle">' + esc(e.title || e.name) + "</div>";
+  if (e.kind === "place" && e.rating != null) h += '<div class="shstars">' + stars(e.rating) + "</div>";
+  h += "</div>";
+  // glance: pills + key facts + directions
+  h += '<div class="sh-glance"><div class="pills">';
   if (e.kind === "place") {
     h += '<span class="pill"><span class="dot" style="background:' + catColor(e) + '"></span>' + esc(e.category || "") + "</span>";
   } else {
@@ -673,26 +685,28 @@ function renderSheetBody(e) {
   if (e.verified === false) h += '<span class="pill warn">Unverified</span>';
   if (isClosed(e)) h += '<span class="pill bad">Closed</span>';
   h += "</div>";
-
   if (e.kind === "event") {
     if (e.date) h += '<div class="shrow"><b>' + esc(e.date) + (e.time ? " · " + esc(e.time) : "") + "</b></div>";
     if (e.venue) h += '<div class="shrow">' + esc(e.venue) + "</div>";
   } else {
+    if (e.address) h += '<div class="shrow">' + esc(e.address) + "</div>";
     var bits = [];
     if (e.hours && !isClosed(e)) bits.push("<b>Hours:</b> " + esc(e.hours));
-    if (e.rating != null) bits.push(stars(e.rating));
     if (e.reviews != null) bits.push('<span style="color:var(--mut)">(' + e.reviews + " reviews)</span>");
     if (bits.length) h += '<div class="shrow">' + bits.join(" &nbsp; ") + "</div>";
   }
-  if (e.desc) h += '<div class="shdesc">' + esc(e.desc) + "</div>";
-  if (e.note) h += '<div class="note">' + esc(e.note) + "</div>";
-
   h += '<div class="shbtns">';
   h += '<a class="btn primary" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=' +
     encodeURIComponent(e.lat + "," + e.lng) + '">Directions</a>';
+  h += "</div></div>";
+  // full: description + notes + extra buttons
+  h += '<div class="sh-full">';
+  if (e.desc) h += '<div class="shdesc">' + esc(e.desc) + "</div>";
+  if (e.note) h += '<div class="note">' + esc(e.note) + "</div>";
+  h += '<div class="shbtns">';
   if (e.link) h += '<a class="btn" target="_blank" rel="noopener" href="' + esc(e.link) + '">Website</a>';
   if (state.admin) h += '<button class="btn" id="shedit">Edit</button>';
-  h += "</div>";
+  h += "</div></div>";
   body.innerHTML = h;
 
   var eb = $("shedit");
@@ -718,6 +732,7 @@ function setSheetHeight(px, animate) {
 function snapSheet(idx) {
   sheetState = idx;
   if (idx < 0) { closeSheet(true); return; }
+  $("sheet").dataset.snap = idx;
   setSheetHeight(sheetSnaps()[idx], true);
 }
 function openSheet(e) {
