@@ -79,14 +79,37 @@
   }
   .brand h1 { font: 800 16px Sora, Inter, sans-serif; margin: 0; letter-spacing: -.2px; }
   .brand p { font-size: 10.5px; color: var(--mut); margin: 2px 0 0; }
+  #searchwrap {
+    position: fixed; top: 68px; left: 12px; right: 12px; z-index: 20;
+    display: none; gap: 8px; align-items: center; pointer-events: none;
+    transition: opacity .25s ease;
+  }
+  #searchwrap.open { display: flex; }
+  #searchwrap > * { pointer-events: auto; }
   #search {
-    flex: 1; max-width: 420px; height: 44px; padding: 0 16px;
-    background: rgba(13,14,19,.85); border: 1px solid var(--line); border-radius: 999px;
+    flex: 1; height: 46px; padding: 0 18px;
+    background: rgba(13,14,19,.95); border: 1px solid rgba(232,179,75,.55); border-radius: 999px;
     color: var(--txt); font: 500 14px Inter, sans-serif; backdrop-filter: blur(12px);
     box-shadow: var(--shadow); outline: none;
   }
   #search::placeholder { color: #6b7484; }
-  #search:focus { border-color: rgba(232,179,75,.55); }
+  #searchx {
+    flex: none; width: 46px; height: 46px; border-radius: 50%;
+    background: rgba(13,14,19,.95); border: 1px solid var(--line); color: var(--txt);
+    font-size: 20px; cursor: pointer;
+  }
+  /* legend: what each dot color means */
+  #legend {
+    flex: 1; display: flex; gap: 6px; align-items: center; overflow-x: auto;
+    padding: 8px 14px; background: rgba(13,14,19,.85); border: 1px solid var(--line);
+    border-radius: 999px; backdrop-filter: blur(12px); box-shadow: var(--shadow);
+    scrollbar-width: none; white-space: nowrap;
+  }
+  #legend::-webkit-scrollbar { display: none; }
+  .leg { display: inline-flex; align-items: center; gap: 6px; font-size: 12px;
+    color: #c9cede; flex: none; }
+  .leg .ldot { width: 10px; height: 10px; border-radius: 50%; flex: none;
+    border: 1.5px solid rgba(255,255,255,.9); }
   .modeseg {
     display: flex; background: rgba(13,14,19,.85); border: 1px solid var(--line);
     border-radius: 999px; padding: 4px; backdrop-filter: blur(12px); box-shadow: var(--shadow);
@@ -281,18 +304,18 @@
     .brand p { display: none; }
     .modeseg { order: 2; margin-left: auto; }
     .modeseg button { padding: 7px 12px; font-size: 12px; }
-    #gearBtn { order: 3; width: 40px; height: 40px; }
-    #homeBtnTop { order: 3; width: 40px; height: 40px; }
-    #search { order: 4; flex: 1 1 100%; max-width: none; height: 42px;
-      transition: opacity .25s ease, transform .25s ease; }
+    #searchBtn { order: 3; }
+    #homeBtnTop { order: 4; width: 40px; height: 40px; }
+    #gearBtn { order: 5; width: 40px; height: 40px; }
+    #legend { order: 6; flex: 1 1 100%; max-width: none; }
+    #searchwrap { top: 118px; }
     /* no sidebar, no chips on mobile */
     #listpanel { display: none !important; }
     #chips { display: none !important; }
     #mapctl { right: 10px; bottom: 12px; transition: opacity .25s ease; }
     #updated { display: none; }
     /* auto-hide chrome while navigating */
-    body.navigating header, body.navigating #mapctl { opacity: 0; pointer-events: none; }
-    body.navigating #search { opacity: 0; }
+    body.navigating header, body.navigating #mapctl, body.navigating #searchwrap { opacity: 0; pointer-events: none; }
     /* expandable sheet: peek / half / full */
     #sheet { width: calc(100vw - 16px); left: 8px; transform: translateX(0) translateY(105%);
       transition: transform .28s cubic-bezier(.32,.72,.28,1), height .22s ease; }
@@ -329,14 +352,19 @@
     <h1>North Country Radar</h1>
     <p>My places &middot; North Country</p>
   </div>
-  <input id="search" type="text" placeholder="Search my places" autocomplete="off">
+  <div id="legend"></div>
   <div class="modeseg" id="modeSeg" style="display:none">
     <button data-mode="events">Events</button>
     <button data-mode="places" class="on">Places</button>
   </div>
+  <button class="iconbtn" id="searchBtn" title="Search">&#128269;</button>
   <button class="iconbtn" id="homeBtnTop" title="Home view" style="background:#e8b34b;border-color:#e8b34b;color:#1a1a1a;font-weight:800">&#8962;</button>
   <button class="iconbtn" id="gearBtn" title="Admin">&#9881;</button>
 </header>
+<div id="searchwrap">
+  <input id="search" type="text" placeholder="Search my places" autocomplete="off">
+  <button id="searchx" title="Close search">&times;</button>
+</div>
 
 <div id="chips"></div>
 
@@ -709,10 +737,12 @@ function renderSheetBody(e) {
   h += '<div class="shbtns">';
   h += '<a class="btn primary" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=' +
     encodeURIComponent(e.lat + "," + e.lng) + '">Directions</a>';
-  h += "</div></div>";
-  // full: description + notes + extra buttons
-  h += '<div class="sh-full">';
+  h += "</div>";
+  // the review: visible immediately on tap
   if (e.desc) h += '<div class="shdesc">' + esc(e.desc) + "</div>";
+  h += "</div>";
+  // full: notes + extra buttons
+  h += '<div class="sh-full">';
   if (e.note) h += '<div class="note">' + esc(e.note) + "</div>";
   h += '<div class="shbtns">';
   if (e.link) h += '<a class="btn" target="_blank" rel="noopener" href="' + esc(e.link) + '">Website</a>';
@@ -752,7 +782,7 @@ function openSheet(e) {
   var sh = $("sheet");
   sh.classList.add("open");
   renderMarkers();
-  if (isMobileSheet()) { snapSheet(0); } // start at peek
+  if (isMobileSheet()) { $("sheet").dataset.snap = 1; snapSheet(1); } // open at glance: review visible immediately
   else { sh.style.height = ""; }
   try { map.flyTo({ center: [e.lng, e.lat], zoom: Math.max(map.getZoom(), 14), duration: 1400 }); }
   catch (err) {}
@@ -787,7 +817,7 @@ function closeSheet(silent) {
 (function () {
   var sh = $("sheet"), sx = 0, sy = 0, tracking = false;
   sh.addEventListener("touchstart", function (e) {
-    if (!isMobileSheet() || sheetState !== 0) return;
+    if (!isMobileSheet() || sheetState < 0) return;
     tracking = true;
     sx = e.touches[0].clientX; sy = e.touches[0].clientY;
   }, { passive: true });
@@ -873,6 +903,25 @@ document.querySelectorAll("#modeSeg button").forEach(function (b) {
   });
 });
 $("gearBtn").addEventListener("click", function () { location.href = "admin.html"; });
+$("searchBtn").addEventListener("click", function () {
+  var w = $("searchwrap");
+  w.classList.toggle("open");
+  if (w.classList.contains("open")) $("search").focus();
+  else { $("search").value = ""; state.query = ""; fadeRender(); }
+});
+$("searchx").addEventListener("click", function () {
+  $("searchwrap").classList.remove("open");
+  $("search").value = ""; state.query = ""; fadeRender();
+});
+/* legend: dot colors -> categories present in the data */
+function renderLegend() {
+  var seen = {};
+  (state.places || []).forEach(function (p) { if (p.category) seen[p.category] = true; });
+  var cats = CATS.filter(function (c) { return seen[c]; });
+  $("legend").innerHTML = cats.map(function (c) {
+    return '<span class="leg"><span class="ldot" style="background:' + PALETTE[c] + '"></span>' + esc(c) + "</span>";
+  }).join("");
+}
 
 /* Heat visibility follows zoom. Display-only; markers are untouched. */
 map.on("moveend", function () {
@@ -899,6 +948,7 @@ function boot() {
   loadData().then(function () {
     frameInitial();          // camera set BEFORE any marker exists
     if (new URLSearchParams(location.search).get("admin") === "1") setAdmin(true);
+    renderLegend();
     render();                // markers created once, at final positions
     // deep link: show the place, no camera flight
     var m = location.hash.match(/^#(place|event)=(.+)$/);
