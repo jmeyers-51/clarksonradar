@@ -395,7 +395,10 @@
     try {
       var get = await fetch("https://api.github.com/repos/" + REPO + "/contents/places.json?ref=" + BRANCH, {
         headers: { Authorization: "Bearer " + t, Accept: "application/vnd.github+json" } });
-      if (!get.ok) throw new Error("read " + get.status);
+      if (!get.ok) {
+        if (get.status === 404) throw new Error("token can't read repo files -- create a classic token with the 'repo' box checked (fine-grained tokens need Contents read+write)");
+        throw new Error("read " + get.status);
+      }
       var meta = await get.json();
       var content = btoa(unescape(encodeURIComponent(JSON.stringify({ updated: today(), places: places }, null, 1))));
       var put = await fetch("https://api.github.com/repos/" + REPO + "/contents/places.json", {
