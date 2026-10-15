@@ -6,145 +6,151 @@
 <title>Radar Admin</title>
 <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
 <style>
-  :root { color-scheme: dark;
-    --glass: rgba(22,25,35,.62); --glass2: rgba(30,34,48,.55);
-    --line: rgba(255,255,255,.09); --txt: #eceef4; --mut: #9aa0b5;
-    --acc: #e8b34b; --green: #8fd49a; --red: #f0a0a0; }
+  :root { color-scheme: dark; }
   * { box-sizing: border-box; }
   html, body { height: 100%; }
   body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    background: #0d0f15; color: var(--txt); overflow: hidden; }
+    background: #0d0f15; color: #eceef4; overflow: hidden; }
   body::before { content: ""; position: fixed; inset: 0; z-index: -1;
     background:
-      radial-gradient(900px 500px at 12% -8%, rgba(232,179,75,.10), transparent 60%),
-      radial-gradient(800px 500px at 95% 110%, rgba(106,155,232,.10), transparent 60%),
+      radial-gradient(900px 500px at 12% -8%, rgba(232,179,75,.08), transparent 60%),
+      radial-gradient(800px 500px at 95% 110%, rgba(106,155,232,.08), transparent 60%),
       #0d0f15; }
-  /* top bar */
-  #topbar { display: flex; align-items: center; gap: 10px; padding: 10px 16px;
-    background: var(--glass); border-bottom: 1px solid var(--line);
+  /* ---------- top bar ---------- */
+  #topbar { display: flex; align-items: center; gap: 12px; padding: 0 16px; height: 60px;
+    background: rgba(22,25,35,.7); border-bottom: 1px solid rgba(255,255,255,.09);
     backdrop-filter: blur(22px) saturate(1.3); -webkit-backdrop-filter: blur(22px) saturate(1.3);
     position: relative; z-index: 40; }
-  #topbar h1 { font-size: 16px; margin: 0 4px 0 0; font-weight: 700; letter-spacing: .2px; }
+  #topbar h1 { font-size: 16px; margin: 0; font-weight: 700; }
   #topbar .spacer { flex: 1; }
-  #dirtyDot { width: 9px; height: 9px; border-radius: 50%; background: var(--acc);
-    display: none; box-shadow: 0 0 8px var(--acc); }
-  .tbtn { border: 1px solid var(--line); background: var(--glass2); color: var(--txt);
-    border-radius: 12px; padding: 9px 14px; font-size: 13.5px; cursor: pointer;
-    backdrop-filter: blur(12px); transition: all .18s ease; white-space: nowrap; }
-  .tbtn:hover { border-color: rgba(232,179,75,.5); transform: translateY(-1px); }
-  .tbtn.primary { background: var(--acc); border-color: var(--acc); color: #1a1a1a; font-weight: 700; }
-  .tbtn:disabled { opacity: .45; transform: none; }
-  .iconbtn { width: 38px; height: 38px; border-radius: 12px; display: inline-flex;
-    align-items: center; justify-content: center; font-size: 17px; }
-  /* layout */
-  #layout { display: grid; grid-template-columns: 220px 380px 1fr; height: calc(100vh - 59px); }
-  /* nav column */
-  #nav { border-right: 1px solid var(--line); padding: 18px 14px;
-    background: rgba(16,18,26,.5); backdrop-filter: blur(18px); overflow-y: auto; }
-  #nav .nbtn { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
-    border: 1px solid transparent; background: transparent; color: var(--txt);
-    border-radius: 12px; padding: 11px 13px; font-size: 14px; cursor: pointer;
-    transition: all .18s ease; margin-bottom: 4px; }
-  #nav .nbtn:hover { background: rgba(255,255,255,.05); }
-  #nav .nbtn.on { background: var(--glass2); border-color: var(--line); }
-  #nav .nbtn .cnt { margin-left: auto; font-size: 11.5px; color: var(--mut);
-    background: rgba(255,255,255,.07); padding: 2px 8px; border-radius: 20px; }
-  #nav .nsec { font-size: 11px; text-transform: uppercase; letter-spacing: 1px;
-    color: var(--mut); margin: 18px 6px 8px; }
-  /* list column */
-  #listcol { border-right: 1px solid var(--line); display: flex; flex-direction: column;
-    background: rgba(18,21,30,.45); backdrop-filter: blur(18px); min-width: 0; }
-  #listsrch { margin: 14px 14px 8px; }
-  #listsrch input { width: 100%; padding: 11px 14px; font-size: 14px; border-radius: 12px;
-    border: 1px solid var(--line); background: rgba(13,15,21,.7); color: var(--txt);
-    backdrop-filter: blur(8px); }
+  #dirtyDot { width: 9px; height: 9px; border-radius: 50%; background: #e8b34b;
+    display: none; box-shadow: 0 0 8px #e8b34b; }
+  .btn { border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.06);
+    color: #eceef4; border-radius: 12px; padding: 10px 18px; font-size: 14px;
+    cursor: pointer; transition: all .15s ease; white-space: nowrap; }
+  .btn:hover { border-color: rgba(232,179,75,.5); }
+  .btn.primary { background: #e8b34b; border-color: #e8b34b; color: #1a1a1a; font-weight: 700; }
+  .btn.danger { border-color: rgba(240,160,160,.35); color: #f0a0a0; }
+  .btn:disabled { opacity: .45; }
+  .btn.home { display: inline-flex; align-items: center; gap: 8px; text-decoration: none;
+    font-weight: 600; }
+  /* ---------- layout: two columns, edge to edge ---------- */
+  #layout { display: flex; height: calc(100vh - 60px); height: calc(100dvh - 60px); }
+  #listcol { width: 380px; max-width: 44vw; flex: none; display: flex; flex-direction: column;
+    border-right: 1px solid rgba(255,255,255,.09); background: rgba(18,21,30,.5);
+    backdrop-filter: blur(18px); }
+  #editcol { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; min-width: 0; }
+  /* ---------- list ---------- */
+  #searchrow { padding: 14px 14px 8px; }
+  #searchrow input { width: 100%; padding: 12px 14px; font-size: 14px; border-radius: 12px;
+    border: 1px solid rgba(255,255,255,.12); background: rgba(13,15,21,.7); color: #eceef4; }
+  #filters { display: flex; gap: 8px; padding: 0 14px 10px; flex-wrap: wrap; }
+  .fchip { border: 1px solid rgba(255,255,255,.12); background: transparent; color: #9aa0b5;
+    border-radius: 999px; padding: 7px 14px; font-size: 12.5px; cursor: pointer;
+    transition: all .15s ease; }
+  .fchip.on { background: #e8b34b; border-color: #e8b34b; color: #1a1a1a; font-weight: 700; }
   #addBtn { margin: 0 14px 10px; }
-  #cards { flex: 1; overflow-y: auto; padding: 4px 14px 20px; }
-  .pcard { background: var(--glass); border: 1px solid var(--line); border-radius: 16px;
-    padding: 13px 14px; margin-bottom: 9px; cursor: pointer; backdrop-filter: blur(14px);
-    transition: all .18s ease; animation: cardin .3s ease backwards; }
-  .pcard:hover { transform: translateY(-2px); border-color: rgba(232,179,75,.35);
-    box-shadow: 0 8px 24px rgba(0,0,0,.35); }
-  .pcard.sel { border-color: var(--acc); box-shadow: 0 0 0 1px var(--acc), 0 8px 24px rgba(0,0,0,.35); }
-  @keyframes cardin { from { opacity: 0; transform: translateY(8px); } }
+  #cards { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 2px 14px 20px; }
+  .pcard { border-bottom: 1px solid rgba(255,255,255,.06); padding: 13px 6px;
+    cursor: pointer; transition: background .15s ease; animation: cardin .25s ease backwards; }
+  .pcard:hover { background: rgba(255,255,255,.04); }
+  .pcard.sel { background: rgba(232,179,75,.09); box-shadow: inset 3px 0 0 #e8b34b; }
+  @keyframes cardin { from { opacity: 0; } }
   .pcard .nm { font-weight: 700; font-size: 14.5px; }
-  .pcard .mt { color: var(--mut); font-size: 12px; margin-top: 3px; }
-  .pcard .chips { margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap; }
-  .chip { font-size: 10.5px; padding: 3px 9px; border-radius: 20px;
-    background: rgba(255,255,255,.07); color: #c9cede; }
-  .chip.v { background: rgba(143,212,154,.15); color: var(--green); }
-  .chip.u { background: rgba(232,179,75,.13); color: var(--acc); }
-  .chip.ax { background: rgba(106,155,232,.14); color: #9dc0f0; }
-  .stars { color: var(--acc); letter-spacing: 2px; font-size: 13px; }
-  /* editor column */
-  #editcol { overflow-y: auto; padding: 22px 26px 60px; min-width: 0;
-    animation: fadein .25s ease; }
-  @keyframes fadein { from { opacity: 0; } }
-  #editcol .panel { background: var(--glass); border: 1px solid var(--line);
-    border-radius: 20px; padding: 22px; backdrop-filter: blur(20px);
-    box-shadow: 0 12px 40px rgba(0,0,0,.35); max-width: 640px; }
-  #editcol h2 { margin: 0 0 4px; font-size: 19px; }
-  #editcol .sub { color: var(--mut); font-size: 13px; margin-bottom: 8px; }
-  label { display: block; font-size: 12px; color: var(--mut); margin: 14px 0 6px;
-    text-transform: uppercase; letter-spacing: .6px; }
+  .pcard .mt { color: #9aa0b5; font-size: 12px; margin-top: 2px; }
+  .pcard .row { display: flex; align-items: center; gap: 8px; margin-top: 7px; }
+  .cdot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+  .tag { font-size: 10.5px; padding: 2px 8px; border-radius: 20px; background: rgba(255,255,255,.07);
+    color: #c9cede; }
+  .tag.v { background: rgba(143,212,154,.15); color: #8fd49a; }
+  .tag.u { background: rgba(232,179,75,.13); color: #e8b34b; }
+  .stars { color: #e8b34b; letter-spacing: 2px; font-size: 12.5px; margin-left: auto; }
+  .stars.none { color: #3a3f52; }
+  .empty { text-align: center; color: #9aa0b5; padding: 60px 20px; font-size: 14px; }
+  /* ---------- editor: full-bleed form ---------- */
+  #form { padding: 26px 30px 80px; max-width: 760px; }
+  #form h2 { margin: 0 0 2px; font-size: 22px; }
+  #form .sub { color: #9aa0b5; font-size: 13px; margin-bottom: 6px; }
+  label { display: block; font-size: 11.5px; color: #9aa0b5; margin: 20px 0 7px;
+    text-transform: uppercase; letter-spacing: .7px; font-weight: 600; }
   input[type=text], input[type=number], select, textarea { width: 100%;
-    padding: 12px 14px; font-size: 14.5px; border-radius: 12px;
-    border: 1px solid var(--line); background: rgba(13,15,21,.7); color: var(--txt);
-    transition: border-color .15s; }
-  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--acc); }
-  textarea { min-height: 76px; resize: vertical; }
-  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  #pickMap { height: 260px; border-radius: 14px; margin-top: 6px;
-    border: 1px solid var(--line); overflow: hidden; }
-  .hint { font-size: 12px; color: var(--mut); margin-top: 6px; }
-  #estar { font-size: 30px; cursor: pointer; letter-spacing: 6px; margin-top: 4px; }
-  .ebtns { display: flex; gap: 10px; margin-top: 22px; }
-  .ebtns .tbtn { flex: 1; padding: 13px; font-size: 14.5px; text-align: center; }
-  .tbtn.danger { border-color: rgba(240,160,160,.35); color: var(--red); }
-  .kbd { font-family: monospace; background: rgba(255,255,255,.08);
-    padding: 2px 8px; border-radius: 6px; font-size: 12px; }
+    padding: 13px 15px; font-size: 15px; border-radius: 12px;
+    border: 1px solid rgba(255,255,255,.12); background: rgba(13,15,21,.7); color: #eceef4; }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: #e8b34b; }
+  textarea { min-height: 110px; resize: vertical; line-height: 1.5; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  #pickMap { height: 280px; border-radius: 14px; margin-top: 4px;
+    border: 1px solid rgba(255,255,255,.12); overflow: hidden; }
+  .hint { font-size: 12.5px; color: #9aa0b5; margin-top: 7px; }
+  #estar { font-size: 34px; letter-spacing: 8px; margin-top: 2px; cursor: pointer; }
+  #estar span { transition: color .12s ease; }
+  .checkrow { display: flex; align-items: center; gap: 10px; margin-top: 16px; font-size: 14.5px; }
+  .checkrow input { width: 18px; height: 18px; }
+  #formbtns { display: flex; gap: 12px; margin-top: 30px; position: sticky; bottom: 0;
+    padding: 14px 0 6px; background: linear-gradient(transparent, #0d0f15 30%); }
+  #formbtns .btn { flex: 1; padding: 15px; font-size: 15px; text-align: center; }
   #backBtn { display: none; }
+  /* ---------- token gate ---------- */
+  #gate { position: fixed; inset: 0; z-index: 100; display: none;
+    align-items: center; justify-content: center; background: rgba(13,15,21,.92);
+    backdrop-filter: blur(20px); padding: 20px; }
+  #gate.open { display: flex; }
+  #gate .box { width: 100%; max-width: 480px; background: rgba(30,34,48,.9);
+    border: 1px solid rgba(255,255,255,.12); border-radius: 20px; padding: 30px; }
+  #gate h2 { margin: 0 0 8px; font-size: 20px; }
+  #gate p { color: #9aa0b5; font-size: 14px; line-height: 1.6; }
+  #gate .kbd { font-family: monospace; background: rgba(255,255,255,.1);
+    padding: 2px 8px; border-radius: 6px; font-size: 12.5px; }
   #toast { position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%) translateY(90px);
-    background: rgba(30,34,48,.92); border: 1px solid var(--line); color: var(--txt);
-    padding: 13px 22px; border-radius: 14px; font-size: 14px; z-index: 100;
-    transition: transform .3s cubic-bezier(.2,.9,.3,1.2); backdrop-filter: blur(16px);
-    max-width: 90vw; box-shadow: 0 12px 32px rgba(0,0,0,.5); }
+    background: rgba(30,34,48,.95); border: 1px solid rgba(255,255,255,.14); color: #eceef4;
+    padding: 13px 22px; border-radius: 14px; font-size: 14px; z-index: 200;
+    transition: transform .3s cubic-bezier(.2,.9,.3,1.2); max-width: 90vw;
+    box-shadow: 0 12px 32px rgba(0,0,0,.5); }
   #toast.show { transform: translateX(-50%) translateY(0); }
-  .empty { text-align: center; color: var(--mut); padding: 60px 20px; font-size: 14px; }
-  /* responsive */
-  @media (max-width: 1080px) { #layout { grid-template-columns: 200px 1fr; } #editcol { display: none; }
-    #layout.editing #listcol, #layout.editing #nav { display: none; }
-    #layout.editing #editcol { display: block; grid-column: 1 / -1; } #backBtn { display: inline-flex; } }
-  @media (max-width: 720px) { #layout { grid-template-columns: 1fr; } #nav { display: none; }
-    #listcol { border-right: 0; } #topbar h1 { display: none; } }
+  @media (max-width: 860px) {
+    #layout { flex-direction: column; }
+    #listcol { width: 100%; max-width: none; border-right: 0; height: 100%; }
+    #editcol { display: none; height: 100%; }
+    #layout.editing #listcol { display: none; }
+    #layout.editing #editcol { display: block; }
+    #backBtn { display: inline-flex; }
+    #form { padding: 20px 18px 80px; }
+    #topbar h1 { display: none; }
+  }
 </style>
 </head>
 <body>
 <div id="topbar">
-  <a href="index.html" class="tbtn iconbtn" title="Back to map" style="text-decoration:none">&#8962;</a>
-  <button class="tbtn iconbtn" id="backBtn" title="Back to list">&#8592;</button>
+  <a href="index.html" class="btn home" title="Back to map">&#8592; Map</a>
+  <button class="btn home" id="backBtn" title="Back to list">&#8592; List</button>
   <h1>Radar Admin</h1>
   <span id="dirtyDot" title="Unsaved changes"></span>
   <div class="spacer"></div>
-  <button class="tbtn iconbtn" id="gearBtn" title="Settings">&#9881;</button>
-  <button class="tbtn primary" id="publishBtn">Publish</button>
+  <button class="btn primary" id="publishBtn">Publish</button>
 </div>
 <div id="layout">
-  <nav id="nav">
-    <div class="nsec">Manage</div>
-    <button class="nbtn on" data-v="places">&#9679; Places <span class="cnt" id="cntPlaces">0</span></button>
-    <button class="nbtn" data-v="settings">&#9881; Settings</button>
-    <div class="nsec">Shortcuts</div>
-    <button class="nbtn" id="navUnverified">&#9675; Needs verification <span class="cnt" id="cntUnver">0</span></button>
-    <button class="nbtn" id="navUnrated">&#9733; Unrated <span class="cnt" id="cntUnrated">0</span></button>
-  </nav>
   <div id="listcol">
-    <div id="listsrch"><input id="search" type="text" placeholder="Search places..." autocomplete="off"></div>
-    <button class="tbtn primary" id="addBtn">+ Add place</button>
+    <div id="searchrow"><input id="search" type="text" placeholder="Search places..." autocomplete="off"></div>
+    <div id="filters">
+      <button class="fchip on" data-f="all">All</button>
+      <button class="fchip" data-f="unverified">Unverified</button>
+      <button class="fchip" data-f="unrated">Unrated</button>
+    </div>
+    <button class="btn primary" id="addBtn">+ Add place</button>
     <div id="cards"></div>
   </div>
-  <div id="editcol"></div>
+  <div id="editcol"><div id="form"></div></div>
 </div>
+<div id="gate"><div class="box">
+  <h2>One-time setup</h2>
+  <p>Publishing writes straight to GitHub. Paste a personal access token to enable it. It stays in this browser and is never stored in the code.</p>
+  <p>Create one at github.com &rarr; Settings &rarr; Developer settings &rarr; Personal access tokens &rarr; Tokens (classic) &rarr; Generate new &rarr; check <span class="kbd">repo</span>.</p>
+  <label>Token</label>
+  <input type="text" id="gateToken" placeholder="ghp_..." autocomplete="off">
+  <div style="display:flex;gap:10px;margin-top:18px">
+    <button class="btn primary" id="gateSave" style="flex:1">Save &amp; continue</button>
+  </div>
+</div></div>
 <div id="toast"></div>
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script>
@@ -154,8 +160,8 @@
   var CATS = ["Food", "Coffee", "Outdoors", "Orchard", "Entertainment", "Study", "Venues", "Campus"];
   var PALETTE = { Food: "#e2a63b", Coffee: "#c08252", Outdoors: "#5fa968", Orchard: "#db6e5c",
                   Entertainment: "#a281e8", Study: "#6a9be8", Venues: "#e08bb0", Campus: "#7fc4c4" };
-  var places = [], dirty = false, query = "", selId = null, view = "places", filter = "all";
-  var SAVE_KEY = "radar-admin-v3";
+  var places = [], dirty = false, query = "", selId = null, filter = "all";
+  var SAVE_KEY = "radar-admin-v4";
   function $(id) { return document.getElementById(id); }
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) {
     return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
@@ -164,10 +170,19 @@
   function toast(m) { var t = $("toast"); t.textContent = m; t.classList.add("show");
     clearTimeout(t._h); t._h = setTimeout(function () { t.classList.remove("show"); }, 3200); }
   function token() { return (localStorage.getItem("radar-gh-token") || "").trim(); }
-
   function persist() { try { localStorage.setItem(SAVE_KEY,
     JSON.stringify({ savedAt: Date.now(), dirty: dirty, places: places })); } catch (e) {} }
   function markDirty() { dirty = true; $("dirtyDot").style.display = ""; persist(); }
+
+  /* gate: only appears when no token exists */
+  if (!token()) $("gate").classList.add("open");
+  $("gateSave").addEventListener("click", function () {
+    var t = $("gateToken").value.trim();
+    if (!t) { toast("Paste a token first"); return; }
+    localStorage.setItem("radar-gh-token", t);
+    $("gate").classList.remove("open");
+    toast("Token saved -- you're in");
+  });
 
   /* ---------- list ---------- */
   function filtered() {
@@ -175,81 +190,87 @@
     return places.filter(function (p) {
       if (filter === "unverified" && p.verified) return false;
       if (filter === "unrated" && p.rating != null) return false;
-      if (q && (p.name + " " + (p.town || "") + " " + (p.category || "")).toLowerCase().indexOf(q) < 0) return false;
+      if (q && (p.name + " " + (p.town || "")).toLowerCase().indexOf(q) < 0) return false;
       return true;
     });
   }
-  function starHtml(r) {
-    if (r == null) return '<span class="stars" style="color:#3a3f52">☆☆☆☆☆</span>';
-    var s = ""; for (var i = 1; i <= 5; i++) s += i <= r ? "★" : "☆";
-    return '<span class="stars">' + s + "</span>";
-  }
   function renderList() {
     var box = $("cards"); box.innerHTML = "";
-    $("cntPlaces").textContent = places.length;
-    $("cntUnver").textContent = places.filter(function (p) { return !p.verified; }).length;
-    $("cntUnrated").textContent = places.filter(function (p) { return p.rating == null; }).length;
-    filtered().forEach(function (p, idx) {
+    filtered().forEach(function (p) {
       var d = document.createElement("div");
       d.className = "pcard" + (p.id === selId ? " sel" : "");
-      d.style.animationDelay = Math.min(idx * 25, 400) + "ms";
+      var st = p.rating == null
+        ? '<span class="stars none">☆☆☆☆☆</span>'
+        : '<span class="stars">' + "★★★★★".slice(0, p.rating) + "☆☆☆☆☆".slice(0, 5 - p.rating) + "</span>";
       d.innerHTML = '<div class="nm">' + esc(p.name) + "</div>" +
         '<div class="mt">' + esc(p.town || "") + "</div>" +
-        '<div class="chips"><span class="chip" style="border-left:3px solid ' +
-        (PALETTE[p.category] || "#888") + '">' + esc(p.category || "?") + "</span>" +
-        (p.verified ? '<span class="chip v">verified</span>' : '<span class="chip u">unverified</span>') +
-        (p.approx ? '<span class="chip ax">approx</span>' : "") + "</div>" +
-        '<div style="margin-top:7px">' + starHtml(p.rating) + "</div>";
+        '<div class="row"><span class="cdot" style="background:' + (PALETTE[p.category] || "#888") + '"></span>' +
+        '<span class="tag">' + esc(p.category || "?") + "</span>" +
+        (p.verified ? '<span class="tag v">verified</span>' : '<span class="tag u">unverified</span>') +
+        st + "</div>";
       d.addEventListener("click", function () { openEditor(p.id); });
       box.appendChild(d);
     });
     if (!filtered().length) box.innerHTML = '<div class="empty">No places match.</div>';
   }
+  document.querySelectorAll(".fchip").forEach(function (c) {
+    c.addEventListener("click", function () {
+      document.querySelectorAll(".fchip").forEach(function (x) { x.classList.remove("on"); });
+      c.classList.add("on"); filter = c.dataset.f; renderList();
+    });
+  });
+  $("search").addEventListener("input", function (e) { query = e.target.value; renderList(); });
+  $("addBtn").addEventListener("click", function () { openEditor("new"); });
+  $("backBtn").addEventListener("click", function () {
+    $("layout").classList.remove("editing"); selId = null; renderList();
+  });
 
   /* ---------- editor ---------- */
-  var pickMap = null, pickMarker = null, editRating = 0;
+  var pickMap = null, pickMarker = null, editRating = 0, editingId = null;
   function openEditor(id) {
     var p = places.find(function (x) { return x.id === id; });
     var isNew = !p;
     if (isNew) p = { id: "pl-" + Date.now().toString(36), category: "Outdoors",
       verified: null, rating: null, approx: false, status: "open", source: "Direct knowledge" };
-    selId = p.id; editRating = p.rating || 0;
+    editingId = p.id; selId = p.id; editRating = p.rating || 0;
     renderList();
-    var col = $("editcol");
-    col.innerHTML = '<div class="panel">' +
+    $("form").innerHTML =
       "<h2>" + (isNew ? "Add place" : esc(p.name)) + "</h2>" +
-      '<div class="sub">' + (isNew ? "Tap the map to drop the pin." : esc(p.town || "") + " · " + esc(p.id)) + "</div>" +
+      '<div class="sub">' + (isNew ? "Tap the map to drop the pin." : esc(p.id)) + "</div>" +
       "<label>Name</label>" + '<input type="text" id="eName" value="' + esc(p.name || "") + '">' +
       '<div class="row2"><div><label>Category</label><select id="eCat">' +
         CATS.map(function (c) { return '<option' + (c === p.category ? " selected" : "") + ">" + c + "</option>"; }).join("") +
         '</select></div><div><label>Town</label><input type="text" id="eTown" value="' + esc(p.town || "") + '"></div></div>' +
       "<label>Address</label>" + '<input type="text" id="eAddr" value="' + esc(p.address || "") + '">' +
-      "<label>Pin -- tap map to move</label>" + '<div id="pickMap"></div>' +
+      "<label>Location -- tap the map to move the pin</label>" + '<div id="pickMap"></div>' +
       '<div class="row2"><div><label>Latitude</label><input type="number" id="eLat" step="0.000001" value="' +
         (p.lat != null ? p.lat : "") + '"></div><div><label>Longitude</label>' +
         '<input type="number" id="eLng" step="0.000001" value="' + (p.lng != null ? p.lng : "") + '"></div></div>' +
-      '<label style="text-transform:none"><input type="checkbox" id="eApprox" style="width:auto"' +
+      '<label class="checkrow" style="text-transform:none"><input type="checkbox" id="eApprox"' +
         (p.approx ? " checked" : "") + '> Approximate location</label>' +
-      "<label>Rating -- drives heat glow (tap to set, tap again to clear)</label>" + '<div id="estar"></div>' +
-      "<label>Notes</label>" + '<textarea id="eDesc">' + esc(p.desc || "") + "</textarea>" +
-      '<div class="ebtns"><button class="tbtn" id="eCancel">Cancel</button>' +
-      (p.verified ? "" : '<button class="tbtn" id="eVerify">Verify</button>') +
-      '<button class="tbtn primary" id="eSave">Save</button></div>' +
-      (isNew ? "" : '<div class="ebtns"><button class="tbtn danger" id="eDel" style="flex:1">Delete place</button></div>') +
-      "</div>";
+      "<label>Rating -- drives the heat glow</label>" + '<div id="estar"></div>' +
+      '<div class="hint">Tap a star to set, tap the same star again to clear.</div>' +
+      "<label>Notes</label>" + '<textarea id="eDesc" placeholder="What you know about this place...">' + esc(p.desc || "") + "</textarea>" +
+      '<div id="formbtns">' +
+        (p.verified ? "" : '<button class="btn" id="eVerify">Verify</button>') +
+        '<button class="btn primary" id="eSave">Save</button>' +
+      "</div>" +
+      (isNew ? "" : '<div style="margin-top:12px"><button class="btn danger" id="eDel" style="width:100%">Delete place</button></div>');
     drawEstar();
-    $("eCancel").addEventListener("click", closeEditor);
+    $("eSave").addEventListener("click", function () { saveEditor(p, isNew); });
     var ev = $("eVerify");
     if (ev) ev.addEventListener("click", function () { p.verified = today(); markDirty(); openEditor(p.id); toast("Verified"); });
-    $("eSave").addEventListener("click", function () { saveEditor(p, isNew); });
     var del = $("eDel");
     if (del) del.addEventListener("click", function () {
       if (!confirm("Delete " + p.name + "?")) return;
       places = places.filter(function (x) { return x.id !== p.id; });
-      selId = null; markDirty(); closeEditor(); renderList(); toast("Deleted");
+      selId = null; editingId = null; markDirty();
+      $("form").innerHTML = '<div class="empty">Select a place to edit it.</div>';
+      $("layout").classList.remove("editing"); renderList(); toast("Deleted");
     });
-    if (window.innerWidth <= 1080) $("layout").classList.add("editing");
-    setTimeout(initPickMap, 80, p);
+    $("editcol").scrollTop = 0;
+    if (window.innerWidth <= 860) $("layout").classList.add("editing");
+    setTimeout(function () { initPickMap(p); }, 80);
   }
   function drawEstar() {
     var el = $("estar"); if (!el) return;
@@ -292,60 +313,15 @@
       desc: $("eDesc").value.trim(), link: p.link || null, source: "Direct knowledge",
       status: p.status || "open", verified: p.verified || null, rating: editRating || null };
     if (isNew) { rec.verified = today(); places.push(rec); }
-    else places[places.indexOf(places.find(function (x) { return x.id === p.id; }))] = rec;
+    else { var i = places.findIndex(function (x) { return x.id === p.id; }); places[i] = rec; }
     selId = rec.id; markDirty(); renderList(); openEditor(rec.id);
-    toast("Saved " + rec.name);
+    toast("Saved");
   }
-  function closeEditor() {
-    selId = null; renderList();
-    $("editcol").innerHTML = '<div class="empty">Select a place to edit it.</div>';
-    $("layout").classList.remove("editing");
-  }
-  function openSettings() {
-    selId = null; renderList();
-    $("editcol").innerHTML = '<div class="panel"><h2>Settings</h2>' +
-      '<div class="sub">Publishing writes straight to GitHub from this page.</div>' +
-      "<label>GitHub personal access token (classic, <span class=\"kbd\">repo</span> scope)</label>" +
-      '<input type="text" id="sToken" value="' + esc(token()) + '" placeholder="ghp_..." autocomplete="off">' +
-      '<div class="hint">Create one at github.com → Settings → Developer settings → Personal access tokens → Tokens (classic) → Generate new → check <span class="kbd">repo</span>. It stays in this browser, never in the code.</div>' +
-      '<div class="ebtns"><button class="tbtn primary" id="sSave">Save token</button>' +
-      '<button class="tbtn" id="sTest">Test</button></div></div>';
-    if (window.innerWidth <= 1080) $("layout").classList.add("editing");
-    $("sSave").addEventListener("click", function () {
-      localStorage.setItem("radar-gh-token", $("sToken").value.trim());
-      toast("Token saved in this browser");
-    });
-    $("sTest").addEventListener("click", async function () {
-      var t = $("sToken").value.trim() || token();
-      if (!t) { toast("Paste a token first"); return; }
-      try {
-        var r = await fetch("https://api.github.com/repos/" + REPO, {
-          headers: { Authorization: "Bearer " + t, Accept: "application/vnd.github+json" } });
-        toast(r.ok ? "Token works" : "Token failed: " + r.status);
-      } catch (e) { toast("Network error"); }
-    });
-  }
-
-  /* ---------- nav ---------- */
-  document.querySelectorAll("#nav .nbtn[data-v]").forEach(function (b) {
-    b.addEventListener("click", function () {
-      document.querySelectorAll("#nav .nbtn[data-v]").forEach(function (x) { x.classList.remove("on"); });
-      b.classList.add("on"); filter = "all";
-      if (b.dataset.v === "settings") openSettings();
-      else { closeEditor(); }
-    });
-  });
-  $("navUnverified").addEventListener("click", function () { filter = "unverified"; renderList(); closeEditor(); });
-  $("navUnrated").addEventListener("click", function () { filter = "unrated"; renderList(); closeEditor(); });
-  $("backBtn").addEventListener("click", closeEditor);
-  $("gearBtn").addEventListener("click", openSettings);
-  $("search").addEventListener("input", function (e) { query = e.target.value; renderList(); });
-  $("addBtn").addEventListener("click", function () { openEditor("new"); });
 
   /* ---------- publish ---------- */
   $("publishBtn").addEventListener("click", async function () {
     var t = token();
-    if (!t) { openSettings(); toast("Paste your GitHub token first"); return; }
+    if (!t) { $("gate").classList.add("open"); return; }
     if (!dirty && !confirm("No unsaved changes. Publish anyway?")) return;
     var btn = $("publishBtn"); btn.disabled = true; btn.textContent = "Publishing...";
     try {
@@ -356,8 +332,7 @@
       var content = btoa(unescape(encodeURIComponent(JSON.stringify({ updated: today(), places: places }, null, 1))));
       var put = await fetch("https://api.github.com/repos/" + REPO + "/contents/places.json", {
         method: "PUT",
-        headers: { Authorization: "Bearer " + t, Accept: "application/vnd.github+json",
-                   "Content-Type": "application/json" },
+        headers: { Authorization: "Bearer " + t, Accept: "application/vnd.github+json", "Content-Type": "application/json" },
         body: JSON.stringify({ message: "Admin: update places (" + places.length + ")",
           content: content, sha: meta.sha, branch: BRANCH })
       });
@@ -381,7 +356,7 @@
         }
       } catch (e) {}
       renderList();
-      $("editcol").innerHTML = '<div class="empty">Select a place to edit it.</div>';
+      $("form").innerHTML = '<div class="empty">Select a place to edit it.</div>';
     })
     .catch(function () { $("cards").innerHTML = '<div class="empty">Could not load places.json</div>'; });
 })();

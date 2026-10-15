@@ -302,6 +302,7 @@
     <button data-mode="events">Events</button>
     <button data-mode="places" class="on">Places</button>
   </div>
+  <button class="iconbtn" id="homeBtnTop" title="Home view" style="background:#e8b34b;border-color:#e8b34b;color:#1a1a1a;font-weight:800">&#8962;</button>
   <button class="iconbtn" id="gearBtn" title="Admin">&#9881;</button>
 </header>
 
@@ -320,7 +321,6 @@
 </div>
 
 <div id="mapctl">
-  <button class="iconbtn" id="homeBtn" title="Reset view">&#8962;</button>
   <button class="iconbtn" id="zinBtn" title="Zoom in">+</button>
   <button class="iconbtn" id="zoutBtn" title="Zoom out">&minus;</button>
 </div>
@@ -695,7 +695,7 @@ function closeSheet() {
 }
 
 /* ================= controls ================= */
-$("homeBtn").addEventListener("click", jumpHome);
+$("homeBtnTop").addEventListener("click", jumpHome);
 $("zinBtn").addEventListener("click", function () {
   try { map.jumpTo({ zoom: map.getZoom() + 1 }); } catch (err) {}
 });
@@ -725,12 +725,7 @@ document.querySelectorAll("#modeSeg button").forEach(function (b) {
 });
 $("gearBtn").addEventListener("click", function () {
   if (state.admin) { setAdmin(false); return; }
-  var t = ghToken();
-  if (!t) {
-    var tok = prompt("Paste your GitHub personal access token (saved in this browser only):");
-    if (!tok || !tok.trim()) return;
-    localStorage.setItem("radar-gh-token", tok.trim());
-  }
+  if (!ghToken()) { location.href = "admin.html"; return; } // set up token there, once
   setAdmin(true);
   tip("Admin mode on -- 10 min idle timeout");
 });
