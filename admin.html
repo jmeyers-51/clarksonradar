@@ -374,12 +374,65 @@
       store.events = res[0].events || [];
       store.places = res[1].places || [];
       store.staging = (res[2].items || []).map(function (x) { if (!x.status) x.status = "pending"; return x; });
+      // restore any unsent work saved in this browser
+      var sv = loadAutosave();
+      if (sv) {
+        if (sv.dirty.events && sv.events) { store.events = sv.events; dirty.events = true; }
+        if (sv.dirty.places && sv.places) { store.places = sv.places; dirty.places = true; }
+        if (sv.dirty.staging && sv.staging) { store.staging = sv.staging; dirty.staging = true; }
+      }
       updateDirty(); updateBadges(); goTab("overview");
+      if (sv) restoreBanner(sv.savedAt);
     }).catch(function (err) {
       document.querySelector("main").innerHTML = "<div class='panelbox'><h3>Could not load data</h3><p>" + esc(err.message) + "</p></div>";
     });
   }
-  function markDirty(which) { dirty[which] = true; updateDirty(); }
+  function markDirty(which) { dirty[which] = true; updateDirty(); autosave(); }
+  /* Autosave: every change is written to this browser's local storage,
+     so unsent work survives reloads, new tabs, and crashes. The save is
+     cleared for a file once you download it. */
+  var AUTOSAVE_KEY = "radar-admin-autosave-v1";
+  function autosave() {
+    try {
+      localStorage.setItem(AUTOSAVE_KEY, JSON.stringify({
+        savedAt: Date.now(),
+        dirty: { events: dirty.events, places: dirty.places, staging: dirty.staging },
+        events: dirty.events ? store.events : null,
+        places: dirty.places ? store.places : null,
+        staging: dirty.staging ? store.staging : null
+      }));
+    } catch (err) {}
+  }
+  function loadAutosave() {
+    try {
+      var raw = localStorage.getItem(AUTOSAVE_KEY);
+      if (!raw) return null;
+      var d = JSON.parse(raw);
+      if (!d || Date.now() - d.savedAt > 7 * 864e5) return null;
+      if (!d.dirty || (!d.dirty.events && !d.dirty.places && !d.dirty.staging)) return null;
+      return d;
+    } catch (err) { return null; }
+  }
+  function clearAutosave() {
+    try { localStorage.removeItem(AUTOSAVE_KEY); } catch (err) {}
+  }
+  function restoreBanner(when) {
+    var b = document.createElement("div");
+    b.id = "restoreBanner";
+    b.style.cssText = "background:rgba(232,179,75,.1);border:1px solid rgba(232,179,75,.4);border-radius:12px;padding:12px 16px;margin-bottom:14px;font-size:13.5px;display:flex;gap:12px;align-items:center;justify-content:space-between;";
+    var dt = new Date(when).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+    b.innerHTML = "<span><b>Unsent work restored</b> from " + esc(dt) +
+      " -- your edits from the last session are back. Download from the Publish tab to make them live.</span>";
+    var x = document.createElement("button");
+    x.className = "btn small danger"; x.textContent = "Discard";
+    x.addEventListener("click", function () {
+      if (!confirm("Discard all restored unsent work and reload fresh data?")) return;
+      clearAutosave(); location.reload();
+    });
+    b.appendChild(x);
+    var main = document.querySelector("main");
+    if (main) main.insertBefore(b, main.firstChild);
+  }
   function updateDirty() {
     $("dirtyDot").style.display = (dirty.events || dirty.places || dirty.staging) ? "" : "none";
   }
@@ -835,6 +888,11 @@
         if (c.key === "events") download("events.json", { updated: todayStr(), events: cleanEvents() });
         else if (c.key === "places") download("places.json", { updated: todayStr(), places: cleanPlaces() });
         else download("staging.json", { updated: todayStr(), items: store.staging });
+        // downloaded = safe to forget the autosave for this file
+        dirty[c.key] = false;
+        updateDirty(); renderOverview();
+        if (!dirty.events && !dirty.places && !dirty.staging) clearAutosave();
+        else autosave();
       });
       d.appendChild(b);
       $("pubCards").appendChild(d);
