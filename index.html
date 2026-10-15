@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>North Country Radar -- Events &amp; places &middot; St. Lawrence County</title>
+<title>North Country Radar -- My places &middot; North Country</title>
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@700;800&display=swap">
 <style>
@@ -300,10 +300,10 @@
 <header>
   <div class="brand">
     <h1>North Country Radar</h1>
-    <p>Events &amp; places &middot; St. Lawrence County</p>
+    <p>My places &middot; North Country</p>
   </div>
-  <input id="search" type="text" placeholder="Search events or places" autocomplete="off">
-  <div class="modeseg" id="modeSeg">
+  <input id="search" type="text" placeholder="Search my places" autocomplete="off">
+  <div class="modeseg" id="modeSeg" style="display:none">
     <button data-mode="events">Events</button>
     <button data-mode="places" class="on">Places</button>
   </div>
@@ -342,10 +342,11 @@
 /* ================= config ================= */
 var PALETTE = {
   Food: "#e2a63b", Coffee: "#c08252", Outdoors: "#5fa968",
-  Orchard: "#db6e5c", Entertainment: "#a281e8", Study: "#6a9be8"
+  Orchard: "#db6e5c", Entertainment: "#a281e8", Study: "#6a9be8",
+  Venues: "#e08bb0", Campus: "#7fc4c4"
 };
 var EVENT_COLOR = "#e8b34b";
-var CATS = ["Food", "Coffee", "Outdoors", "Orchard", "Entertainment", "Study"];
+var CATS = ["Food", "Coffee", "Outdoors", "Orchard", "Entertainment", "Study", "Venues", "Campus"];
 
 /* ================= state ================= */
 var state = {
