@@ -276,21 +276,30 @@
   .modal .mbox h3 { margin: 0 0 12px; font: 700 17px Inter, sans-serif; }
 
   @media (max-width: 720px) {
-    header { flex-wrap: wrap; gap: 8px; top: 10px; left: 10px; right: 10px; }
+    header { flex-wrap: wrap; gap: 8px; top: 10px; left: 10px; right: 10px;
+      transition: opacity .25s ease, transform .25s ease; }
     .brand { order: 1; padding: 7px 12px; }
     .brand h1 { font-size: 14px; }
     .brand p { display: none; }
     .modeseg { order: 2; margin-left: auto; }
     .modeseg button { padding: 7px 12px; font-size: 12px; }
     #gearBtn { order: 3; width: 40px; height: 40px; }
-    #search { order: 4; flex: 1 1 100%; max-width: none; height: 42px; }
-    #chips { top: 158px; left: 10px; right: 10px; }
-    .chip { font-size: 12px; padding: 6px 11px; }
-    #listpanel { top: 210px; left: 10px; width: calc(100vw - 20px); }
-    #listbtn { left: 10px; bottom: 46px; }
-    #mapctl { right: 10px; bottom: 12px; }
-    #sheet { width: calc(100vw - 16px); max-height: 70vh; }
+    #homeBtnTop { order: 3; width: 40px; height: 40px; }
+    #search { order: 4; flex: 1 1 100%; max-width: none; height: 42px;
+      transition: opacity .25s ease, transform .25s ease; }
+    /* no sidebar, no chips on mobile */
+    #listpanel { display: none !important; }
+    #chips { display: none !important; }
+    #mapctl { right: 10px; bottom: 12px; transition: opacity .25s ease; }
     #updated { display: none; }
+    /* auto-hide chrome while navigating */
+    body.navigating header, body.navigating #mapctl { opacity: 0; pointer-events: none; }
+    body.navigating #search { opacity: 0; }
+    /* expandable sheet: peek / half / full */
+    #sheet { width: calc(100vw - 16px); left: 8px; transform: translateX(0) translateY(105%);
+      transition: transform .28s cubic-bezier(.32,.72,.28,1), height .22s ease; }
+    #sheet.open { transform: translateX(0) translateY(0); }
+    #sheet.dragging { transition: none; }
   }
 </style>
 </head>
@@ -690,24 +699,88 @@ function renderSheetBody(e) {
   if (eb) eb.addEventListener("click", function () { adminEdit(e); });
 }
 
+/* sheet snap states (mobile): peek -> half -> full */
+var SHEET_SNAPS = [84, null, null]; // px; half/full computed from viewport
+function sheetSnaps() {
+  var vh = window.innerHeight;
+  return [84, Math.round(vh * 0.45), Math.round(vh * 0.88)];
+}
+var sheetState = -1; // -1 closed, 0 peek, 1 half, 2 full
+function isMobileSheet() { return window.innerWidth <= 720; }
+function setSheetHeight(px, animate) {
+  var sh = $("sheet");
+  if (!isMobileSheet()) { sh.style.height = ""; return; }
+  if (animate === false) sh.classList.add("dragging");
+  else sh.classList.remove("dragging");
+  sh.style.height = px + "px";
+  sh.style.maxHeight = "none";
+}
+function snapSheet(idx) {
+  sheetState = idx;
+  if (idx < 0) { closeSheet(true); return; }
+  setSheetHeight(sheetSnaps()[idx], true);
+}
 function openSheet(e) {
   state.selected = e.id;
   renderSheetBody(e);
-  $("sheet").classList.add("open");
+  var sh = $("sheet");
+  sh.classList.add("open");
   renderMarkers();
-  // smooth zoom into the place
+  if (isMobileSheet()) { snapSheet(0); } // start at peek
+  else { sh.style.height = ""; }
   try { map.flyTo({ center: [e.lng, e.lat], zoom: Math.max(map.getZoom(), 14), duration: 1400 }); }
   catch (err) {}
   try { history.replaceState({ sel: e.id }, "", "#" + e.kind + "=" + encodeURIComponent(e.id)); }
   catch (err) {}
 }
-
-function closeSheet() {
+function closeSheet(silent) {
   state.selected = null;
-  $("sheet").classList.remove("open");
+  sheetState = -1;
+  var sh = $("sheet");
+  sh.classList.remove("open");
+  sh.style.height = "";
   renderMarkers();
-  try { history.replaceState({}, "", location.pathname + location.search); } catch (err) {}
+  if (!silent) { try { history.replaceState({}, "", location.pathname + location.search); } catch (err) {} }
 }
+/* drag the grab handle / peek to expand */
+(function () {
+  var sh = $("sheet");
+  var startY = 0, startH = 0, dragging = false, moved = false;
+  function grabZone(t) {
+    return t.closest && (t.closest(".grab") || (sheetState === 0 && t.closest("#sheet")));
+  }
+  sh.addEventListener("touchstart", function (e) {
+    if (!isMobileSheet() || sheetState < 0 || !grabZone(e.target)) return;
+    dragging = true; moved = false;
+    startY = e.touches[0].clientY;
+    startH = sh.getBoundingClientRect().height;
+  }, { passive: true });
+  sh.addEventListener("touchmove", function (e) {
+    if (!dragging) return;
+    var dy = startY - e.touches[0].clientY;
+    if (Math.abs(dy) > 8) moved = true;
+    var snaps = sheetSnaps();
+    var nh = Math.min(snaps[2], Math.max(40, startH + dy));
+    setSheetHeight(nh, false);
+    if (e.cancelable) e.preventDefault();
+  }, { passive: false });
+  sh.addEventListener("touchend", function (e) {
+    if (!dragging) return;
+    dragging = false;
+    sh.classList.remove("dragging");
+    var snaps = sheetSnaps();
+    var h = sh.getBoundingClientRect().height;
+    if (!moved) { // tap: peek->half->full cycle
+      snapSheet(sheetState >= 2 ? 0 : sheetState + 1);
+      return;
+    }
+    if (h < (snaps[0] + snaps[1]) / 2) {
+      if (h < snaps[0] * 0.6) snapSheet(-1); // dragged down past peek: dismiss
+      else snapSheet(0);
+    } else if (h < (snaps[1] + snaps[2]) / 2) snapSheet(1);
+    else snapSheet(2);
+  });
+})();
 
 /* ================= controls ================= */
 $("homeBtnTop").addEventListener("click", jumpHome);
@@ -744,6 +817,17 @@ $("gearBtn").addEventListener("click", function () { location.href = "admin.html
 map.on("moveend", function () {
   document.body.classList.toggle("noheat", !state.heatOn || map.getZoom() >= 13);
   renderList();
+});
+/* mobile: hide chrome while the user is actively navigating */
+var navT = null;
+map.on("movestart", function () {
+  if (window.innerWidth > 720) return;
+  document.body.classList.add("navigating");
+  clearTimeout(navT);
+});
+map.on("moveend", function () {
+  clearTimeout(navT);
+  navT = setTimeout(function () { document.body.classList.remove("navigating"); }, 600);
 });
 map.on("zoomend", function () {
   document.body.classList.toggle("noheat", !state.heatOn || map.getZoom() >= 13);
