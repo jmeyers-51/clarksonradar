@@ -1,21 +1,6 @@
 {
- "updated": "2026-10-13",
+ "updated": "2026-10-19",
  "events": [
-  {
-   "id": "bca-5k",
-   "title": "Breast Cancer Awareness 5K",
-   "date": "2026-10-18",
-   "venue": "Behind Cheel Campus Center",
-   "town": "Potsdam",
-   "lat": 44.6632,
-   "lng": -75.0014,
-   "approx": true,
-   "source": "Clarkson announcements",
-   "desc": "American Cancer Society event at 10:00 AM behind the Student Center.",
-   "link": "",
-   "score": 70,
-   "recurring": false
-  },
   {
    "id": "fright-night",
    "title": "Fright Night",
@@ -64,21 +49,6 @@
    "recurring": false,
    "time": "6:00 PM",
    "address": "Market Street, Potsdam, NY 13676"
-  },
-  {
-   "id": "costume-clash-pickleball",
-   "title": "Noble's Costume Clash on the Courts",
-   "date": "2026-10-17",
-   "venue": "Mills Park",
-   "town": "Gouverneur",
-   "lat": 44.33572,
-   "lng": -75.46717,
-   "approx": true,
-   "source": "Facebook",
-   "desc": "Pickleball costume tournament in memory of Ric Noble. Men's, women's & mixed doubles (2.5+), round-robin with medal rounds, costume prizes. $20/player. Proceeds benefit the local hospice that cared for Ric.",
-   "link": "",
-   "score": 70,
-   "recurring": false
   },
   {
    "id": "emmaus-fundraiser-2026",
