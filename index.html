@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>North Country Radar -- My places &middot; North Country</title>
-<!-- build 105030 -->
+<title>North Country Radar -- Events &amp; places &middot; North Country</title>
+<!-- build 106110 -- merged signal board: packets.json + upcoming.json, live Events/Places toggle, day-grouped list, search, saved views (Phase 3, tier C) -->
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@700;800&display=swap">
 <style>
@@ -107,7 +107,12 @@
   }
   #legend::-webkit-scrollbar { display: none; }
   .leg { display: inline-flex; align-items: center; gap: 6px; font-size: 12px;
-    color: #c9cede; flex: none; }
+    color: #c9cede; flex: none; background: none; border: 0; cursor: pointer;
+    font-family: inherit; padding: 2px 4px; border-radius: 8px; }
+  .leg:hover { color: #fff; }
+  .leg.off { opacity: .35; }
+  .leg.off .ldot { filter: grayscale(1); }
+  .leg.all { color: #e8b34b; font-weight: 700; }
   .leg .ldot { width: 10px; height: 10px; border-radius: 50%; flex: none;
     border: 1.5px solid rgba(255,255,255,.9); }
   .modeseg {
@@ -128,21 +133,6 @@
   .iconbtn:hover { border-color: rgba(232,179,75,.5); }
 
   /* ============ category chips ============ */
-  #chips {
-    position: fixed; top: 68px; left: 12px; right: 12px; z-index: 20;
-    display: flex; gap: 8px; flex-wrap: wrap; pointer-events: none;
-  }
-  #chips > * { pointer-events: auto; }
-  .chip {
-    display: inline-flex; align-items: center; gap: 7px;
-    background: rgba(13,14,19,.85); border: 1px solid var(--line); color: var(--txt);
-    font: 600 12.5px Inter, sans-serif; padding: 7px 13px; border-radius: 999px;
-    cursor: pointer; backdrop-filter: blur(12px);
-  }
-  .chip .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--pc, #888); }
-  .chip.off { opacity: .42; }
-  .chip:hover { border-color: rgba(232,179,75,.5); }
-
   /* ============ list panel ============ */
   #listbtn { display: none; }
   #listpanel {
@@ -296,6 +286,55 @@
   }
   .modal .mbox h3 { margin: 0 0 12px; font: 700 17px Inter, sans-serif; }
 
+  /* ============ merged signal board: ring/day grouping, views ============ */
+  #lp-tools { border-bottom: 1px solid var(--line); padding: 8px 10px 10px; flex: none; }
+  #daychips { display: flex; gap: 6px; flex-wrap: wrap; }
+  #daychips.off { display: none; }
+  .dchip {
+    border: 1px solid var(--line); background: var(--panel2); color: var(--mut);
+    font: 600 11.5px Inter, sans-serif; padding: 5px 10px; border-radius: 999px; cursor: pointer;
+  }
+  .dchip:hover { color: var(--txt); }
+  .dchip.on { background: #2a3040; color: #fff; border-color: rgba(232,179,75,.5); }
+  .dchip .n { color: #7c8595; font-weight: 500; margin-left: 3px; }
+  .dchip.on .n { color: #c9cede; }
+  #viewbar { display: flex; gap: 6px; margin-top: 8px; align-items: center; }
+  .vbtn {
+    border: 1px solid var(--line); background: transparent; color: var(--mut);
+    font: 600 11.5px Inter, sans-serif; padding: 5px 10px; border-radius: 999px; cursor: pointer;
+  }
+  .vbtn:hover { color: var(--txt); border-color: rgba(232,179,75,.5); }
+  .vchip {
+    border: 1px solid rgba(232,179,75,.55); background: rgba(232,179,75,.12); color: #e8d9b8;
+    font: 600 11.5px Inter, sans-serif; padding: 5px 10px; border-radius: 999px; cursor: pointer;
+  }
+  .rghead {
+    font: 800 12px Sora, Inter, sans-serif; letter-spacing: .4px; text-transform: uppercase;
+    color: var(--txt); padding: 12px 10px 4px; display: flex; align-items: center; gap: 8px;
+  }
+  .rghead .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+  .rghead .cnt { margin-left: auto; font: 600 11px Inter, sans-serif; color: var(--mut); letter-spacing: 0; text-transform: none; }
+  .dyhead {
+    font: 700 11px Inter, sans-serif; letter-spacing: .5px; text-transform: uppercase;
+    color: var(--mut); padding: 8px 10px 3px; display: flex; gap: 6px; align-items: baseline;
+  }
+  .dyhead .cnt { color: #7c8595; font-weight: 500; }
+  .litem .db {
+    flex: none; width: 34px; text-align: center; border: 1px solid var(--line);
+    border-radius: 8px; padding: 3px 0 4px; background: rgba(255,255,255,.03);
+  }
+  .litem .db .d { font: 800 14px Sora, Inter, sans-serif; line-height: 1.1; display: block; }
+  .litem .db .m { font: 700 9px Inter, sans-serif; letter-spacing: .8px; color: var(--mut); display: block; }
+  .litem .db.muted { opacity: .55; }
+  .litem .tt { flex: 1; min-width: 0; }
+  .litem span:nth-child(2) { flex: 1; min-width: 0; }
+  .litem .t { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .litem .s { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* detail-sheet peek: one row on desktop too (mobile already does this) */
+  .sh-peek { display: flex; align-items: center; gap: 10px; }
+  .sh-peek .shtitle { flex: 1; margin: 0; padding: 0; min-width: 0; }
+  .sh-peek .shchev { flex: none; color: #e8b34b; font-size: 22px; line-height: 1; transform: rotate(-90deg); margin-right: 30px; }
+
   @media (max-width: 720px) {
     header { flex-wrap: wrap; gap: 8px; top: 10px; left: 10px; right: 10px;
       transition: opacity .25s ease, transform .25s ease; }
@@ -306,9 +345,15 @@
     .modeseg button { padding: 7px 12px; font-size: 12px; }
     #searchBtn { order: 3; }
     #homeBtnTop { order: 4; width: 40px; height: 40px; }
-    #gearBtn { order: 5; width: 40px; height: 40px; }
-    #legend { order: 6; flex: 1 1 100%; max-width: none; }
+    #gearBtn { display: none; }
+    .brand { display: none; }
+    #legend { order: 6; flex: 1 1 100%; max-width: none; justify-content: center; }
     #searchwrap { top: 118px; }
+    /* center-justified sheet */
+    #sheetbody { text-align: center; }
+    .pills { justify-content: center; }
+    .shbtns { justify-content: center; }
+    .shdesc { text-align: center; }
     /* no sidebar, no chips on mobile */
     #listpanel { display: none !important; }
     #chips { display: none !important; }
@@ -350,27 +395,33 @@
 <header>
   <div class="brand">
     <h1>North Country Radar</h1>
-    <p>My places &middot; North Country</p>
+    <p>Events &amp; places &middot; North Country</p>
   </div>
   <div id="legend"></div>
-  <div class="modeseg" id="modeSeg" style="display:none">
-    <button data-mode="events">Events</button>
-    <button data-mode="places" class="on">Places</button>
+  <div class="modeseg" id="modeSeg">
+    <button data-mode="events" class="on">Events</button>
+    <button data-mode="places">Places</button>
   </div>
   <button class="iconbtn" id="searchBtn" title="Search">&#128269;</button>
   <button class="iconbtn" id="homeBtnTop" title="Home view" style="background:#e8b34b;border-color:#e8b34b;color:#1a1a1a;font-weight:800">&#8962;</button>
   <button class="iconbtn" id="gearBtn" title="Admin">&#9881;</button>
 </header>
 <div id="searchwrap">
-  <input id="search" type="text" placeholder="Search my places" autocomplete="off">
+  <input id="search" type="text" placeholder="Search events, news, people" autocomplete="off">
   <button id="searchx" title="Close search">&times;</button>
 </div>
 
-<div id="chips"></div>
-
 <button id="listbtn">&#9776; List</button>
 <aside id="listpanel">
-  <div class="lp-head"><span id="listtitle">Places</span><button id="listx" title="Close">&times;</button></div>
+  <div class="lp-head"><span id="listtitle">Events</span><button id="listx" title="Close">&times;</button></div>
+  <div id="lp-tools">
+    <div id="daychips"></div>
+    <div id="viewbar">
+      <button id="saveViewBtn" class="vbtn" title="Save the current filters as your preset view">Save view</button>
+      <button id="presetChip" class="vchip" style="display:none" title="Apply your saved view"></button>
+      <button id="clearPresetBtn" class="vbtn" style="display:none" title="Delete your saved view">&times;</button>
+    </div>
+  </div>
   <div id="listitems"></div>
 </aside>
 
@@ -403,12 +454,38 @@ var PALETTE = {
 };
 var EVENT_COLOR = "#e8b34b";
 var CATS = ["Food", "Coffee", "Outdoors", "Orchard", "Entertainment", "Study", "Venues", "Campus"];
+/* merged signal board (Phase 3): packets feed */
+var RING_NAMES = ["Potsdam", "Nearby towns", "St. Lawrence County", "Wider North Country", "Beyond the region"];
+var RING_COLORS = ["#e8b34b", "#5fa968", "#6a9be8", "#a281e8", "#8a93a5"];
+var TOPICS = ["event", "news", "sports", "announcement", "weather", "deadline"];
+var DAY_GROUPS = ["today", "tomorrow", "weekend", "nextweek", "later", "undated"];
+var DAY_LABELS = { today: "Today", tomorrow: "Tomorrow", weekend: "This weekend", nextweek: "Next week", later: "Later", undated: "Undated" };
+var TOWN_CENTROIDS = {
+  "Potsdam": [44.66987, -74.98656], "Canton": [44.59554, -75.17081],
+  "Norwood": [44.75253, -74.99492], "Norfolk": [44.80159, -74.99154],
+  "Madrid": [44.74889, -75.13167], "Massena": [44.9282, -74.89148],
+  "Ogdensburg": [44.69805, -75.49203], "Gouverneur": [44.33659, -75.46528],
+  "Colton": [44.55312, -74.93964], "Pierrepont": [44.54193, -75.01145],
+  "Parishville": [44.62979, -74.80909], "Hermon": [44.46792, -75.22765],
+  "Watertown": [43.97486, -75.90889], "Malone": [44.84798, -74.30983],
+  "Lowville": [43.7871, -75.4895], "Lake Placid": [44.28457, -73.98475],
+  "Saranac Lake": [44.32537, -74.13217], "Tupper Lake": [44.24296, -74.48472],
+  "Alexandria Bay": [44.33371, -75.90928], "Clayton": [44.23899, -76.08677]
+};
+var VIEW_KEY = "radar-view-v1";
+var PRESET_KEY = "radar-preset-v1";
 
 /* ================= state ================= */
 var state = {
-  mode: "places",          // "places" | "events"
-  events: [], places: [],
-  cats: {},                // category -> false means hidden
+  mode: "events",          // "events" | "places" (events is the home view: the pulse board)
+  events: [],              // legacy: no longer loaded; events.json is superseded by packets.json
+  places: [],
+  packets: [],             // signal feed packets from packets.json
+  upcoming: [],            // dated event/deadline packets from upcoming.json (the pin set)
+  packetsUpdated: "",
+  cats: {},                // category -> false means hidden (places mode)
+  rings: {},               // ring index -> false means hidden (events mode)
+  dayFilter: "all",        // "all" | one of DAY_GROUPS
   query: "",
   selected: null,
   markers: [],             // live maplibre Marker objects
@@ -417,6 +494,7 @@ var state = {
   notes: {}
 };
 CATS.forEach(function (c) { state.cats[c] = true; });
+RING_NAMES.forEach(function (n, i) { state.rings[i] = true; });
 
 /* ================= helpers ================= */
 function $(id) { return document.getElementById(id); }
@@ -431,6 +509,7 @@ function tip(msg) {
 }
 function catColor(e) {
   if (e.kind === "event") return EVENT_COLOR;
+  if (e.kind === "packet") return RING_COLORS[e.ring] || "#8a93a5";
   return PALETTE[e.category] || "#8a93a5";
 }
 function isClosed(e) {
@@ -442,12 +521,97 @@ function distMi(e) {
   return null;
 }
 
+/* ---- signal packets: ring / day / pin geometry (mirrors the dashboard) ---- */
+function hasPhrase(hay, phrase) {
+  var h = " " + String(hay || "").toLowerCase().replace(/[^a-z0-9]+/g, " ") + " ";
+  var p = " " + String(phrase || "").toLowerCase().replace(/[^a-z0-9]+/g, " ") + " ";
+  return h.indexOf(p) !== -1;
+}
+function haversineMi(lat1, lon1, lat2, lon2) {
+  var R = 3958.8, toRad = Math.PI / 180;
+  var dLat = (lat2 - lat1) * toRad, dLon = (lon2 - lon1) * toRad;
+  var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * toRad) * Math.cos(lat2 * toRad) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
+function radiusTier(p) {
+  var towns = String(p.towns || ""), unis = String(p.unis || ""), loc = String(p.location || "");
+  var hay = towns + " " + unis + " " + loc;
+  if (hasPhrase(hay, "potsdam") || hasPhrase(unis, "clarkson") || hasPhrase(unis, "suny potsdam")) return 0;
+  if (hasPhrase(unis, "slu") || hasPhrase(unis, "st lawrence") || hasPhrase(unis, "suny canton")) return 1;
+  var t1 = ["canton", "norwood", "norfolk", "madrid"], i;
+  for (i = 0; i < t1.length; i++) if (hasPhrase(hay, t1[i])) return 1;
+  var t2 = ["massena", "ogdensburg", "gouverneur", "colton", "pierrepont", "parishville", "hermon", "st lawrence county"];
+  for (i = 0; i < t2.length; i++) if (hasPhrase(hay, t2[i])) return 2;
+  var t3 = ["watertown", "malone", "lowville", "lake placid", "saranac lake", "tupper lake", "alexandria bay", "clayton", "jefferson county", "franklin county", "lewis county", "essex county", "north country"];
+  for (i = 0; i < t3.length; i++) if (hasPhrase(hay, t3[i])) return 3;
+  if (String(p.towns || "").split(",").map(function (x) { return x.trim(); }).filter(Boolean).length) return 3;
+  if (p.lat != null && p.lng != null) {
+    var d = haversineMi(44.67, -74.98, p.lat, p.lng);
+    if (d <= 15) return 0;
+    if (d <= 30) return 1;
+    if (d <= 60) return 2;
+    if (d <= 110) return 3;
+  }
+  return 4;
+}
+function eventDay(p) {
+  var ed = p.eventDate || "";
+  if (/^\d{4}-\d{2}-\d{2}$/.test(ed)) return ed;
+  if (/^\d{4}-\d{2}$/.test(ed)) return ed + "-15";
+  return "";
+}
+function daysUntil(ds) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(ds || "")) return 999;
+  var a = new Date(); a.setHours(0, 0, 0, 0);
+  var b = new Date(ds + "T12:00:00"); b.setHours(0, 0, 0, 0);
+  return Math.round((b - a) / 86400000);
+}
+function dayGroup(p) {
+  var ed = eventDay(p);
+  if (!ed) return "undated";
+  var d = daysUntil(ed);
+  if (d < 0) return "past";
+  if (d === 0) return "today";
+  if (d === 1) return "tomorrow";
+  var wd = new Date(ed + "T12:00:00").getDay(); // 0 Sun .. 6 Sat
+  if ((wd === 0 || wd === 6) && d <= 7) return "weekend";
+  if (d <= 14) return "nextweek";
+  return "later";
+}
+function townCentroid(p) {
+  var hay = String(p.location || "") + " " + String(p.towns || "");
+  var names = Object.keys(TOWN_CENTROIDS);
+  for (var i = 0; i < names.length; i++) {
+    if (hasPhrase(hay, names[i])) return TOWN_CENTROIDS[names[i]];
+  }
+  return null;
+}
+function fmtUpdated(iso) {
+  if (!iso) return "";
+  var d = new Date(iso);
+  if (isNaN(d.getTime())) return iso;
+  var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  var h = d.getHours(), m = d.getMinutes(), ap = h >= 12 ? "PM" : "AM";
+  h = h % 12; if (h === 0) h = 12;
+  return months[d.getMonth()] + " " + d.getDate() + ", " + h + ":" + (m < 10 ? "0" + m : m) + " " + ap;
+}
+function fmtDayShort(iso) {
+  var d = new Date((iso || "") + "T12:00:00");
+  if (isNaN(d.getTime())) return { dow: "", mon: "", dom: "--", full: "" };
+  var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  var days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  return { dow: days[d.getDay()], mon: months[d.getMonth()], dom: d.getDate(), full: days[d.getDay()] + ", " + months[d.getMonth()] + " " + d.getDate() };
+}
+
 /* ================= map =================
-   FIRST PRINCIPLES: the map camera is set exactly twice --
-   once on load (jumpTo, instant) and on explicit user control
-   clicks (home/zoom, all jumpTo, instant). There is no easeTo,
-   no flyTo, no animated zoom anywhere in this file. Markers are
-   positioned by MapLibre itself and never touched on movement. */
+   FIRST PRINCIPLES: the map camera moves only by jumpTo, instant.
+   Camera is set on load (jumpTo), on explicit user control clicks
+   (home/zoom, jumpTo), and when a pin opens (jumpTo, recenter only).
+   There is no easeTo, no flyTo, no animated zoom anywhere in this
+   file. Markers are positioned by MapLibre itself and never touched
+   on movement. */
 var map = new maplibregl.Map({
   container: "map",
   style: {
@@ -468,37 +632,61 @@ var map = new maplibregl.Map({
 var homeCam = null; // {center, zoom} captured after first framing
 
 function jumpHome() {
-  if (homeCam) { try { map.flyTo({ center: homeCam.center, zoom: homeCam.zoom, duration: 1400 }); } catch (err) {} }
+  if (homeCam) { try { map.jumpTo({ center: homeCam.center, zoom: homeCam.zoom }); } catch (err) {} }
 }
 
 /* ================= data ================= */
 function loadData() {
-  return Promise.all([
-    fetch("events.json").then(function (r) {
-      if (!r.ok) throw new Error("events.json " + r.status); return r.json();
-    }),
-    fetch("places.json").then(function (r) {
-      if (!r.ok) throw new Error("places.json " + r.status); return r.json();
-    })
-  ]).then(function (res) {
-    var now = new Date(); now.setHours(0, 0, 0, 0);
-    state.events = (res[0].events || [])
-      .filter(function (e) {
-        if (!e.date) return true;
-        var d = new Date(e.date + "T00:00:00");
-        return d >= now;
-      })
-      .map(function (e) { e.kind = "event"; return e; });
-    state.places = (res[1].places || [])
-      .map(function (p) { p.kind = "place"; return p; });
-    $("updated").textContent = "Updated " + (res[0].updated || res[1].updated || "");
-    return { events: res[0], places: res[1] };
+  var opts = { cache: "no-store" };
+  var packetsP = fetch("packets.json", opts).then(function (r) {
+    if (!r.ok) throw new Error("packets.json " + r.status + " -- the signal sync has not published yet");
+    return r.json();
+  });
+  var upcomingP = fetch("upcoming.json", opts).then(function (r) {
+    if (!r.ok) throw new Error("upcoming.json " + r.status);
+    return r.json();
+  }).catch(function () { return null; }); // derive from packets if the small file is missing
+  var placesP = fetch("places.json", opts).then(function (r) {
+    if (!r.ok) throw new Error("places.json " + r.status); return r.json();
+  });
+  return Promise.all([packetsP, upcomingP, placesP]).then(function (res) {
+    var pk = res[0], up = res[1], pl = res[2];
+    state.packets = (pk.packets || []).map(function (p) {
+      p.kind = "packet";
+      if (p.ring == null) p.ring = radiusTier(p);
+      p._ed = eventDay(p);
+      p._dg = dayGroup(p);
+      // pin geometry: real coords, else town centroid (approx), else list-only
+      if (p.lat != null && p.lng != null) {
+        p._plat = p.lat; p._plng = p.lng; p._approx = false;
+      } else {
+        var c = townCentroid(p);
+        if (c) { p._plat = c[0]; p._plng = c[1]; p._approx = true; }
+        else { p._plat = null; p._plng = null; p._approx = false; }
+      }
+      return p;
+    });
+    var upIds = {};
+    if (up && up.upcoming) {
+      up.upcoming.forEach(function (u) { upIds[u.id] = true; });
+    } else {
+      // fallback: upcoming = dated event/deadline packets happening now or later
+      state.packets.forEach(function (p) {
+        if (p._dg !== "past" && p._dg !== "undated" && (p.topic === "event" || p.topic === "deadline")) upIds[p.id] = true;
+      });
+    }
+    state.upcoming = state.packets.filter(function (p) { return upIds[p.id]; });
+    state.packetsUpdated = pk.meta && pk.meta.updated ? pk.meta.updated : "";
+    state.places = (pl.places || []).map(function (p) { p.kind = "place"; return p; });
+    $("updated").textContent = "Data updated " + fmtUpdated(state.packetsUpdated) +
+      " · " + state.packets.length + " items · " + state.upcoming.length + " upcoming";
+    return { packets: pk, upcoming: up, places: pl };
   });
 }
 
 function frameInitial() {
   var b = new maplibregl.LngLatBounds();
-  state.events.forEach(function (e) { b.extend([e.lng, e.lat]); });
+  state.upcoming.forEach(function (e) { if (e._plat != null) b.extend([e._plng, e._plat]); });
   state.places.forEach(function (p) { b.extend([p.lng, p.lat]); });
   if (b.isEmpty()) return;
   try {
@@ -515,17 +703,50 @@ function frameInitial() {
 
 /* ================= filtering ================= */
 function visibleItems() {
-  var items = state.mode === "events" ? state.events : state.places;
   var q = state.query.trim().toLowerCase();
-  return items.filter(function (e) {
-    if (state.mode === "places" && state.cats[e.category] === false) return false;
+  if (state.mode === "places") {
+    return state.places.filter(function (e) {
+      if (state.cats[e.category] === false) return false;
+      if (q) {
+        var hay = ((e.name || "") + " " + (e.town || "") +
+                   " " + (e.desc || "") + " " + (e.category || "")).toLowerCase();
+        if (hay.indexOf(q) < 0) return false;
+      }
+      return true;
+    });
+  }
+  // events mode: signal packets, ring-then-soonest; past-dated filtered at runtime
+  return state.packets.filter(function (p) {
+    if (state.rings[p.ring] === false) return false;
+    if (p._dg === "past") return false;
+    if (state.dayFilter !== "all" && p._dg !== state.dayFilter) return false;
     if (q) {
-      var hay = ((e.title || e.name || "") + " " + (e.venue || "") + " " + (e.town || "") +
-                 " " + (e.desc || "") + " " + (e.category || "")).toLowerCase();
-      if (hay.indexOf(q) < 0) return false;
+      var hay2 = ((p.headline || "") + " " + (p.briefing || "") + " " + (p.who || "") +
+                  " " + (p.handle || "") + " " + (p.location || "") + " " + (p.topic || "")).toLowerCase();
+      if (hay2.indexOf(q) < 0) return false;
     }
     return true;
   });
+}
+/* visible packets ignoring the day filter (for day-chip counts) */
+function visibleNoDay() {
+  var keep = state.dayFilter;
+  state.dayFilter = "all";
+  var items = visibleItems();
+  state.dayFilter = keep;
+  return items;
+}
+/* pins in events mode: the upcoming set only, under the same filters */
+function pinItems() {
+  if (state.mode !== "events") return [];
+  var vis = visibleItems(), out = [], i;
+  var upIds = {};
+  state.upcoming.forEach(function (u) { upIds[u.id] = true; });
+  for (i = 0; i < vis.length; i++) {
+    var p = vis[i];
+    if (upIds[p.id] && p._plat != null) out.push(p);
+  }
+  return out;
 }
 
 /* Every pin is shown individually -- no clusters, no counts to decode.
@@ -533,16 +754,18 @@ function visibleItems() {
 function spreadPins(items) {
   var groups = {};
   items.forEach(function (e) {
-    var k = e.lat.toFixed(5) + "," + e.lng.toFixed(5);
+    var la = e._plat != null ? e._plat : e.lat, ln = e._plng != null ? e._plng : e.lng;
+    var k = la.toFixed(5) + "," + ln.toFixed(5);
     (groups[k] = groups[k] || []).push(e);
   });
   Object.keys(groups).forEach(function (k) {
     groups[k].forEach(function (e, i) {
+      var la2 = e._plat != null ? e._plat : e.lat, ln2 = e._plng != null ? e._plng : e.lng;
       if (groups[k].length > 1) {
         var a = (i / groups[k].length) * Math.PI * 2;
-        e._sx = e.lng + Math.cos(a) * 0.0012;
-        e._sy = e.lat + Math.sin(a) * 0.0012;
-      } else { e._sx = e.lng; e._sy = e.lat; }
+        e._sx = ln2 + Math.cos(a) * 0.0012;
+        e._sy = la2 + Math.sin(a) * 0.0012;
+      } else { e._sx = ln2; e._sy = la2; }
     });
   });
 }
@@ -582,7 +805,7 @@ function makePin(e) {
 
 function renderMarkers() {
   clearMarkers();
-  var items = visibleItems();
+  var items = state.mode === "events" ? pinItems() : visibleItems();
   var empty = $("empty");
   if (!items.length) {
     empty.textContent = state.query ? "No matches." : "Nothing here yet.";
@@ -593,7 +816,7 @@ function renderMarkers() {
 
   spreadPins(items);
   items.forEach(function (e) {
-    var m = new maplibregl.Marker({ element: makePin(e), anchor: "center", draggable: state.admin })
+    var m = new maplibregl.Marker({ element: makePin(e), anchor: "center", draggable: state.admin && e.kind === "place" })
       .setLngLat([e._sx, e._sy]).addTo(map);
     if (state.admin) {
       m.on("dragstart", pushUndo);
@@ -610,13 +833,14 @@ function renderMarkers() {
 }
 
 function render() {
-  renderChips();
+  renderLegend();
   renderMarkers();
   renderList();
   if (state.selected) {
     var e = findById(state.selected);
     if (e) renderSheetBody(e);
   }
+  persistView();
 }
 
 /* Smooth data-set switch: fade pins out, swap, fade in.
@@ -635,41 +859,96 @@ function fadeRender() {
 }
 
 function findById(id) {
-  var all = state.events.concat(state.places);
+  var all = state.packets.concat(state.places);
   for (var i = 0; i < all.length; i++) if (all[i].id === id) return all[i];
   return null;
 }
 /* ================= chips ================= */
-function renderChips() {
-  var box = $("chips");
-  box.innerHTML = "";
-  if (state.mode !== "places") return;
-  CATS.forEach(function (c) {
-    var b = document.createElement("button");
-    b.className = "chip" + (state.cats[c] ? "" : " off");
-    b.innerHTML = '<span class="dot" style="--pc:' + PALETTE[c] + ';background:' + PALETTE[c] + '"></span>' + esc(c);
-    b.addEventListener("click", function () {
-      state.cats[c] = !state.cats[c];
-      fadeRender();
-    });
-    box.appendChild(b);
-  });
-  var all = document.createElement("button");
-  all.className = "chip"; all.textContent = "All";
-  all.addEventListener("click", function () {
-    CATS.forEach(function (c) { state.cats[c] = true; });
-    fadeRender();
-  });
-  box.appendChild(all);
-}
-
 /* ================= list ================= */
 function distToCenter(e, c) {
   // equirectangular approximation, good enough for sorting
   var dx = (e.lng - c.lng) * Math.cos(c.lat * Math.PI / 180), dy = e.lat - c.lat;
   return Math.sqrt(dx * dx + dy * dy);
 }
+function renderDayChips() {
+  var box = $("daychips");
+  box.classList.toggle("off", state.mode !== "events");
+  if (state.mode !== "events") { box.innerHTML = ""; return; }
+  var base = visibleNoDay();
+  var counts = { all: base.length };
+  DAY_GROUPS.forEach(function (g) { counts[g] = 0; });
+  base.forEach(function (p) { counts[p._dg] = (counts[p._dg] || 0) + 1; });
+  var defs = [{ k: "all", label: "All" }].concat(DAY_GROUPS.map(function (g) {
+    return { k: g, label: DAY_LABELS[g] };
+  }));
+  box.innerHTML = "";
+  defs.forEach(function (def) {
+    if (def.k !== "all" && !counts[def.k]) return;
+    var b = document.createElement("button");
+    b.className = "dchip" + (state.dayFilter === def.k ? " on" : "");
+    b.innerHTML = esc(def.label) + '<span class="n">' + counts[def.k] + "</span>";
+    b.addEventListener("click", function () {
+      state.dayFilter = def.k;
+      render();
+    });
+    box.appendChild(b);
+  });
+}
+
+function packetRow(p) {
+  var d = document.createElement("div");
+  d.className = "litem";
+  var db = "", sub = "";
+  if (p._dg === "undated") {
+    var pd = fmtDayShort(p.date || "");
+    db = '<span class="db muted"><span class="d">' + pd.dom + '</span><span class="m">' + pd.mon.toUpperCase() + "</span></span>";
+    sub = (pd.full ? "Posted " + pd.full : "Posted") + (p.location ? " · " + p.location : "");
+  } else {
+    var ed = fmtDayShort(p._ed);
+    db = '<span class="db"><span class="d">' + ed.dom + '</span><span class="m">' + ed.mon.toUpperCase() + "</span></span>";
+    sub = ed.full + (p.location ? " · " + p.location : "");
+  }
+  d.innerHTML = db + '<span class="tt"><span class="t">' + esc(p.headline) +
+    '</span><span class="s">' + esc(sub) + "</span></span>";
+  d.addEventListener("click", function () { openSheet(p); });
+  return d;
+}
+
 function renderList() {
+  var box = $("listitems");
+  renderDayChips();
+  if (state.mode === "events") {
+    // ring-then-soonest: rings in order, day groups inside each ring
+    var items = visibleItems();
+    $("listtitle").textContent = "Events & news (" + items.length + ")";
+    box.innerHTML = "";
+    var byRing = [[], [], [], [], []];
+    items.forEach(function (p) { byRing[p.ring].push(p); });
+    byRing.forEach(function (ringItems, ri) {
+      if (!ringItems.length) return;
+      var rh = document.createElement("div");
+      rh.className = "rghead";
+      rh.innerHTML = '<span class="dot" style="background:' + RING_COLORS[ri] + '"></span>' +
+        esc(RING_NAMES[ri]) + '<span class="cnt">' + ringItems.length + "</span>";
+      box.appendChild(rh);
+      DAY_GROUPS.forEach(function (g) {
+        var gItems = ringItems.filter(function (p) { return p._dg === g; });
+        if (!gItems.length) return;
+        // soonest first inside the group; undated newest first
+        gItems.sort(function (a, b) {
+          if (g === "undated") return a.date < b.date ? 1 : -1;
+          if (a._ed !== b._ed) return a._ed < b._ed ? -1 : 1;
+          return 0;
+        });
+        var dh = document.createElement("div");
+        dh.className = "dyhead";
+        dh.innerHTML = esc(DAY_LABELS[g]) + '<span class="cnt">' + gItems.length + "</span>";
+        box.appendChild(dh);
+        gItems.forEach(function (p) { box.appendChild(packetRow(p)); });
+      });
+    });
+    return;
+  }
   var items = visibleItems().slice();
   // dynamic: only places in the current map view, nearest the center first
   try {
@@ -682,16 +961,13 @@ function renderList() {
     items.sort(function (a, b) { return (a.name || "").localeCompare(b.name || ""); });
   }
   $("listtitle").textContent = "Nearby (" + items.length + ")";
-  var box = $("listitems");
   box.innerHTML = "";
   items.forEach(function (e) {
     var d = document.createElement("div");
     d.className = "litem";
-    var sub = e.kind === "event"
-      ? [e.date, e.time, e.venue || e.town].filter(Boolean).join(" · ")
-      : [e.town, e.category].filter(Boolean).join(" · ");
+    var sub = [e.town, e.category].filter(Boolean).join(" · ");
     d.innerHTML = '<span class="dot" style="background:' + catColor(e) + '"></span>' +
-      '<span><span class="t">' + esc(e.title || e.name) + '</span><br><span class="s">' + esc(sub) + '</span></span>';
+      '<span><span class="t">' + esc(e.name) + '</span><br><span class="s">' + esc(sub) + '</span></span>';
     d.addEventListener("click", function () { openSheet(e); });
     box.appendChild(d);
   });
@@ -705,7 +981,42 @@ function stars(n) {
   return '<span class="stars">' + s + "</span>";
 }
 
+function renderPacketSheet(e) {
+  var body = $("sheetbody");
+  var h = "";
+  h += '<div class="sh-peek"><div class="shtitle">' + esc(e.headline) + "</div>";
+  h += '<span class="pill mini">' + esc(e.topic || "") + "</span>";
+  h += '<div class="shchev">&#8250;</div></div>';
+  h += '<div class="sh-glance"><div class="pills">';
+  h += '<span class="pill"><span class="dot" style="background:' + RING_COLORS[e.ring] + '"></span>' + esc(RING_NAMES[e.ring]) + "</span>";
+  if (e.topic) h += '<span class="pill">' + esc(e.topic) + "</span>";
+  if (e.who) h += '<span class="pill">@' + esc(String(e.who).replace(/^@+/, "")) + "</span>";
+  if (e._approx) h += '<span class="pill warn">Approx. location</span>';
+  h += "</div>";
+  if (e._dg !== "undated" && e._ed) {
+    var ed = fmtDayShort(e._ed);
+    h += '<div class="shrow"><b>' + esc(ed.full) + "</b></div>";
+  }
+  if (e.location) h += '<div class="shrow">' + esc(e.location) + "</div>";
+  if (e._plat != null) {
+    h += '<div class="shbtns">';
+    h += '<a class="btn primary" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=' +
+      encodeURIComponent(e._plat + "," + e._plng) + '">Directions' + (e._approx ? " (approx.)" : "") + "</a>";
+    h += "</div>";
+  }
+  if (e.briefing) h += '<div class="shdesc">' + esc(e.briefing) + "</div>";
+  h += "</div>";
+  h += '<div class="sh-full">';
+  var src = [];
+  if (e.source) src.push("Source: " + e.source);
+  if (e.date) src.push("Posted " + fmtDayShort(e.date).full);
+  if (src.length) h += '<div class="shrow" style="color:var(--mut)">' + esc(src.join(" · ")) + "</div>";
+  h += "</div>";
+  body.innerHTML = h;
+}
+
 function renderSheetBody(e) {
+  if (e.kind === "packet") { renderPacketSheet(e); return; }
   var body = $("sheetbody");
   var h = "";
   // peek: name + stars + category, with an expand hint
@@ -746,7 +1057,7 @@ function renderSheetBody(e) {
   if (e.note) h += '<div class="note">' + esc(e.note) + "</div>";
   h += '<div class="shbtns">';
   if (e.link) h += '<a class="btn" target="_blank" rel="noopener" href="' + esc(e.link) + '">Website</a>';
-  if (state.admin) h += '<button class="btn" id="shedit">Edit</button>';
+  if (state.admin && e.kind !== "packet") h += '<button class="btn" id="shedit">Edit</button>';
   h += "</div></div>";
   body.innerHTML = h;
 
@@ -784,7 +1095,8 @@ function openSheet(e) {
   renderMarkers();
   if (isMobileSheet()) { $("sheet").dataset.snap = 1; snapSheet(1); } // open at glance: review visible immediately
   else { sh.style.height = ""; }
-  try { map.flyTo({ center: [e.lng, e.lat], zoom: Math.max(map.getZoom(), 14), duration: 1400 }); }
+  var clat = e._plat != null ? e._plat : e.lat, clng = e._plng != null ? e._plng : e.lng;
+  try { map.jumpTo({ center: [clng, clat], zoom: Math.max(map.getZoom(), 14) }); }
   catch (err) {}
   try { history.replaceState({ sel: e.id }, "", "#" + e.kind + "=" + encodeURIComponent(e.id)); }
   catch (err) {}
@@ -835,20 +1147,28 @@ function closeSheet(silent) {
   }, { passive: true });
 })();
 (function () {
-  var sh = $("sheet");
-  var startY = 0, startH = 0, dragging = false, moved = false;
-  function grabZone(t) {
-    return t.closest && (t.closest(".grab") || (sheetState === 0 && t.closest("#sheet")));
-  }
+  var sh = $("sheet"), body = $("sheetbody");
+  var startY = 0, startH = 0, dragging = false, moved = false, dir = 0, tapCycle = false;
   sh.addEventListener("touchstart", function (e) {
-    if (!isMobileSheet() || sheetState < 0 || !grabZone(e.target)) return;
-    dragging = true; moved = false;
+    if (!isMobileSheet() || sheetState < 0) return;
+    dragging = true; moved = false; dir = 0;
     startY = e.touches[0].clientY;
     startH = sh.getBoundingClientRect().height;
+    var t = e.target;
+    tapCycle = !!(t.closest && (t.closest(".grab") ||
+      (sheetState === 0 && t.closest("#sheet") && !t.closest("a,button"))));
   }, { passive: true });
   sh.addEventListener("touchmove", function (e) {
     if (!dragging) return;
-    var dy = startY - e.touches[0].clientY;
+    var dy = startY - e.touches[0].clientY; // + = up, - = down
+    if (!dir && Math.abs(dy) > 10) dir = dy > 0 ? 1 : -1;
+    var t = e.target;
+    var onGrab = !!(t.closest && t.closest(".grab"));
+    var atTop = body.scrollTop <= 0;
+    // whole card is the swipe region: take over on the grab handle,
+    // at peek, or when swiping down with the content already at top
+    var take = onGrab || sheetState === 0 || (dir < 0 && atTop);
+    if (!take) { dragging = false; return; } // let the content scroll natively
     if (Math.abs(dy) > 8) moved = true;
     var snaps = sheetSnaps();
     var nh = Math.min(snaps[2], Math.max(40, startH + dy));
@@ -861,8 +1181,8 @@ function closeSheet(silent) {
     sh.classList.remove("dragging");
     var snaps = sheetSnaps();
     var h = sh.getBoundingClientRect().height;
-    if (!moved) { // tap: peek->half->full cycle
-      snapSheet(sheetState >= 2 ? 0 : sheetState + 1);
+    if (!moved) { // tap: grab handle or peek cycles peek->half->full
+      if (tapCycle) snapSheet(sheetState >= 2 ? 0 : sheetState + 1);
       return;
     }
     if (h < (snaps[0] + snaps[1]) / 2) {
@@ -898,7 +1218,7 @@ document.querySelectorAll("#modeSeg button").forEach(function (b) {
     state.mode = b.getAttribute("data-mode");
     state.selected = null;
     $("sheet").classList.remove("open");
-    $("search").placeholder = state.mode === "events" ? "Search events" : "Search places";
+    $("search").placeholder = state.mode === "events" ? "Search events, news, people" : "Search my places";
     fadeRender();
   });
 });
@@ -913,20 +1233,130 @@ $("searchx").addEventListener("click", function () {
   $("searchwrap").classList.remove("open");
   $("search").value = ""; state.query = ""; fadeRender();
 });
-/* legend: dot colors -> categories present in the data */
+/* ================= saved views =================
+   Current filters auto-persist (mode, query, rings, categories, day
+   filter) and restore on load. One named preset slot: "Save view"
+   snapshots the current filters under a name; the chip applies it. */
+function currentView() {
+  return {
+    mode: state.mode, query: state.query, dayFilter: state.dayFilter,
+    rings: [0, 1, 2, 3, 4].map(function (i) { return !!state.rings[i]; }),
+    cats: CATS.map(function (c) { return !!state.cats[c]; })
+  };
+}
+function applyView(v) {
+  if (!v) return;
+  if (v.mode === "events" || v.mode === "places") state.mode = v.mode;
+  state.query = v.query || "";
+  if (v.dayFilter) state.dayFilter = v.dayFilter;
+  if (v.rings) v.rings.forEach(function (on, i) { state.rings[i] = !!on; });
+  if (v.cats) v.cats.forEach(function (on, i) { state.cats[CATS[i]] = !!on; });
+  document.querySelectorAll("#modeSeg button").forEach(function (x) {
+    x.classList.toggle("on", x.getAttribute("data-mode") === state.mode);
+  });
+  $("search").placeholder = state.mode === "events" ? "Search events, news, people" : "Search my places";
+  $("search").value = state.query;
+  $("searchwrap").classList.toggle("open", !!state.query);
+}
+function persistView() {
+  try { localStorage.setItem(VIEW_KEY, JSON.stringify(currentView())); } catch (err) {}
+}
+function restoreView() {
+  try {
+    var raw = localStorage.getItem(VIEW_KEY);
+    if (raw) applyView(JSON.parse(raw));
+  } catch (err) {}
+}
+function readPreset() {
+  try {
+    var raw = localStorage.getItem(PRESET_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (err) { return null; }
+}
+function renderPresetChip() {
+  var p = readPreset();
+  var chip = $("presetChip"), clr = $("clearPresetBtn");
+  if (p && p.name) {
+    chip.style.display = "";
+    chip.textContent = p.name;
+    clr.style.display = "";
+  } else {
+    chip.style.display = "none";
+    clr.style.display = "none";
+  }
+}
+$("saveViewBtn").addEventListener("click", function () {
+  var cur = readPreset();
+  var name = prompt("Name this view:", cur && cur.name ? cur.name : "");
+  if (name == null) return;
+  name = name.trim() || "My view";
+  try { localStorage.setItem(PRESET_KEY, JSON.stringify({ name: name, view: currentView() })); } catch (err) {}
+  renderPresetChip();
+  tip("View saved: " + name);
+});
+$("presetChip").addEventListener("click", function () {
+  var p = readPreset();
+  if (!p) return;
+  applyView(p.view);
+  render();
+});
+$("clearPresetBtn").addEventListener("click", function () {
+  try { localStorage.removeItem(PRESET_KEY); } catch (err) {}
+  renderPresetChip();
+});
+
+/* legend doubles as the category filter -- one row, no redundancy */
 function renderLegend() {
+  var box = $("legend");
+  box.innerHTML = "";
+  if (state.mode === "events") {
+    RING_NAMES.forEach(function (name, i) {
+      var b = document.createElement("button");
+      b.className = "leg" + (state.rings[i] ? "" : " off");
+      b.innerHTML = '<span class="ldot" style="background:' + RING_COLORS[i] + '"></span>' + esc(name);
+      b.addEventListener("click", function () {
+        state.rings[i] = !state.rings[i];
+        fadeRender();
+      });
+      box.appendChild(b);
+    });
+    var allR = document.createElement("button");
+    allR.className = "leg all";
+    allR.textContent = "All";
+    allR.addEventListener("click", function () {
+      RING_NAMES.forEach(function (n, i) { state.rings[i] = true; });
+      fadeRender();
+    });
+    box.appendChild(allR);
+    return;
+  }
   var seen = {};
   (state.places || []).forEach(function (p) { if (p.category) seen[p.category] = true; });
   var cats = CATS.filter(function (c) { return seen[c]; });
-  $("legend").innerHTML = cats.map(function (c) {
-    return '<span class="leg"><span class="ldot" style="background:' + PALETTE[c] + '"></span>' + esc(c) + "</span>";
-  }).join("");
+  cats.forEach(function (c) {
+    var b = document.createElement("button");
+    b.className = "leg" + (state.cats[c] ? "" : " off");
+    b.innerHTML = '<span class="ldot" style="background:' + PALETTE[c] + '"></span>' + esc(c);
+    b.addEventListener("click", function () {
+      state.cats[c] = !state.cats[c];
+      fadeRender();
+    });
+    box.appendChild(b);
+  });
+  var all = document.createElement("button");
+  all.className = "leg all";
+  all.textContent = "All";
+  all.addEventListener("click", function () {
+    CATS.forEach(function (c) { state.cats[c] = true; });
+    fadeRender();
+  });
+  box.appendChild(all);
 }
 
 /* Heat visibility follows zoom. Display-only; markers are untouched. */
 map.on("moveend", function () {
   document.body.classList.toggle("noheat", !state.heatOn || map.getZoom() >= 13);
-  renderList();
+  if (state.mode === "places") renderList(); // events list is ring/day-grouped, not viewport-based
 });
 /* mobile: hide chrome while the user is actively navigating */
 var navT = null;
@@ -944,6 +1374,8 @@ map.on("zoomend", function () {
 });
 
 /* ================= boot ================= */
+restoreView();
+renderPresetChip();
 function boot() {
   loadData().then(function () {
     frameInitial();          // camera set BEFORE any marker exists
@@ -951,7 +1383,7 @@ function boot() {
     renderLegend();
     render();                // markers created once, at final positions
     // deep link: show the place, no camera flight
-    var m = location.hash.match(/^#(place|event)=(.+)$/);
+    var m = location.hash.match(/^#(place|event|packet)=(.+)$/);
     if (m) {
       var e = findById(decodeURIComponent(m[2]));
       if (e) {
@@ -960,7 +1392,7 @@ function boot() {
           x.classList.toggle("on", x.getAttribute("data-mode") === state.mode);
         });
         render();
-        try { map.jumpTo({ center: [e.lng, e.lat] }); } catch (err) {}
+        try { map.jumpTo({ center: [(e._plng != null ? e._plng : e.lng), (e._plat != null ? e._plat : e.lat)] }); } catch (err) {}
         openSheet(e);
       }
     }
