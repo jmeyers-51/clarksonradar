@@ -1,0 +1,43 @@
+# sync-packets.yml -- DRAFT, not yet committed to the repo.
+# Merged 315signalfeed + radar board: hourly sync of packet data.
+# SOURCE: the Intel + Queue tabs of the 315signalfeed Sheet, published to the
+# web as CSV (File > Share > Publish to web, those two tabs only). No Apps
+# Script, no deploy helper, no credentials: the Action curls the public CSVs,
+# converts them with scripts/build_packets_from_csv.py, and commits only when
+# changed. Pages rebuilds automatically. No human in the loop.
+# (Proven Nov 10: the script reproduces the sample packets.json exactly --
+# 436 packets, rings 152/69/35/99/81, 35 upcoming -- from the live Sheet CSVs.)
+name: Sync signal packets
+on:
+  schedule:
+    - cron: '0 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch published Sheet CSVs
+        run: |
+          curl -fsSL "https://docs.google.com/spreadsheets/d/1qKstQyD1y-ma9fqjkB7rXFbDGp3_WWJ_Gt_JrQRwSQY/export?format=csv&gid=1358923580" -o /tmp/intel.csv
+          curl -fsSL "https://docs.google.com/spreadsheets/d/1qKstQyD1y-ma9fqjkB7rXFbDGp3_WWJ_Gt_JrQRwSQY/export?format=csv&gid=0" -o /tmp/queue.csv
+          # Guard: an unpublished tab answers with a Google sign-in page, not
+          # CSV. Fail loudly here so packets.json is never overwritten with junk.
+          head -1 /tmp/intel.csv | grep -q '^date,handle,headline' || { echo "Intel CSV header mismatch -- tabs not published yet"; exit 1; }
+          head -1 /tmp/queue.csv | grep -q '^handle,display_name' || { echo "Queue CSV header mismatch -- tabs not published yet"; exit 1; }
+      - name: Build packets.json + upcoming.json
+        run: python3 scripts/build_packets_from_csv.py /tmp/intel.csv /tmp/queue.csv packets.json upcoming.json
+      - name: Commit if changed
+        run: |
+          git config user.name "signalfeed-sync"
+          git config user.email "signalfeed-sync@users.noreply.github.com"
+          git add packets.json upcoming.json
+          git diff --cached --quiet && echo "no changes" || (git commit -m "sync packets $(date -u +%Y-%m-%dT%H:%M:%SZ)" && git push)
+      - name: Verify live Pages copy (informational only)
+        continue-on-error: true
+        run: |
+          sleep 60
+          curl -fsSL "https://jmeyers-51.github.io/clarksonradar/packets.json" -o /tmp/live.json
+          python3 -c "import json; m=json.load(open('/tmp/live.json'))['meta']; print('live updated:', m['updated'], 'total:', m['total'])"
